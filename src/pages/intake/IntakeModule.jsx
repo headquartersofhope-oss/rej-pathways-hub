@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useOutletContext } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,9 +15,41 @@ import ResidentProgressView from '@/components/intake/ResidentProgressView';
 import { isStaff } from '@/lib/roles';
 import { deriveIntakeStatus, INTAKE_STATUS_LABELS, INTAKE_STATUS_STYLES } from '@/lib/intakeStatus';
 
+// Write back intake completion to Resident record and return the updated resident
+export async function writeBackIntakeCompletion(resident, { assessment, barriers, tasks }) {
+  const hasIntakeData =
+    assessment?.status === 'completed' ||
+    (assessment && (barriers?.length > 0 || tasks?.length > 0));
+
+  if (!hasIntakeData) return null;
+
+  const needsBackfill = !resident.intake_date || resident.status === 'pre_intake';
+  if (!needsBackfill) return null;
+
+  const completedDate =
+    assessment?.completed_at
+      ? assessment.completed_at.split('T')[0]
+      : (assessment?.created_date
+        ? assessment.created_date.split('T')[0]
+        : new Date().toISOString().split('T')[0]);
+
+  await base44.entities.Resident.update(resident.id, {
+    intake_date: resident.intake_date || completedDate,
+    status: resident.status === 'pre_intake' ? 'active' : resident.status,
+  });
+
+  // Re-fetch to confirm write succeeded
+  const updated = await base44.entities.Resident.get(resident.id);
+  if (!updated.intake_date) {
+    console.warn(`[IntakeWriteBack] Write-back may have failed for resident ${resident.id} — intake_date still blank`);
+  }
+  return updated;
+}
+
 export default function IntakeModule() {
   const { residentId } = useParams();
   const { user } = useOutletContext();
+  const queryClient = useQueryClient();
   const isStaffUser = isStaff(user?.role);
 
   const validResidentId = !!residentId && residentId !== ':residentId';
@@ -53,19 +85,17 @@ export default function IntakeModule() {
   const intakeStatus = deriveIntakeStatus({ assessment, barriers, tasks, resident });
   const isCompleted = intakeStatus === 'completed';
 
-  // Backfill: if intake is completed but Resident record is missing intake_date, write it back now
+  // Backfill: if intake data exists but Resident record not yet updated, write it back and refresh
   useEffect(() => {
-    if (!resident || !isCompleted || isLoading) return;
-    const needsBackfill = !resident.intake_date || resident.status === 'pre_intake';
-    if (!needsBackfill) return;
-    const completedDate = assessment?.completed_at
-      ? assessment.completed_at.split('T')[0]
-      : (assessment?.created_date ? assessment.created_date.split('T')[0] : new Date().toISOString().split('T')[0]);
-    base44.entities.Resident.update(resident.id, {
-      intake_date: resident.intake_date || completedDate,
-      status: resident.status === 'pre_intake' ? 'active' : resident.status,
+    if (isLoading || !resident) return;
+    writeBackIntakeCompletion(resident, { assessment, barriers, tasks }).then(updated => {
+      if (updated) {
+        // Confirmed write-back succeeded — refresh resident everywhere
+        queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+        queryClient.invalidateQueries({ queryKey: ['residents'] });
+      }
     });
-  }, [resident, isCompleted, isLoading]);
+  }, [isLoading, resident?.id, assessment?.id, barriers.length, tasks.length]);
 
   const handleExport = () => {
     const lines = [
@@ -205,21 +235,59 @@ export default function IntakeModule() {
 
 // Sub-component: list of residents with their intake status
 function ResidentListView({ user }) {
-  const { data: residents = [] } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { data: residents = [], isLoading: loadingResidents } = useQuery({
     queryKey: ['residents'],
     queryFn: () => base44.entities.Resident.list(),
   });
 
-  const { data: assessments = [] } = useQuery({
+  const { data: assessments = [], isLoading: loadingAssessments } = useQuery({
     queryKey: ['all-assessments'],
     queryFn: () => base44.entities.IntakeAssessment.list(),
   });
 
+  const { data: allBarriers = [], isLoading: loadingBarriers } = useQuery({
+    queryKey: ['all-barriers'],
+    queryFn: () => base44.entities.BarrierItem.list(),
+  });
+
+  const { data: allTasks = [], isLoading: loadingTasks } = useQuery({
+    queryKey: ['all-service-tasks'],
+    queryFn: () => base44.entities.ServiceTask.list(),
+  });
+
+  const isLoading = loadingResidents || loadingAssessments || loadingBarriers || loadingTasks;
+
+  // Backfill any resident that has intake data but missing intake_date on their record
+  useEffect(() => {
+    if (isLoading || residents.length === 0) return;
+    residents.forEach(r => {
+      const assessment = assessments.find(a => a.resident_id === r.id);
+      const barriers = allBarriers.filter(b => b.resident_id === r.id);
+      const tasks = allTasks.filter(t => t.resident_id === r.id);
+      writeBackIntakeCompletion(r, { assessment, barriers, tasks }).then(updated => {
+        if (updated) {
+          queryClient.invalidateQueries({ queryKey: ['residents'] });
+          queryClient.invalidateQueries({ queryKey: ['resident', r.id] });
+        }
+      });
+    });
+  }, [isLoading, residents.length]);
+
   const getStatus = (resident) => {
-    // Use canonical intake status: resident.intake_date is the most reliable signal after write-back
     if (resident.intake_date) return 'completed';
-    const a = assessments.find(a => a.resident_id === resident.id);
-    return deriveIntakeStatus({ assessment: a });
+    const assessment = assessments.find(a => a.resident_id === resident.id);
+    const barriers = allBarriers.filter(b => b.resident_id === resident.id);
+    const tasks = allTasks.filter(t => t.resident_id === resident.id);
+    return deriveIntakeStatus({ assessment, barriers, tasks, resident });
+  };
+
+  const getIntakeDate = (resident) => {
+    if (resident.intake_date) return resident.intake_date;
+    const assessment = assessments.find(a => a.resident_id === resident.id);
+    if (assessment?.completed_at) return assessment.completed_at.split('T')[0];
+    return null;
   };
 
   return (
@@ -228,6 +296,7 @@ function ResidentListView({ user }) {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {residents.map(r => {
           const status = getStatus(r);
+          const intakeDate = getIntakeDate(r);
           return (
             <Link key={r.id} to={`/intake/${r.id}`}>
               <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
@@ -240,8 +309,8 @@ function ResidentListView({ user }) {
                     <Badge className={`text-[10px] mt-1 ${INTAKE_STATUS_STYLES[status]}`}>
                       {INTAKE_STATUS_LABELS[status]}
                     </Badge>
-                    {r.intake_date && status === 'completed' && (
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{r.intake_date}</p>
+                    {intakeDate && status === 'completed' && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{intakeDate}</p>
                     )}
                   </div>
                 </div>

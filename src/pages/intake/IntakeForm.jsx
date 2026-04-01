@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,6 +55,7 @@ const STEP_COMPONENTS = {
 export default function IntakeForm() {
   const { residentId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [formData, setFormData] = useState({});
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -188,6 +189,22 @@ export default function IntakeForm() {
         intake_date: new Date().toISOString().split('T')[0],
         status: resident.status === 'pre_intake' ? 'active' : resident.status,
       });
+
+      // Re-fetch to verify write succeeded
+      const updated = await base44.entities.Resident.get(resident.id);
+      if (!updated.intake_date) {
+        console.warn(`[IntakeForm] intake_date still blank after write for resident ${resident.id}`);
+      }
+
+      // Invalidate all related caches so every screen shows fresh data
+      queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+      queryClient.invalidateQueries({ queryKey: ['assessment', residentId] });
+      queryClient.invalidateQueries({ queryKey: ['barriers', residentId] });
+      queryClient.invalidateQueries({ queryKey: ['service-tasks', residentId] });
+      queryClient.invalidateQueries({ queryKey: ['all-assessments'] });
+      queryClient.invalidateQueries({ queryKey: ['all-barriers'] });
+      queryClient.invalidateQueries({ queryKey: ['all-service-tasks'] });
 
       navigate(`/intake/${residentId}`);
     } finally {

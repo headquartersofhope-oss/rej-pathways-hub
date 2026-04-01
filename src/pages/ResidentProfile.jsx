@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useOutletContext } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { writeBackIntakeCompletion } from '@/pages/intake/IntakeModule';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -64,6 +65,17 @@ export default function ResidentProfile() {
     queryFn: () => base44.entities.ServiceTask.filter({ resident_id: residentId }),
     enabled: !!residentId,
   });
+
+  // Backfill: if intake data exists but resident record not yet updated, write it back and refresh
+  useEffect(() => {
+    if (!resident || !assessment) return;
+    writeBackIntakeCompletion(resident, { assessment, barriers, tasks }).then(updated => {
+      if (updated) {
+        queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+        queryClient.invalidateQueries({ queryKey: ['residents'] });
+      }
+    });
+  }, [resident?.id, assessment?.id, barriers.length, tasks.length]);
 
   if (!resident) {
     return (
