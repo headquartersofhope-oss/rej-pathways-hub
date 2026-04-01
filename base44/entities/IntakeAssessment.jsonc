@@ -5,11 +5,11 @@
   "properties": {
     "global_resident_id": {
       "type": "string",
-      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id. This is the master person identifier used to connect this intake record to the resident across all modules and systems."
+      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id."
     },
     "resident_id": {
       "type": "string",
-      "description": "Database object ID of the Resident record (internal FK). Use global_resident_id for cross-module identity lookups."
+      "description": "Database object ID of the Resident record (internal FK)."
     },
     "organization_id": {
       "type": "string"
@@ -37,9 +37,52 @@
           "type": "string"
         },
         "pronouns": {
+          "type": "string",
+          "enum": [
+            "he_him",
+            "she_her",
+            "they_them",
+            "other",
+            "prefer_not_to_say"
+          ]
+        },
+        "pronouns_other": {
           "type": "string"
         },
+        "gender_identity": {
+          "type": "string",
+          "enum": [
+            "male",
+            "female",
+            "non_binary",
+            "transgender_male",
+            "transgender_female",
+            "other",
+            "prefer_not_to_say"
+          ]
+        },
+        "race_ethnicity": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Multi-select race/ethnicity categories"
+        },
         "primary_language": {
+          "type": "string",
+          "enum": [
+            "english",
+            "spanish",
+            "french",
+            "mandarin",
+            "cantonese",
+            "vietnamese",
+            "tagalog",
+            "arabic",
+            "other"
+          ]
+        },
+        "primary_language_other": {
           "type": "string"
         },
         "interpreter_needed": {
@@ -83,6 +126,8 @@
             "violent",
             "non_violent",
             "drug_related",
+            "property",
+            "dui",
             "other",
             "na"
           ]
@@ -104,7 +149,15 @@
           "type": "string"
         },
         "check_in_frequency": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "daily",
+            "twice_weekly",
+            "weekly",
+            "biweekly",
+            "monthly",
+            "as_needed"
+          ]
         },
         "geographic_restrictions": {
           "type": "boolean"
@@ -148,7 +201,17 @@
           "type": "boolean"
         },
         "branch": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "army",
+            "navy",
+            "marines",
+            "air_force",
+            "space_force",
+            "coast_guard",
+            "national_guard",
+            "other"
+          ]
         },
         "discharge_status": {
           "type": "string",
@@ -223,6 +286,26 @@
     "work_history": {
       "type": "object",
       "properties": {
+        "employment_status": {
+          "type": "string",
+          "enum": [
+            "unemployed",
+            "part_time",
+            "full_time",
+            "employed_with_barriers",
+            "gig_informal",
+            "unable_to_work"
+          ]
+        },
+        "experience_level": {
+          "type": "string",
+          "enum": [
+            "none",
+            "limited",
+            "moderate",
+            "extensive"
+          ]
+        },
         "years_of_experience": {
           "type": "number"
         },
@@ -238,6 +321,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "job_interests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Multi-select job interest categories"
         },
         "fired_or_left": {
           "type": "string",
@@ -257,6 +347,17 @@
     "transportation": {
       "type": "object",
       "properties": {
+        "transport_access": {
+          "type": "string",
+          "enum": [
+            "none",
+            "public_transit",
+            "rideshare",
+            "own_vehicle",
+            "carpool",
+            "bicycle"
+          ]
+        },
         "has_vehicle": {
           "type": "boolean"
         },
@@ -274,6 +375,21 @@
         },
         "max_commute_minutes": {
           "type": "number"
+        },
+        "shift_availability": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Multi-select shift availability"
+        },
+        "schedule_preference": {
+          "type": "string",
+          "enum": [
+            "full_time",
+            "part_time",
+            "flexible"
+          ]
         },
         "notes": {
           "type": "string"
@@ -400,6 +516,13 @@
         },
         "has_dd214": {
           "type": "boolean"
+        },
+        "missing_documents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Multi-select list of missing/needed documents"
         },
         "notes": {
           "type": "string"

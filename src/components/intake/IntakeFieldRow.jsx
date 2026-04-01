@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 export function BooleanField({ label, description, value, onChange }) {
   return (
@@ -40,6 +42,51 @@ export function SelectField({ label, value, onChange, options, placeholder }) {
           ))}
         </SelectContent>
       </Select>
+    </div>
+  );
+}
+
+export function MultiSelectField({ label, value = [], onChange, options }) {
+  const selected = Array.isArray(value) ? value : [];
+  const toggle = (val) => {
+    if (selected.includes(val)) {
+      onChange(selected.filter(v => v !== val));
+    } else {
+      onChange([...selected, val]);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm">{label}</Label>
+      <div className="flex flex-wrap gap-2">
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => toggle(opt.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              selected.includes(opt.value)
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-background text-foreground border-border hover:bg-muted'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {selected.map(v => {
+            const opt = options.find(o => o.value === v);
+            return opt ? (
+              <Badge key={v} variant="secondary" className="text-xs gap-1">
+                {opt.label}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => toggle(v)} />
+              </Badge>
+            ) : null;
+          })}
+        </div>
+      )}
     </div>
   );
 }
