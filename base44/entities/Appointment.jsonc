@@ -1,0 +1,77 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "description": "Scheduled appointment for a resident. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Internal DB FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "staff_id": {
+      "type": "string"
+    },
+    "staff_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "appointment_type": {
+      "type": "string",
+      "enum": [
+        "intake",
+        "case_review",
+        "job_readiness",
+        "employment",
+        "mental_health",
+        "legal",
+        "probation",
+        "exit_planning",
+        "other"
+      ],
+      "default": "case_review"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "time": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "confirmed",
+        "completed",
+        "missed",
+        "cancelled",
+        "rescheduled"
+      ],
+      "default": "scheduled"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "resident_id",
+    "global_resident_id",
+    "title",
+    "date"
+  ]
+}

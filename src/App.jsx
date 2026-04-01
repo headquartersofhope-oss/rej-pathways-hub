@@ -21,6 +21,8 @@ import Messages from '@/pages/Messages';
 import ModulePlaceholder from '@/pages/ModulePlaceholder';
 import IntakeModule from '@/pages/intake/IntakeModule';
 import IntakeForm from '@/pages/intake/IntakeForm';
+import ResidentProfile from '@/pages/ResidentProfile';
+import CaseManagement from '@/pages/CaseManagement';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +67,8 @@ const AuthenticatedApp = () => {
         <Route path="/intake" element={<IntakeModule />} />
         <Route path="/intake/:residentId" element={<IntakeModule />} />
         <Route path="/intake/:residentId/form" element={<IntakeForm />} />
+        <Route path="/residents/:residentId" element={<ResidentProfile />} />
+        <Route path="/case-management" element={<CaseManagement />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

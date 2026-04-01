@@ -1,0 +1,56 @@
+{
+  "name": "CaseNote",
+  "type": "object",
+  "description": "Case management note linked to a resident via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Internal DB FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "staff_id": {
+      "type": "string",
+      "description": "User ID of the staff member who wrote the note"
+    },
+    "staff_name": {
+      "type": "string"
+    },
+    "note_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "progress",
+        "incident",
+        "plan_update",
+        "employment",
+        "housing",
+        "mental_health",
+        "legal",
+        "other"
+      ],
+      "default": "general"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_confidential": {
+      "type": "boolean",
+      "default": false
+    },
+    "linked_barrier_id": {
+      "type": "string",
+      "description": "Optional BarrierItem.id this note relates to"
+    }
+  },
+  "required": [
+    "resident_id",
+    "global_resident_id",
+    "description"
+  ]
+}

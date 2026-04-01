@@ -1,0 +1,75 @@
+{
+  "name": "Incident",
+  "type": "object",
+  "description": "Incident report linked to a resident via global_resident_id. Visible to authorized staff only.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Internal DB FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "reported_by_id": {
+      "type": "string"
+    },
+    "reported_by_name": {
+      "type": "string"
+    },
+    "incident_type": {
+      "type": "string",
+      "enum": [
+        "missed_appointment",
+        "no_show",
+        "behavioral_issue",
+        "relapse_concern",
+        "documentation_issue",
+        "employment_issue"
+      ],
+      "default": "missed_appointment"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "description": {
+      "type": "string"
+    },
+    "action_taken": {
+      "type": "string"
+    },
+    "follow_up_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "follow_up_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "resolved": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "resident_id",
+    "global_resident_id",
+    "incident_type",
+    "date",
+    "description"
+  ]
+}

@@ -135,7 +135,8 @@ export default function Residents() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((r) => (
-            <Card key={r.id} className="p-5 hover:shadow-md transition-shadow cursor-pointer">
+            <Link key={r.id} to={`/residents/${r.id}`}>
+            <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                   {r.first_name?.[0]}{r.last_name?.[0]}
@@ -179,6 +180,7 @@ export default function Residents() {
                 </Link>
               </div>
             </Card>
+            </Link>
           ))}
         </div>
       )}
