@@ -102,7 +102,12 @@ export default function IntakeForm() {
 
   const handleSave = async (showFeedback = true) => {
     setSaving(true);
-    const payload = { ...formData, resident_id: residentId, status: 'in_progress' };
+    const payload = {
+      ...formData,
+      resident_id: residentId,
+      global_resident_id: resident?.global_resident_id || '',
+      status: 'in_progress',
+    };
     if (existingAssessment?.id) {
       await base44.entities.IntakeAssessment.update(existingAssessment.id, payload);
     } else {
@@ -114,7 +119,14 @@ export default function IntakeForm() {
   const handleComplete = async () => {
     setCompleting(true);
     // Save final data
-    const assessmentData = { ...formData, resident_id: residentId, status: 'completed', completed_at: new Date().toISOString() };
+    const globalResidentId = resident?.global_resident_id || '';
+    const assessmentData = {
+      ...formData,
+      resident_id: residentId,
+      global_resident_id: globalResidentId,
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+    };
 
     // Detect barriers
     const barriers = detectBarriers(assessmentData);
@@ -130,24 +142,29 @@ export default function IntakeForm() {
 
     const assessmentId = existingAssessment?.id || assessment?.id;
 
-    // Create barrier items
+    // Create barrier items — include global_resident_id on every record
     const createdBarriers = await Promise.all(
-      barriers.map(b => base44.entities.BarrierItem.create({ ...b, assessment_id: assessmentId }))
+      barriers.map(b => base44.entities.BarrierItem.create({
+        ...b,
+        assessment_id: assessmentId,
+        global_resident_id: globalResidentId,
+      }))
     );
 
-    // Create service plan
+    // Create service plan — include global_resident_id
     const plan = await base44.entities.ServicePlan.create({
       resident_id: residentId,
+      global_resident_id: globalResidentId,
       assessment_id: assessmentId,
       organization_id: formData.organization_id || '',
       title: `Service Plan — ${resident?.first_name} ${resident?.last_name}`,
       status: 'active',
     });
 
-    // Generate tasks for all barriers
+    // Generate tasks for all barriers — include global_resident_id on every record
     await Promise.all(
       createdBarriers.map(barrier =>
-        generateTasksForBarrier(barrier, plan?.id || '', residentId, '').map(task =>
+        generateTasksForBarrier(barrier, plan?.id || '', residentId, globalResidentId, '').map(task =>
           base44.entities.ServiceTask.create(task)
         )
       ).flat()

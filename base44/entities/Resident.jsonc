@@ -1,16 +1,23 @@
 {
   "name": "Resident",
   "type": "object",
+  "description": "Master identity record for every resident across all modules and connected systems. The global_resident_id is the single source of truth for person identity.",
   "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "PRIMARY IDENTITY FIELD. Globally unique, human-readable resident identifier (e.g. GRI-000001). Used as the master person reference across all modules, apps, and connected systems. Never replaced by module-specific record IDs."
+    },
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "The organization this resident is enrolled in"
     },
     "site_id": {
-      "type": "string"
+      "type": "string",
+      "description": "The site within the organization this resident is assigned to"
     },
     "user_id": {
       "type": "string",
-      "description": "Linked user account ID"
+      "description": "Linked user account ID (portal login)"
     },
     "first_name": {
       "type": "string"
@@ -109,7 +116,7 @@
       "items": {
         "type": "string"
       },
-      "description": "List of identified barriers"
+      "description": "List of identified barrier categories (summary only; full barrier records stored in BarrierItem with global_resident_id)"
     },
     "goals": {
       "type": "array",

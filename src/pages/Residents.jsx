@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { isValidGlobalResidentId } from '@/lib/residentIdentity';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -122,7 +123,7 @@ export default function Residents() {
                   <p className="font-heading font-semibold text-sm truncate">
                     {r.preferred_name || r.first_name} {r.last_name}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <Badge className={`text-[10px] px-1.5 py-0 ${statusColors[r.status] || ''}`}>
                       {(r.status || 'active').replace(/_/g, ' ')}
                     </Badge>
@@ -132,6 +133,9 @@ export default function Residents() {
                       </Badge>
                     )}
                   </div>
+                  {r.global_resident_id && (
+                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{r.global_resident_id}</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">

@@ -1,9 +1,15 @@
 {
   "name": "IntakeAssessment",
   "type": "object",
+  "description": "Module record for the Intake & Barrier Assessment module. Each record has its own intake_record_id and links back to the resident via global_resident_id.",
   "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id. This is the master person identifier used to connect this intake record to the resident across all modules and systems."
+    },
     "resident_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK). Use global_resident_id for cross-module identity lookups."
     },
     "organization_id": {
       "type": "string"
@@ -531,6 +537,7 @@
     }
   },
   "required": [
-    "resident_id"
+    "resident_id",
+    "global_resident_id"
   ]
 }

@@ -1,12 +1,19 @@
 {
   "name": "BarrierItem",
   "type": "object",
+  "description": "Module record for the Intake & Barrier Assessment module. barrier_record_id is the internal record identifier. global_resident_id is the master identity link.",
   "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id. This is the master person identifier for cross-module and cross-system lookups."
+    },
     "resident_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK)."
     },
     "assessment_id": {
-      "type": "string"
+      "type": "string",
+      "description": "intake_record_id \u2014 the IntakeAssessment record this barrier was generated from."
     },
     "organization_id": {
       "type": "string"
@@ -92,6 +99,7 @@
   },
   "required": [
     "resident_id",
+    "global_resident_id",
     "category",
     "title"
   ]

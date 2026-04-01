@@ -1,11 +1,17 @@
 {
   "name": "Document",
   "type": "object",
+  "description": "Module record for resident documents. global_resident_id is the master identity link to the resident.",
   "properties": {
-    "organization_id": {
-      "type": "string"
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id. This is the master person identifier for cross-module and cross-system lookups."
     },
     "resident_id": {
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK)."
+    },
+    "organization_id": {
       "type": "string"
     },
     "uploaded_by": {

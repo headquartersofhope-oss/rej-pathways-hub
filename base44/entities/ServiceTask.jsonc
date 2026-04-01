@@ -1,15 +1,23 @@
 {
   "name": "ServiceTask",
   "type": "object",
+  "description": "Module record for the Case Management module. Each task has its own internal record ID. global_resident_id is the master identity link to the resident.",
   "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id. This is the master person identifier for cross-module and cross-system lookups."
+    },
     "resident_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK)."
     },
     "plan_id": {
-      "type": "string"
+      "type": "string",
+      "description": "case_note_id / service plan record ID this task belongs to."
     },
     "barrier_item_id": {
-      "type": "string"
+      "type": "string",
+      "description": "barrier_record_id \u2014 the BarrierItem this task addresses."
     },
     "organization_id": {
       "type": "string"
@@ -68,6 +76,7 @@
   },
   "required": [
     "resident_id",
+    "global_resident_id",
     "title"
   ]
 }

@@ -235,6 +235,7 @@ export function detectBarriers(intake) {
     auto_generated: true,
     status: 'new',
     resident_id: intake.resident_id,
+    global_resident_id: intake.global_resident_id || '',
     assessment_id: intake.id,
     organization_id: intake.organization_id,
   }));
@@ -243,8 +244,14 @@ export function detectBarriers(intake) {
 /**
  * Generates tasks for each barrier.
  */
-export function generateTasksForBarrier(barrier, planId, residentId, orgId) {
-  const base = { plan_id: planId, resident_id: residentId, organization_id: orgId, barrier_item_id: barrier.id || '' };
+export function generateTasksForBarrier(barrier, planId, residentId, globalResidentId, orgId) {
+  const base = {
+    plan_id: planId,
+    resident_id: residentId,
+    global_resident_id: globalResidentId || '',
+    organization_id: orgId,
+    barrier_item_id: barrier.id || '',
+  };
   const taskMap = {
     'Missing State ID': [
       { title: 'Gather required documents (birth certificate, proof of address)', priority: 'urgent', is_resident_visible: true },
