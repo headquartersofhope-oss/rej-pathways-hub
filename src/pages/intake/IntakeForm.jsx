@@ -119,6 +119,10 @@ export default function IntakeForm() {
   };
 
   const handleComplete = async () => {
+    if (!residentId || residentId === ':residentId' || !resident?.id) {
+      console.error('Cannot complete: invalid residentId', residentId);
+      return;
+    }
     setCompleting(true);
     // Save final data
     const globalResidentId = resident?.global_resident_id || '';
@@ -173,7 +177,7 @@ export default function IntakeForm() {
     );
 
     // Update resident scores
-    await base44.entities.Resident.update(residentId, { job_readiness_score: scores.work_readiness_score });
+    await base44.entities.Resident.update(resident.id, { job_readiness_score: scores.work_readiness_score });
 
     setCompleting(false);
     navigate(`/intake/${residentId}`);
