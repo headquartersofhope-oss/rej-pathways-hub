@@ -124,63 +124,71 @@ export default function IntakeForm() {
       return;
     }
     setCompleting(true);
-    // Save final data
-    const globalResidentId = resident?.global_resident_id || '';
-    const assessmentData = {
-      ...formData,
-      resident_id: residentId,
-      global_resident_id: globalResidentId,
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-    };
+    try {
+      const globalResidentId = resident.global_resident_id || '';
 
-    // Detect barriers
-    const barriers = detectBarriers(assessmentData);
-    const scores = calculateScores(assessmentData, barriers);
-    assessmentData.scores = scores;
-
-    let savedAssessment;
-    if (existingAssessment?.id) {
-      savedAssessment = await base44.entities.IntakeAssessment.update(existingAssessment.id, assessmentData);
-    } else {
-      savedAssessment = await base44.entities.IntakeAssessment.create(assessmentData);
-    }
-
-    const assessmentId = existingAssessment?.id || savedAssessment?.id;
-
-    // Create barrier items — include global_resident_id on every record
-    const createdBarriers = await Promise.all(
-      barriers.map(b => base44.entities.BarrierItem.create({
-        ...b,
-        assessment_id: assessmentId,
+      // Detect barriers and scores before saving
+      const rawData = {
+        ...formData,
+        resident_id: residentId,
         global_resident_id: globalResidentId,
-      }))
-    );
+      };
+      const detectedBarriers = detectBarriers(rawData);
+      const scores = calculateScores(rawData, detectedBarriers);
 
-    // Create service plan — include global_resident_id
-    const plan = await base44.entities.ServicePlan.create({
-      resident_id: residentId,
-      global_resident_id: globalResidentId,
-      assessment_id: assessmentId,
-      organization_id: formData.organization_id || '',
-      title: `Service Plan — ${resident?.first_name} ${resident?.last_name}`,
-      status: 'active',
-    });
+      const assessmentData = {
+        ...rawData,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        scores,
+      };
 
-    // Generate tasks for all barriers — include global_resident_id on every record
-    await Promise.all(
-      createdBarriers.map(barrier =>
-        generateTasksForBarrier(barrier, plan?.id || '', residentId, globalResidentId, '').map(task =>
-          base44.entities.ServiceTask.create(task)
+      // Save assessment and get back the confirmed ID
+      let assessmentId;
+      if (existingAssessment?.id) {
+        await base44.entities.IntakeAssessment.update(existingAssessment.id, assessmentData);
+        assessmentId = existingAssessment.id;
+      } else {
+        const created = await base44.entities.IntakeAssessment.create(assessmentData);
+        assessmentId = created.id;
+      }
+
+      // Create barrier items
+      const createdBarriers = await Promise.all(
+        detectedBarriers.map(b => base44.entities.BarrierItem.create({
+          ...b,
+          resident_id: residentId,
+          global_resident_id: globalResidentId,
+          assessment_id: assessmentId,
+        }))
+      );
+
+      // Create service plan
+      const plan = await base44.entities.ServicePlan.create({
+        resident_id: residentId,
+        global_resident_id: globalResidentId,
+        assessment_id: assessmentId,
+        organization_id: '',
+        title: `Service Plan — ${resident.first_name} ${resident.last_name}`,
+        status: 'active',
+      });
+
+      // Generate tasks for all barriers
+      await Promise.all(
+        createdBarriers.flatMap(barrier =>
+          generateTasksForBarrier(barrier, plan.id, residentId, globalResidentId, '').map(task =>
+            base44.entities.ServiceTask.create(task)
+          )
         )
-      ).flat()
-    );
+      );
 
-    // Update resident scores
-    await base44.entities.Resident.update(resident.id, { job_readiness_score: scores.work_readiness_score });
+      // Update resident job readiness score
+      await base44.entities.Resident.update(resident.id, { job_readiness_score: scores.work_readiness_score });
 
-    setCompleting(false);
-    navigate(`/intake/${residentId}`);
+      navigate(`/intake/${residentId}`);
+    } finally {
+      setCompleting(false);
+    }
   };
 
   return (

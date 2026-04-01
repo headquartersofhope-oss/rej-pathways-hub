@@ -19,34 +19,37 @@ export default function IntakeModule() {
   const { user } = useOutletContext();
   const isStaffUser = isStaff(user?.role);
 
+  const validResidentId = !!residentId && residentId !== ':residentId';
+
   const { data: resident, isLoading: loadingResident } = useQuery({
     queryKey: ['resident', residentId],
     queryFn: () => base44.entities.Resident.get(residentId),
-    enabled: !!residentId && residentId !== ':residentId',
+    enabled: validResidentId,
   });
 
   const { data: assessment, isLoading: loadingAssessment, refetch: refetchAssessment } = useQuery({
     queryKey: ['assessment', residentId],
     queryFn: () => base44.entities.IntakeAssessment.filter({ resident_id: residentId }).then(r => r[0] || null),
-    enabled: !!residentId,
+    enabled: validResidentId,
   });
 
   const { data: barriers = [], isLoading: loadingBarriers, refetch: refetchBarriers } = useQuery({
     queryKey: ['barriers', residentId],
     queryFn: () => base44.entities.BarrierItem.filter({ resident_id: residentId }),
-    enabled: !!residentId,
+    enabled: validResidentId,
   });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['service-tasks', residentId],
     queryFn: () => base44.entities.ServiceTask.filter({ resident_id: residentId }),
-    enabled: !!residentId,
+    enabled: validResidentId,
   });
 
-  const isLoading = loadingResident || loadingAssessment || loadingBarriers || loadingTasks;
+  // Only show loading spinner while queries are actively fetching (not when disabled)
+  const isLoading = validResidentId && (loadingResident || loadingAssessment || loadingBarriers || loadingTasks);
   const completedBarriers = barriers.filter(b => b.status === 'resolved').length;
-  // Treat as completed if status is 'completed', OR if barriers/tasks were already generated
-  const isCompleted = assessment?.status === 'completed' || (assessment && barriers.length > 0);
+  // Completed if: status is 'completed', OR barriers/tasks were already generated (generation succeeded but status may not have saved)
+  const isCompleted = assessment?.status === 'completed' || (assessment && (barriers.length > 0 || tasks.length > 0));
 
   const handleExport = () => {
     const lines = [
