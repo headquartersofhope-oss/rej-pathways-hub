@@ -50,18 +50,18 @@
 
 /**
  * Generate a new global_resident_id.
- * Format: GRI-XXXXXX (zero-padded 6-digit sequence)
+ * Format: RES-XXXXXX (zero-padded 6-digit sequence)
  *
  * Usage: call this when creating a new Resident record.
  * The sequence number should be derived from the total resident count + 1,
  * or from a dedicated counter to ensure uniqueness.
  *
  * @param {number} sequence - The next sequence number (e.g. total residents + 1)
- * @returns {string} e.g. "GRI-000001"
+ * @returns {string} e.g. "RES-000001"
  */
 export function generateGlobalResidentId(sequence) {
   const padded = String(sequence).padStart(6, '0');
-  return `GRI-${padded}`;
+  return `RES-${padded}`;
 }
 
 /**
@@ -70,7 +70,25 @@ export function generateGlobalResidentId(sequence) {
  * @returns {boolean}
  */
 export function isValidGlobalResidentId(id) {
-  return typeof id === 'string' && /^GRI-\d{6}$/.test(id);
+  return typeof id === 'string' && /^RES-\d{6}$/.test(id);
+}
+
+/**
+ * Given a list of all existing residents, compute the next unique global_resident_id.
+ * Scans all existing RES-XXXXXX values and returns the next one after the highest found.
+ *
+ * @param {Array} residents - Array of Resident objects
+ * @returns {string} e.g. "RES-000007"
+ */
+export function nextGlobalResidentId(residents) {
+  let max = 0;
+  for (const r of residents) {
+    if (r.global_resident_id && /^RES-\d{6}$/.test(r.global_resident_id)) {
+      const n = parseInt(r.global_resident_id.slice(4), 10);
+      if (n > max) max = n;
+    }
+  }
+  return generateGlobalResidentId(max + 1);
 }
 
 /**

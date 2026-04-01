@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/card';
@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { isValidGlobalResidentId } from '@/lib/residentIdentity';
+import { nextGlobalResidentId } from '@/lib/residentIdentity';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -30,8 +32,12 @@ const riskColors = {
 
 export default function Residents() {
   const { user } = useOutletContext();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newResident, setNewResident] = useState({ first_name: '', last_name: '' });
+  const [saving, setSaving] = useState(false);
 
   const { data: residents = [], isLoading } = useQuery({
     queryKey: ['residents'],
@@ -39,6 +45,21 @@ export default function Residents() {
       user?.organization_id ? { organization_id: user.organization_id } : {}
     ),
   });
+
+  const handleAddResident = async () => {
+    setSaving(true);
+    const global_resident_id = nextGlobalResidentId(residents);
+    await base44.entities.Resident.create({
+      ...newResident,
+      global_resident_id,
+      organization_id: user?.organization_id || '',
+      status: 'pre_intake',
+    });
+    queryClient.invalidateQueries({ queryKey: ['residents'] });
+    setShowAdd(false);
+    setNewResident({ first_name: '', last_name: '' });
+    setSaving(false);
+  };
 
   const filtered = residents.filter(r => {
     const matchesSearch = !search ||
@@ -54,7 +75,7 @@ export default function Residents() {
         subtitle={`${residents.length} total residents`}
         icon={Users}
         actions={
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setShowAdd(true)}>
             <Plus className="w-4 h-4" /> Add Resident
           </Button>
         }
@@ -161,6 +182,41 @@ export default function Residents() {
           ))}
         </div>
       )}
+
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Resident</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>First Name</Label>
+              <Input
+                value={newResident.first_name}
+                onChange={e => setNewResident(p => ({ ...p, first_name: e.target.value }))}
+                placeholder="First name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Last Name</Label>
+              <Input
+                value={newResident.last_name}
+                onChange={e => setNewResident(p => ({ ...p, last_name: e.target.value }))}
+                placeholder="Last name"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground font-mono">
+              ID will be assigned: {nextGlobalResidentId(residents)}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
+            <Button onClick={handleAddResident} disabled={saving || !newResident.first_name || !newResident.last_name}>
+              {saving ? 'Saving...' : 'Create Resident'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
