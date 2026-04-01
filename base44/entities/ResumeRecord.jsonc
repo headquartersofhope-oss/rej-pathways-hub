@@ -25,6 +25,18 @@
       ],
       "default": "draft"
     },
+    "full_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
     "objective": {
       "type": "string"
     },
@@ -78,6 +90,26 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "relationship": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
       }
     },
     "staff_notes": {

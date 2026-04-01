@@ -60,6 +60,7 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
     queryClient.invalidateQueries({ queryKey: ['mock-interviews', residentId] });
     queryClient.invalidateQueries({ queryKey: ['references', residentId] });
     queryClient.invalidateQueries({ queryKey: ['cover-letters', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['certificates-jr', residentId] });
   };
 
   const staff = isStaff(user?.role);

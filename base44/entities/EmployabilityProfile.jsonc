@@ -48,6 +48,15 @@
         ]
       }
     },
+    "work_location_preference": {
+      "type": "string",
+      "enum": [
+        "on_site",
+        "remote",
+        "hybrid",
+        "no_preference"
+      ]
+    },
     "transportation_radius_miles": {
       "type": "number"
     },
