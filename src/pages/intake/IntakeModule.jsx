@@ -13,6 +13,7 @@ import BarrierMatrix from '@/components/intake/BarrierMatrix';
 import ServicePlanView from '@/components/intake/ServicePlanView';
 import ResidentProgressView from '@/components/intake/ResidentProgressView';
 import { isStaff } from '@/lib/roles';
+import { deriveIntakeStatus, INTAKE_STATUS_LABELS, INTAKE_STATUS_STYLES } from '@/lib/intakeStatus';
 
 export default function IntakeModule() {
   const { residentId } = useParams();
@@ -48,8 +49,9 @@ export default function IntakeModule() {
   // Only show loading spinner while queries are actively fetching (not when disabled)
   const isLoading = validResidentId && (loadingResident || loadingAssessment || loadingBarriers || loadingTasks);
   const completedBarriers = barriers.filter(b => b.status === 'resolved').length;
-  // Completed if: status is 'completed', OR barriers/tasks were already generated (generation succeeded but status may not have saved)
-  const isCompleted = assessment?.status === 'completed' || (assessment && (barriers.length > 0 || tasks.length > 0));
+  // Use canonical intake status from shared utility
+  const intakeStatus = deriveIntakeStatus({ assessment, barriers, tasks, resident });
+  const isCompleted = intakeStatus === 'completed';
 
   // Backfill: if intake is completed but Resident record is missing intake_date, write it back now
   useEffect(() => {
@@ -213,16 +215,11 @@ function ResidentListView({ user }) {
     queryFn: () => base44.entities.IntakeAssessment.list(),
   });
 
-  const getStatus = (residentId) => {
-    const a = assessments.find(a => a.resident_id === residentId);
-    return a?.status || 'not_started';
-  };
-
-  const statusStyle = {
-    completed: 'bg-emerald-50 text-emerald-700',
-    in_progress: 'bg-amber-50 text-amber-700',
-    draft: 'bg-slate-100 text-slate-600',
-    not_started: 'bg-red-50 text-red-700',
+  const getStatus = (resident) => {
+    // Use canonical intake status: resident.intake_date is the most reliable signal after write-back
+    if (resident.intake_date) return 'completed';
+    const a = assessments.find(a => a.resident_id === resident.id);
+    return deriveIntakeStatus({ assessment: a });
   };
 
   return (
@@ -230,7 +227,7 @@ function ResidentListView({ user }) {
       <PageHeader title="Intake & Barrier Assessment" subtitle="Select a resident to view or start their intake" icon={ClipboardList} />
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {residents.map(r => {
-          const status = getStatus(r.id);
+          const status = getStatus(r);
           return (
             <Link key={r.id} to={`/intake/${r.id}`}>
               <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
@@ -240,9 +237,12 @@ function ResidentListView({ user }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading font-semibold text-sm">{r.preferred_name || r.first_name} {r.last_name}</p>
-                    <Badge className={`text-[10px] mt-1 ${statusStyle[status]}`}>
-                      {status.replace('_', ' ')}
+                    <Badge className={`text-[10px] mt-1 ${INTAKE_STATUS_STYLES[status]}`}>
+                      {INTAKE_STATUS_LABELS[status]}
                     </Badge>
+                    {r.intake_date && status === 'completed' && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{r.intake_date}</p>
+                    )}
                   </div>
                 </div>
               </Card>

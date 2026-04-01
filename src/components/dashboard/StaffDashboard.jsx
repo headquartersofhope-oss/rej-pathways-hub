@@ -1,4 +1,5 @@
 import React from 'react';
+import { deriveIntakeStatus } from '@/lib/intakeStatus';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import StatCard from '@/components/shared/StatCard';
@@ -75,9 +76,11 @@ export default function StaffDashboard({ user }) {
   const recentCompletions = recentEnrollments.filter(e => e.status === 'completed').slice(0, 5);
   const noShowAlerts = recentEnrollments.filter(e => e.status === 'no_show').slice(0, 5);
 
-  // Residents needing attention: high risk OR no intake OR overdue tasks
+  // Residents needing attention: high risk OR no intake completed yet
   const needingAttention = residents.filter(r =>
-    r.risk_level === 'high' || r.status === 'pre_intake'
+    r.risk_level === 'high' ||
+    r.status === 'pre_intake' ||
+    (!r.intake_date && deriveIntakeStatus({ resident: r }) !== 'completed')
   );
 
   // Get resident name by id

@@ -128,6 +128,18 @@ export default function TasksTab({ resident, user, tasks: initialTasks, barriers
                       {task.description && <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Badge className={`text-[10px] ${priorityColors[task.priority] || ''}`}>{task.priority}</Badge>
+                        {task.auto_generated && (
+                          <Badge className="text-[10px] bg-blue-50 text-blue-600 border-0">intake-generated</Badge>
+                        )}
+                        {!task.auto_generated && task.barrier_item_id && (
+                          <Badge className="text-[10px] bg-purple-50 text-purple-600 border-0">barrier-linked</Badge>
+                        )}
+                        {!task.auto_generated && !task.barrier_item_id && (
+                          <Badge className="text-[10px] bg-slate-100 text-slate-600 border-0">staff-created</Badge>
+                        )}
+                        {task.requires_staff_action && (
+                          <Badge className="text-[10px] bg-amber-50 text-amber-700 border-0">staff action</Badge>
+                        )}
                         {task.due_date && (
                           <span className={`text-[10px] ${overdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
                             Due {format(parseISO(task.due_date), 'MMM d')}

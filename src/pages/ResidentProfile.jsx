@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ClipboardList, AlertTriangle, User, Pencil, Check, X } from 'lucide-react';
 import { isStaff } from '@/lib/roles';
+import { deriveIntakeStatus } from '@/lib/intakeStatus';
 import CaseManagementTab from '@/components/casemanagement/CaseManagementTab';
 import TasksTab from '@/components/casemanagement/TasksTab';
 import AppointmentsTab from '@/components/casemanagement/AppointmentsTab';
@@ -39,10 +40,7 @@ export default function ResidentProfile() {
 
   const { data: resident } = useQuery({
     queryKey: ['resident', residentId],
-    queryFn: async () => {
-      const list = await base44.entities.Resident.list();
-      return list.find(r => r.id === residentId) || null;
-    },
+    queryFn: () => base44.entities.Resident.get(residentId),
     enabled: !!residentId,
   });
 
@@ -145,7 +143,12 @@ export default function ResidentProfile() {
             <p className="text-[10px] text-muted-foreground">Open Tasks</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center hidden sm:block">
-            <p className="font-heading font-bold text-lg">{(assessment || barriers.length > 0) ? '✓' : '—'}</p>
+            {(() => {
+              const status = deriveIntakeStatus({ assessment, barriers, tasks, resident });
+              return status === 'completed'
+                ? <p className="font-heading font-bold text-lg text-emerald-600">✓</p>
+                : <p className="font-heading font-bold text-lg text-muted-foreground">—</p>;
+            })()}
             <p className="text-[10px] text-muted-foreground">Intake Done</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center hidden sm:block">
@@ -188,7 +191,7 @@ export default function ResidentProfile() {
                   ['Phone', resident.phone || '—'],
                   ['Date of Birth', resident.date_of_birth || '—'],
                   ['Population', resident.population?.replace(/_/g, ' ') || '—'],
-                  ['Intake Date', resident.intake_date || '—'],
+                  ['Intake Date', resident.intake_date || (assessment?.completed_at ? assessment.completed_at.split('T')[0] : '—')],
                 ].map(([label, value]) => (
                   <div key={label} className="flex gap-2">
                     <dt className="text-muted-foreground w-32 flex-shrink-0">{label}</dt>
