@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -69,16 +69,18 @@ export default function IntakeForm() {
 
   const { data: existingAssessment } = useQuery({
     queryKey: ['assessment', residentId],
-    queryFn: () => base44.entities.IntakeAssessment.filter({ resident_id: residentId }).then(r => r[0]),
+    queryFn: () => base44.entities.IntakeAssessment.filter({ resident_id: residentId }).then(r => r[0] || null),
     enabled: !!residentId,
-    onSuccess: (data) => {
-      if (data) {
-        const { id, resident_id, organization_id, status, completed_at, completed_by, scores, ...sections } = data;
-        setFormData(sections);
-        setCompletedSteps(INTAKE_STEPS.map(s => s.id).filter(id => data[id] && Object.keys(data[id]).length > 0));
-      }
-    }
   });
+
+  // Populate form when existing assessment loads
+  React.useEffect(() => {
+    if (existingAssessment && Object.keys(formData).length === 0) {
+      const { id, resident_id, organization_id, status, completed_at, completed_by, scores, global_resident_id, ...sections } = existingAssessment;
+      setFormData(sections);
+      setCompletedSteps(INTAKE_STEPS.map(s => s.id).filter(sid => sections[sid] && Object.keys(sections[sid]).length > 0));
+    }
+  }, [existingAssessment]);
 
   const currentStep = INTAKE_STEPS[currentStepIdx];
   const StepComponent = STEP_COMPONENTS[currentStep.id];
@@ -133,14 +135,14 @@ export default function IntakeForm() {
     const scores = calculateScores(assessmentData, barriers);
     assessmentData.scores = scores;
 
-    let assessment;
+    let savedAssessment;
     if (existingAssessment?.id) {
-      assessment = await base44.entities.IntakeAssessment.update(existingAssessment.id, assessmentData);
+      savedAssessment = await base44.entities.IntakeAssessment.update(existingAssessment.id, assessmentData);
     } else {
-      assessment = await base44.entities.IntakeAssessment.create(assessmentData);
+      savedAssessment = await base44.entities.IntakeAssessment.create(assessmentData);
     }
 
-    const assessmentId = existingAssessment?.id || assessment?.id;
+    const assessmentId = existingAssessment?.id || savedAssessment?.id;
 
     // Create barrier items — include global_resident_id on every record
     const createdBarriers = await Promise.all(

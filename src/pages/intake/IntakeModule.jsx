@@ -19,32 +19,34 @@ export default function IntakeModule() {
   const { user } = useOutletContext();
   const isStaffUser = isStaff(user?.role);
 
-  const { data: resident } = useQuery({
+  const { data: resident, isLoading: loadingResident } = useQuery({
     queryKey: ['resident', residentId],
-    queryFn: () => base44.entities.Resident.filter({ id: residentId }).then(r => r[0]),
-    enabled: !!residentId,
+    queryFn: () => base44.entities.Resident.get(residentId),
+    enabled: !!residentId && residentId !== ':residentId',
   });
 
-  const { data: assessment, refetch: refetchAssessment } = useQuery({
+  const { data: assessment, isLoading: loadingAssessment, refetch: refetchAssessment } = useQuery({
     queryKey: ['assessment', residentId],
-    queryFn: () => base44.entities.IntakeAssessment.filter({ resident_id: residentId }).then(r => r[0]),
+    queryFn: () => base44.entities.IntakeAssessment.filter({ resident_id: residentId }).then(r => r[0] || null),
     enabled: !!residentId,
   });
 
-  const { data: barriers = [], refetch: refetchBarriers } = useQuery({
+  const { data: barriers = [], isLoading: loadingBarriers, refetch: refetchBarriers } = useQuery({
     queryKey: ['barriers', residentId],
     queryFn: () => base44.entities.BarrierItem.filter({ resident_id: residentId }),
     enabled: !!residentId,
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['service-tasks', residentId],
     queryFn: () => base44.entities.ServiceTask.filter({ resident_id: residentId }),
     enabled: !!residentId,
   });
 
+  const isLoading = loadingResident || loadingAssessment || loadingBarriers || loadingTasks;
   const completedBarriers = barriers.filter(b => b.status === 'resolved').length;
-  const isCompleted = assessment?.status === 'completed';
+  // Treat as completed if status is 'completed', OR if barriers/tasks were already generated
+  const isCompleted = assessment?.status === 'completed' || (assessment && barriers.length > 0);
 
   const handleExport = () => {
     const lines = [
@@ -77,11 +79,22 @@ export default function IntakeModule() {
     return <ResidentListView user={user} />;
   }
 
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[40vh]">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-sm">Loading assessment...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
       <PageHeader
         title="Intake & Barrier Assessment"
-        subtitle={resident ? `${resident.first_name} ${resident.last_name}` : 'Loading...'}
+        subtitle={resident ? `${resident.first_name} ${resident.last_name}` : residentId}
         icon={ClipboardList}
         actions={
           <div className="flex gap-2">
