@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
   LayoutDashboard, Users, Building2, MapPin, FileText,
   MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-  ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen
+  ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,14 @@ const navSections = (role) => {
       ],
     });
   }
+
+  // Learning (all users)
+  sections.push({
+    label: 'Learning',
+    items: [
+      { label: 'Learning Center', path: '/learning', icon: GraduationCap },
+    ],
+  });
 
   // Shared
   sections.push({

@@ -1,0 +1,43 @@
+{
+  "name": "ClassSession",
+  "type": "object",
+  "description": "A scheduled session for a LearningClass.",
+  "properties": {
+    "class_id": {
+      "type": "string",
+      "description": "LearningClass record ID"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string"
+    },
+    "end_time": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "completed",
+        "cancelled"
+      ],
+      "default": "scheduled"
+    }
+  },
+  "required": [
+    "class_id",
+    "date"
+  ]
+}

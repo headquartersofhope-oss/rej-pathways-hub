@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { format, isPast, isToday, parseISO } from 'date-fns';
 import {
   Users, AlertTriangle, Calendar, Briefcase,
-  Clock, UserCheck, FileWarning, AlertCircle
+  Clock, UserCheck, FileWarning, AlertCircle, GraduationCap, Award
 } from 'lucide-react';
 
 const severityColors = {
@@ -42,6 +42,16 @@ export default function StaffDashboard({ user }) {
     queryFn: () => base44.entities.Incident.list('-created_date', 20),
   });
 
+  const { data: recentEnrollments = [] } = useQuery({
+    queryKey: ['recent-enrollments'],
+    queryFn: () => base44.entities.ClassEnrollment.list('-created_date', 50),
+  });
+
+  const { data: learningClasses = [] } = useQuery({
+    queryKey: ['learning-classes'],
+    queryFn: () => base44.entities.LearningClass.list('-created_date', 100),
+  });
+
   const activeResidents = residents.filter(r => r.status === 'active');
   const highRisk = residents.filter(r => r.risk_level === 'high');
   const employed = residents.filter(r => r.status === 'employed');
@@ -59,6 +69,11 @@ export default function StaffDashboard({ user }) {
 
   // High barrier residents (3+ active barriers)
   const highBarrierResidents = residents.filter(r => (r.barriers?.length || 0) >= 3);
+
+  // Learning stats
+  const classMap = Object.fromEntries(learningClasses.map(c => [c.id, c]));
+  const recentCompletions = recentEnrollments.filter(e => e.status === 'completed').slice(0, 5);
+  const noShowAlerts = recentEnrollments.filter(e => e.status === 'no_show').slice(0, 5);
 
   // Residents needing attention: high risk OR no intake OR overdue tasks
   const needingAttention = residents.filter(r =>
@@ -204,6 +219,62 @@ export default function StaffDashboard({ user }) {
                     <p className="text-xs text-muted-foreground">{residentName(inc.resident_id)} · {inc.date ? format(parseISO(inc.date), 'MMM d') : ''}</p>
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Learning alerts row */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
+              <Award className="w-4 h-4 text-yellow-600" /> Recent Completions
+            </h3>
+            <Badge variant="outline" className="text-xs">{recentCompletions.length}</Badge>
+          </div>
+          <div className="space-y-2">
+            {recentCompletions.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No completions yet</p>
+            ) : (
+              recentCompletions.map(enr => (
+                <Link key={enr.id} to={`/residents/${enr.resident_id}`}>
+                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <Award className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{classMap[enr.class_id]?.title || 'Class'}</p>
+                      <p className="text-xs text-muted-foreground">{residentName(enr.resident_id)} · {enr.completion_date || ''}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-destructive" /> No-Show Alerts
+            </h3>
+            <Badge variant="outline" className="text-xs text-destructive border-destructive/30">{noShowAlerts.length}</Badge>
+          </div>
+          <div className="space-y-2">
+            {noShowAlerts.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No alerts</p>
+            ) : (
+              noShowAlerts.map(enr => (
+                <Link key={enr.id} to={`/residents/${enr.resident_id}`}>
+                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <GraduationCap className="w-4 h-4 text-destructive flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{classMap[enr.class_id]?.title || 'Class'}</p>
+                      <p className="text-xs text-muted-foreground">{residentName(enr.resident_id)}</p>
+                    </div>
+                    <Badge className="text-[10px] bg-red-50 text-red-700 border-0">No Show</Badge>
+                  </div>
+                </Link>
               ))
             )}
           </div>

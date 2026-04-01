@@ -1,0 +1,38 @@
+{
+  "name": "InstructorNote",
+  "type": "object",
+  "description": "Instructor note about a resident's learning progress. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "class_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "instructor_id": {
+      "type": "string"
+    },
+    "instructor_name": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "is_flagged": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "class_id",
+    "note"
+  ]
+}

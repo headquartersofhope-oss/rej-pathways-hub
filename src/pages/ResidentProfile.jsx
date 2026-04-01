@@ -13,6 +13,7 @@ import CaseManagementTab from '@/components/casemanagement/CaseManagementTab';
 import TasksTab from '@/components/casemanagement/TasksTab';
 import AppointmentsTab from '@/components/casemanagement/AppointmentsTab';
 import DocumentsTab from '@/components/casemanagement/DocumentsTab';
+import ResidentLearningTab from '@/components/learning/ResidentLearningTab';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -169,6 +170,7 @@ export default function ResidentProfile() {
           <TabsTrigger value="case">Case Management</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
+          <TabsTrigger value="learning">Learning</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
 
@@ -280,6 +282,10 @@ export default function ResidentProfile() {
 
         <TabsContent value="appointments">
           <AppointmentsTab resident={resident} user={user} />
+        </TabsContent>
+
+        <TabsContent value="learning">
+          <ResidentLearningTab resident={resident} user={user} />
         </TabsContent>
 
         <TabsContent value="documents">

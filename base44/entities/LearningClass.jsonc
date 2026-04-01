@@ -1,0 +1,66 @@
+{
+  "name": "LearningClass",
+  "type": "object",
+  "description": "A class or course in the learning catalog.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "work_readiness",
+        "soft_skills",
+        "interview_preparation",
+        "resume_preparation",
+        "digital_literacy",
+        "financial_literacy",
+        "workplace_communication",
+        "conflict_management",
+        "recovery_support_education",
+        "certifications",
+        "trade_intro"
+      ]
+    },
+    "instructor_name": {
+      "type": "string"
+    },
+    "instructor_id": {
+      "type": "string"
+    },
+    "duration_hours": {
+      "type": "number"
+    },
+    "max_capacity": {
+      "type": "number"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "barrier_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Barrier categories this class addresses (e.g. digital_literacy, interview_readiness)"
+    },
+    "completion_grants_certificate": {
+      "type": "boolean",
+      "default": false
+    },
+    "certificate_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

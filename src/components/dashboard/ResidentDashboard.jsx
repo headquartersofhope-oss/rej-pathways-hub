@@ -6,10 +6,12 @@ import QuickAction from '@/components/shared/QuickAction';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 import {
   BookOpen, Briefcase, FileText, MessageSquare,
-  Calendar, CheckCircle2, Clock, AlertTriangle
+  Calendar, CheckCircle2, Clock, AlertTriangle, GraduationCap, Award
 } from 'lucide-react';
+import { format, parseISO, isAfter } from 'date-fns';
 
 export default function ResidentDashboard({ user }) {
   const { data: messages = [] } = useQuery({
@@ -17,6 +19,46 @@ export default function ResidentDashboard({ user }) {
     queryFn: () => base44.entities.Message.filter({ to_user_id: user?.id, is_read: false }),
     enabled: !!user?.id,
   });
+
+  const { data: myResident } = useQuery({
+    queryKey: ['my-resident', user?.id],
+    queryFn: async () => {
+      const list = await base44.entities.Resident.filter({ user_id: user?.id });
+      return list[0] || null;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: myEnrollments = [] } = useQuery({
+    queryKey: ['my-enrollments', myResident?.id],
+    queryFn: () => base44.entities.ClassEnrollment.filter({ resident_id: myResident.id }),
+    enabled: !!myResident?.id,
+  });
+
+  const { data: myCertificates = [] } = useQuery({
+    queryKey: ['my-certificates', myResident?.id],
+    queryFn: () => base44.entities.Certificate.filter({ resident_id: myResident.id }),
+    enabled: !!myResident?.id,
+  });
+
+  const { data: allSessions = [] } = useQuery({
+    queryKey: ['class-sessions'],
+    queryFn: () => base44.entities.ClassSession.list('-date', 100),
+  });
+
+  const { data: allClasses = [] } = useQuery({
+    queryKey: ['learning-classes'],
+    queryFn: () => base44.entities.LearningClass.list('-created_date', 100),
+  });
+
+  const classMap = Object.fromEntries(allClasses.map(c => [c.id, c]));
+  const myClassIds = new Set(myEnrollments.map(e => e.class_id));
+  const today = new Date();
+  const upcomingSessions = allSessions
+    .filter(s => myClassIds.has(s.class_id) && s.status === 'scheduled' && s.date && isAfter(parseISO(s.date), today))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3);
+  const completedClasses = myEnrollments.filter(e => e.status === 'completed').length;
 
   return (
     <div className="space-y-6">
@@ -42,38 +84,49 @@ export default function ResidentDashboard({ user }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard title="Classes" value="3" subtitle="This week" icon={BookOpen} />
+        <StatCard title="Classes" value={myEnrollments.length} subtitle="Enrolled" icon={BookOpen} />
         <StatCard title="Messages" value={messages.length} subtitle="Unread" icon={MessageSquare} />
-        <StatCard title="Tasks Due" value="2" subtitle="Today" icon={Clock} />
-        <StatCard title="Documents" value="1" subtitle="Missing" icon={FileText} />
+        <StatCard title="Completed" value={completedClasses} subtitle="Courses" icon={CheckCircle2} />
+        <StatCard title="Certificates" value={myCertificates.length} subtitle="Earned" icon={Award} />
       </div>
 
-      {/* Today's Schedule */}
+      {/* Upcoming Classes */}
       <Card className="p-5">
-        <h3 className="font-heading font-semibold text-sm mb-4">Today's Schedule</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-heading font-semibold text-sm">Upcoming Classes</h3>
+          <Link to="/learning" className="text-xs text-primary hover:underline">View all</Link>
+        </div>
         <div className="space-y-3">
-          {[
-            { time: '9:00 AM', title: 'Resume Workshop', type: 'class', icon: BookOpen },
-            { time: '11:00 AM', title: 'Meeting with Case Manager', type: 'appointment', icon: Calendar },
-            { time: '2:00 PM', title: 'Job Search Lab', type: 'class', icon: Briefcase },
-          ].map((event, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <event.icon className="w-4 h-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">{event.title}</p>
-                <p className="text-xs text-muted-foreground">{event.time}</p>
-              </div>
-              <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-            </div>
-          ))}
+          {upcomingSessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3 text-center">No upcoming classes scheduled.</p>
+          ) : (
+            upcomingSessions.map(s => {
+              const cls = classMap[s.class_id];
+              return (
+                <div key={s.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{cls?.title || 'Class'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(parseISO(s.date), 'EEE, MMM d')}
+                      {s.start_time && ` · ${s.start_time}`}
+                      {s.location && ` · ${s.location}`}
+                    </p>
+                  </div>
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                </div>
+              );
+            })
+          )}
         </div>
       </Card>
 
       {/* Quick Actions - large tap targets */}
       <div className="space-y-2">
         <h3 className="font-heading font-semibold text-sm px-1">Quick Actions</h3>
+        <QuickAction icon={GraduationCap} label="My Learning Center" description={`${myEnrollments.length} enrolled · ${myCertificates.length} certificates`} to="/learning" colorClass="bg-purple-50 text-purple-600" />
         <QuickAction icon={FileText} label="Upload a Document" description="ID, resume, or certificate" to="/documents" colorClass="bg-blue-50 text-blue-600" />
         <QuickAction icon={Briefcase} label="View Job Listings" description="See jobs matched to you" to="/module/job_matching" colorClass="bg-amber-50 text-amber-600" />
         <QuickAction icon={MessageSquare} label="Message Your Team" description={`${messages.length} unread`} to="/messages" colorClass="bg-emerald-50 text-emerald-600" />

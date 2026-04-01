@@ -1,0 +1,52 @@
+{
+  "name": "ClassEnrollment",
+  "type": "object",
+  "description": "Enrolls a resident in a LearningClass. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Internal DB FK to Resident.id"
+    },
+    "class_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "enrolled_by": {
+      "type": "string",
+      "description": "User ID of staff who enrolled resident"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "enrolled",
+        "in_progress",
+        "completed",
+        "dropped",
+        "no_show"
+      ],
+      "default": "enrolled"
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "score": {
+      "type": "number",
+      "description": "Quiz/checkpoint score 0-100"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "class_id"
+  ]
+}

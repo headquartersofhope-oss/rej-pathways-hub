@@ -1,0 +1,46 @@
+{
+  "name": "Certificate",
+  "type": "object",
+  "description": "Certificate issued to a resident upon class completion. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "class_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "certificate_name": {
+      "type": "string"
+    },
+    "issued_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "issued_by": {
+      "type": "string",
+      "description": "User ID of issuing staff"
+    },
+    "issued_by_name": {
+      "type": "string"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "certificate_name",
+    "issued_date"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "AttendanceRecord",
+  "type": "object",
+  "description": "Attendance for a resident at a specific class session. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "class_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ClassSession record ID"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "present",
+        "absent",
+        "late",
+        "excused"
+      ],
+      "default": "present"
+    },
+    "recorded_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "class_id",
+    "session_id",
+    "status"
+  ]
+}

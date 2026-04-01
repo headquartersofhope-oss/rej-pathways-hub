@@ -23,6 +23,7 @@ import IntakeModule from '@/pages/intake/IntakeModule';
 import IntakeForm from '@/pages/intake/IntakeForm';
 import ResidentProfile from '@/pages/ResidentProfile';
 import CaseManagement from '@/pages/CaseManagement';
+import Learning from '@/pages/Learning';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
         <Route path="/intake/:residentId/form" element={<IntakeForm />} />
         <Route path="/residents/:residentId" element={<ResidentProfile />} />
         <Route path="/case-management" element={<CaseManagement />} />
+        <Route path="/learning" element={<Learning />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
