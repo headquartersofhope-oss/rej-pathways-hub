@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Users, Search, Plus, Filter } from 'lucide-react';
+import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -142,10 +143,15 @@ export default function Residents() {
                   <Progress value={r.job_readiness_score || 0} className="h-1.5" />
                 </div>
                 {r.population && (
-                  <p className="text-xs text-muted-foreground capitalize">
+                  <p className="text-xs text-muted-foreground capitalize mb-2">
                     {r.population.replace(/_/g, ' ')}
                   </p>
                 )}
+                <Link to={`/intake/${r.id}`} onClick={e => e.stopPropagation()}>
+                  <Button variant="outline" size="sm" className="w-full h-7 text-xs gap-1.5">
+                    <ClipboardList className="w-3 h-3" /> Intake & Barriers
+                  </Button>
+                </Link>
               </div>
             </Card>
           ))}

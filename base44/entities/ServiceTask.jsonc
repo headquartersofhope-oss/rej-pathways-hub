@@ -1,0 +1,73 @@
+{
+  "name": "ServiceTask",
+  "type": "object",
+  "properties": {
+    "resident_id": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "barrier_item_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "is_resident_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "requires_staff_action": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "resident_id",
+    "title"
+  ]
+}

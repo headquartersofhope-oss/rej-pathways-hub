@@ -1,0 +1,536 @@
+{
+  "name": "IntakeAssessment",
+  "type": "object",
+  "properties": {
+    "resident_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "in_progress",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_by": {
+      "type": "string"
+    },
+    "personal": {
+      "type": "object",
+      "properties": {
+        "preferred_name": {
+          "type": "string"
+        },
+        "pronouns": {
+          "type": "string"
+        },
+        "primary_language": {
+          "type": "string"
+        },
+        "interpreter_needed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "housing": {
+      "type": "object",
+      "properties": {
+        "current_status": {
+          "type": "string",
+          "enum": [
+            "stable",
+            "transitional",
+            "shelter",
+            "unstable",
+            "none"
+          ]
+        },
+        "length_of_homelessness_months": {
+          "type": "number"
+        },
+        "eviction_history": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "justice": {
+      "type": "object",
+      "properties": {
+        "justice_involved": {
+          "type": "boolean"
+        },
+        "charge_type": {
+          "type": "string",
+          "enum": [
+            "violent",
+            "non_violent",
+            "drug_related",
+            "other",
+            "na"
+          ]
+        },
+        "release_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "on_probation": {
+          "type": "boolean"
+        },
+        "on_parole": {
+          "type": "boolean"
+        },
+        "officer_name": {
+          "type": "string"
+        },
+        "officer_phone": {
+          "type": "string"
+        },
+        "check_in_frequency": {
+          "type": "string"
+        },
+        "geographic_restrictions": {
+          "type": "boolean"
+        },
+        "curfew": {
+          "type": "string"
+        },
+        "sex_offender_registry": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "treatment": {
+      "type": "object",
+      "properties": {
+        "in_treatment": {
+          "type": "boolean"
+        },
+        "treatment_type": {
+          "type": "string"
+        },
+        "sobriety_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "12_step_program": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "veteran": {
+      "type": "object",
+      "properties": {
+        "is_veteran": {
+          "type": "boolean"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "discharge_status": {
+          "type": "string",
+          "enum": [
+            "honorable",
+            "other_than_honorable",
+            "dishonorable",
+            "na"
+          ]
+        },
+        "va_enrolled": {
+          "type": "boolean"
+        },
+        "service_connected_disability": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "foster_care": {
+      "type": "object",
+      "properties": {
+        "is_foster_care": {
+          "type": "boolean"
+        },
+        "aged_out": {
+          "type": "boolean"
+        },
+        "current_support_services": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "education": {
+      "type": "object",
+      "properties": {
+        "highest_level": {
+          "type": "string",
+          "enum": [
+            "no_diploma",
+            "ged",
+            "high_school",
+            "some_college",
+            "associates",
+            "bachelors",
+            "graduate",
+            "vocational"
+          ]
+        },
+        "currently_enrolled": {
+          "type": "boolean"
+        },
+        "certifications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "learning_disability": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "work_history": {
+      "type": "object",
+      "properties": {
+        "years_of_experience": {
+          "type": "number"
+        },
+        "last_employed": {
+          "type": "string",
+          "format": "date"
+        },
+        "longest_held_job_months": {
+          "type": "number"
+        },
+        "industries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fired_or_left": {
+          "type": "string",
+          "enum": [
+            "quit",
+            "fired",
+            "laid_off",
+            "seasonal",
+            "never_worked"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "transportation": {
+      "type": "object",
+      "properties": {
+        "has_vehicle": {
+          "type": "boolean"
+        },
+        "valid_license": {
+          "type": "boolean"
+        },
+        "license_suspended": {
+          "type": "boolean"
+        },
+        "uses_public_transit": {
+          "type": "boolean"
+        },
+        "transit_accessible": {
+          "type": "boolean"
+        },
+        "max_commute_minutes": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "communication": {
+      "type": "object",
+      "properties": {
+        "has_phone": {
+          "type": "boolean"
+        },
+        "phone_type": {
+          "type": "string",
+          "enum": [
+            "smartphone",
+            "basic",
+            "none"
+          ]
+        },
+        "has_email": {
+          "type": "boolean"
+        },
+        "has_computer_access": {
+          "type": "boolean"
+        },
+        "has_internet_access": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "digital_literacy": {
+      "type": "object",
+      "properties": {
+        "can_use_email": {
+          "type": "boolean"
+        },
+        "can_apply_online": {
+          "type": "boolean"
+        },
+        "can_use_zoom": {
+          "type": "boolean"
+        },
+        "comfort_level": {
+          "type": "string",
+          "enum": [
+            "none",
+            "basic",
+            "moderate",
+            "proficient"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "dependent_care": {
+      "type": "object",
+      "properties": {
+        "has_dependents": {
+          "type": "boolean"
+        },
+        "num_dependents": {
+          "type": "number"
+        },
+        "childcare_arranged": {
+          "type": "boolean"
+        },
+        "childcare_subsidy": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "legal_financial": {
+      "type": "object",
+      "properties": {
+        "has_fines_fees": {
+          "type": "boolean"
+        },
+        "total_owed": {
+          "type": "number"
+        },
+        "wage_garnishment": {
+          "type": "boolean"
+        },
+        "child_support": {
+          "type": "boolean"
+        },
+        "bankruptcy": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "documents": {
+      "type": "object",
+      "properties": {
+        "has_state_id": {
+          "type": "boolean"
+        },
+        "has_birth_certificate": {
+          "type": "boolean"
+        },
+        "has_ssn_card": {
+          "type": "boolean"
+        },
+        "has_work_authorization": {
+          "type": "boolean"
+        },
+        "has_resume": {
+          "type": "boolean"
+        },
+        "has_references": {
+          "type": "boolean"
+        },
+        "has_dd214": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "mental_health": {
+      "type": "object",
+      "properties": {
+        "has_diagnosis": {
+          "type": "boolean"
+        },
+        "diagnosis_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "in_counseling": {
+          "type": "boolean"
+        },
+        "on_medication": {
+          "type": "boolean"
+        },
+        "trauma_history": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "disability": {
+      "type": "object",
+      "properties": {
+        "has_disability": {
+          "type": "boolean"
+        },
+        "disability_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "accommodation_needed": {
+          "type": "boolean"
+        },
+        "accommodation_notes": {
+          "type": "string"
+        },
+        "ssi_ssdi": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "clothing_tools": {
+      "type": "object",
+      "properties": {
+        "has_interview_clothes": {
+          "type": "boolean"
+        },
+        "needs_work_uniform": {
+          "type": "boolean"
+        },
+        "needs_tools_equipment": {
+          "type": "boolean"
+        },
+        "needs_safety_gear": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "benefits": {
+      "type": "object",
+      "properties": {
+        "receiving_snap": {
+          "type": "boolean"
+        },
+        "receiving_medi_cal": {
+          "type": "boolean"
+        },
+        "receiving_calworks": {
+          "type": "boolean"
+        },
+        "receiving_ga": {
+          "type": "boolean"
+        },
+        "eligible_not_enrolled": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "emergency_contact": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "relationship": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "can_contact_for_employment": {
+          "type": "boolean"
+        }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "properties": {
+        "barrier_severity_score": {
+          "type": "number"
+        },
+        "stability_score": {
+          "type": "number"
+        },
+        "work_readiness_score": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "resident_id"
+  ]
+}

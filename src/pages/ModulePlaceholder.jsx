@@ -1,5 +1,5 @@
-import React from 'react';
-import { useOutletContext, useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,11 @@ import { getModule, MODULES } from '@/lib/modules';
 export default function ModulePlaceholder() {
   const { user } = useOutletContext();
   const { slug } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (slug === 'intake_barriers') navigate('/intake', { replace: true });
+  }, [slug]);
   const mod = getModule(slug);
 
   if (!mod) {

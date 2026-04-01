@@ -1,0 +1,98 @@
+{
+  "name": "BarrierItem",
+  "type": "object",
+  "properties": {
+    "resident_id": {
+      "type": "string"
+    },
+    "assessment_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "legal",
+        "identification_documents",
+        "housing_stability",
+        "transportation",
+        "education",
+        "digital_literacy",
+        "work_history",
+        "interview_readiness",
+        "mental_health_support",
+        "substance_recovery",
+        "childcare_dependent_care",
+        "benefits",
+        "financial_readiness",
+        "disability_accommodations",
+        "clothing_tools_gear",
+        "communication_access"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "active",
+        "in_progress",
+        "resolved",
+        "blocked"
+      ],
+      "default": "new"
+    },
+    "owner": {
+      "type": "string",
+      "description": "User ID of assigned staff"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "required_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "referrals_made": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "proof_of_resolution": {
+      "type": "string"
+    },
+    "auto_generated": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "resident_id",
+    "category",
+    "title"
+  ]
+}
