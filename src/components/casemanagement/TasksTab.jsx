@@ -29,14 +29,22 @@ const statusIcons = {
 
 export default function TasksTab({ resident, user, tasks: initialTasks, barriers }) {
   const queryClient = useQueryClient();
-  const isStaffUser = isStaff(user?.role);
+  const isStaffUser = !user?.role || user?.role !== 'resident';
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', category: '', priority: 'medium', due_date: '', status: 'pending', assigned_to: '', is_resident_visible: true });
   const [saving, setSaving] = useState(false);
 
   const { data: tasks = initialTasks } = useQuery({
     queryKey: ['service-tasks', resident.id],
-    queryFn: () => base44.entities.ServiceTask.filter({ resident_id: resident.id }, '-created_date'),
+    queryFn: async () => {
+      const byResidentId = await base44.entities.ServiceTask.filter({ resident_id: resident.id });
+      if (byResidentId.length > 0) return byResidentId.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      if (resident.global_resident_id) {
+        const byGlobalId = await base44.entities.ServiceTask.filter({ global_resident_id: resident.global_resident_id });
+        return byGlobalId.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      }
+      return [];
+    },
   });
 
   const handleSave = async () => {

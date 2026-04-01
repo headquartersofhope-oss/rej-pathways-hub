@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, Link, useOutletContext } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ClipboardList, AlertTriangle, User } from 'lucide-react';
+import { ArrowLeft, ClipboardList, AlertTriangle, User, Pencil, Check, X } from 'lucide-react';
 import { isStaff } from '@/lib/roles';
 import CaseManagementTab from '@/components/casemanagement/CaseManagementTab';
 import TasksTab from '@/components/casemanagement/TasksTab';
@@ -32,17 +32,25 @@ const riskColors = {
 export default function ResidentProfile() {
   const { residentId } = useParams();
   const { user } = useOutletContext();
-  const isStaffUser = isStaff(user?.role);
+  const queryClient = useQueryClient();
+  const [editingCaseManager, setEditingCaseManager] = useState(false);
+  const [caseManagerInput, setCaseManagerInput] = useState('');
 
   const { data: resident } = useQuery({
     queryKey: ['resident', residentId],
-    queryFn: () => base44.entities.Resident.filter({ id: residentId }).then(r => r[0]),
+    queryFn: async () => {
+      const list = await base44.entities.Resident.list();
+      return list.find(r => r.id === residentId) || null;
+    },
     enabled: !!residentId,
   });
 
   const { data: assessment } = useQuery({
     queryKey: ['assessment', residentId],
-    queryFn: () => base44.entities.IntakeAssessment.filter({ resident_id: residentId }).then(r => r[0]),
+    queryFn: async () => {
+      const list = await base44.entities.IntakeAssessment.filter({ resident_id: residentId });
+      return list[0] || null;
+    },
     enabled: !!residentId,
   });
 
@@ -70,7 +78,16 @@ export default function ResidentProfile() {
   }
 
   const openTasks = tasks.filter(t => t.status !== 'completed').length;
-  const activeBarriers = barriers.filter(b => b.status !== 'resolved').length;
+  // Use BarrierItem records; fall back to resident.barriers array count
+  const activeBarriers = barriers.length > 0
+    ? barriers.filter(b => b.status !== 'resolved').length
+    : (resident.barriers?.length || 0);
+
+  const handleSaveCaseManager = async () => {
+    await base44.entities.Resident.update(resident.id, { assigned_case_manager: caseManagerInput });
+    queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+    setEditingCaseManager(false);
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
@@ -127,7 +144,7 @@ export default function ResidentProfile() {
             <p className="text-[10px] text-muted-foreground">Open Tasks</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center hidden sm:block">
-            <p className="font-heading font-bold text-lg">{assessment?.status === 'completed' ? '✓' : '—'}</p>
+            <p className="font-heading font-bold text-lg">{(assessment || barriers.length > 0) ? '✓' : '—'}</p>
             <p className="text-[10px] text-muted-foreground">Intake Done</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center hidden sm:block">
@@ -170,13 +187,36 @@ export default function ResidentProfile() {
                   ['Date of Birth', resident.date_of_birth || '—'],
                   ['Population', resident.population?.replace(/_/g, ' ') || '—'],
                   ['Intake Date', resident.intake_date || '—'],
-                  ['Case Manager', resident.assigned_case_manager || '—'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex gap-2">
                     <dt className="text-muted-foreground w-32 flex-shrink-0">{label}</dt>
                     <dd className="font-medium capitalize">{value}</dd>
                   </div>
                 ))}
+                {/* Editable case manager */}
+                <div className="flex gap-2 items-center">
+                  <dt className="text-muted-foreground w-32 flex-shrink-0">Case Manager</dt>
+                  {editingCaseManager ? (
+                    <dd className="flex items-center gap-1 flex-1">
+                      <input
+                        className="border rounded px-2 py-0.5 text-sm flex-1 min-w-0"
+                        value={caseManagerInput}
+                        onChange={e => setCaseManagerInput(e.target.value)}
+                        placeholder="Enter name or ID"
+                        autoFocus
+                      />
+                      <button onClick={handleSaveCaseManager} className="p-1 text-emerald-600 hover:text-emerald-700"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setEditingCaseManager(false)} className="p-1 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+                    </dd>
+                  ) : (
+                    <dd className="font-medium flex items-center gap-1.5">
+                      {resident.assigned_case_manager || '—'}
+                      <button onClick={() => { setCaseManagerInput(resident.assigned_case_manager || ''); setEditingCaseManager(true); }} className="p-0.5 text-muted-foreground hover:text-foreground opacity-50 hover:opacity-100">
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                    </dd>
+                  )}
+                </div>
               </dl>
             </Card>
 
@@ -189,13 +229,18 @@ export default function ResidentProfile() {
                 <Progress value={resident.job_readiness_score || 0} className="h-2 mb-1" />
                 <p className="text-xs font-medium">{resident.job_readiness_score || 0}%</p>
               </div>
-              {barriers.length > 0 && (
+              {(barriers.length > 0 || resident.barriers?.length > 0) && (
                 <div className="mb-3">
                   <p className="text-xs text-muted-foreground mb-2">Active Barriers</p>
                   <div className="flex flex-wrap gap-1">
-                    {barriers.filter(b => b.status !== 'resolved').slice(0, 6).map(b => (
-                      <Badge key={b.id} variant="outline" className="text-[10px]">{b.title}</Badge>
-                    ))}
+                    {barriers.length > 0
+                      ? barriers.filter(b => b.status !== 'resolved').slice(0, 6).map(b => (
+                          <Badge key={b.id} variant="outline" className="text-[10px]">{b.title}</Badge>
+                        ))
+                      : (resident.barriers || []).slice(0, 6).map((b, i) => (
+                          <Badge key={i} variant="outline" className="text-[10px]">{b.replace(/_/g, ' ')}</Badge>
+                        ))
+                    }
                   </div>
                 </div>
               )}

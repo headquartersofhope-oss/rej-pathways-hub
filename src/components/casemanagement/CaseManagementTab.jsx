@@ -30,29 +30,48 @@ const noteTypeColors = {
 
 export default function CaseManagementTab({ resident, user, barriers }) {
   const queryClient = useQueryClient();
-  const isStaffUser = isStaff(user?.role);
+  // Show add button for any staff role, or admin/user (default Base44 roles)
+  const canAddNote = !user?.role || user?.role !== 'resident';
   const [showNoteForm, setShowNoteForm] = useState(false);
-  const [noteForm, setNoteForm] = useState({ note_type: 'general', description: '', is_confidential: false });
+  const [noteForm, setNoteForm] = useState({
+    note_type: 'general',
+    description: '',
+    is_confidential: false,
+    note_date: new Date().toISOString().split('T')[0],
+  });
   const [saving, setSaving] = useState(false);
 
   const { data: notes = [] } = useQuery({
     queryKey: ['case-notes', resident.id],
-    queryFn: () => base44.entities.CaseNote.filter({ resident_id: resident.id }, '-created_date'),
+    queryFn: async () => {
+      // Try by resident_id first, also try global_resident_id
+      const byResidentId = await base44.entities.CaseNote.filter({ resident_id: resident.id });
+      if (byResidentId.length > 0) return byResidentId.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      if (resident.global_resident_id) {
+        const byGlobalId = await base44.entities.CaseNote.filter({ global_resident_id: resident.global_resident_id });
+        return byGlobalId.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      }
+      return [];
+    },
   });
 
   const handleSaveNote = async () => {
+    if (!noteForm.description.trim()) return;
     setSaving(true);
     await base44.entities.CaseNote.create({
-      ...noteForm,
+      note_type: noteForm.note_type,
+      description: noteForm.description,
+      is_confidential: noteForm.is_confidential,
+      note_date: noteForm.note_date,
       resident_id: resident.id,
-      global_resident_id: resident.global_resident_id || '',
-      organization_id: resident.organization_id,
-      staff_id: user?.id,
-      staff_name: user?.full_name,
+      global_resident_id: resident.global_resident_id || resident.id,
+      organization_id: resident.organization_id || '',
+      staff_id: user?.id || '',
+      staff_name: user?.full_name || user?.email || 'Staff',
     });
     queryClient.invalidateQueries({ queryKey: ['case-notes', resident.id] });
     setShowNoteForm(false);
-    setNoteForm({ note_type: 'general', description: '', is_confidential: false });
+    setNoteForm({ note_type: 'general', description: '', is_confidential: false, note_date: new Date().toISOString().split('T')[0] });
     setSaving(false);
   };
 
@@ -64,7 +83,7 @@ export default function CaseManagementTab({ resident, user, barriers }) {
           <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-primary" /> Case Notes
           </h3>
-          {isStaffUser && (
+          {canAddNote && (
             <Button size="sm" className="gap-1.5" onClick={() => setShowNoteForm(true)}>
               <Plus className="w-3.5 h-3.5" /> Add Note
             </Button>
@@ -87,7 +106,7 @@ export default function CaseManagementTab({ resident, user, barriers }) {
                     )}
                   </div>
                   <span className="text-[11px] text-muted-foreground flex-shrink-0">
-                    {note.created_date ? format(new Date(note.created_date), 'MMM d, yyyy') : ''}
+                    {note.note_date || (note.created_date ? format(new Date(note.created_date), 'MMM d, yyyy') : '')}
                   </span>
                 </div>
                 <p className="text-sm text-foreground">{note.description}</p>
@@ -106,16 +125,30 @@ export default function CaseManagementTab({ resident, user, barriers }) {
         <DialogContent>
           <DialogHeader><DialogTitle>Add Case Note</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Note Type</Label>
+                <Select value={noteForm.note_type} onValueChange={v => setNoteForm(p => ({ ...p, note_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {NOTE_TYPES.map(t => (
+                      <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Date</Label>
+                <Input
+                  type="date"
+                  value={noteForm.note_date}
+                  onChange={e => setNoteForm(p => ({ ...p, note_date: e.target.value }))}
+                />
+              </div>
+            </div>
             <div className="space-y-1.5">
-              <Label>Note Type</Label>
-              <Select value={noteForm.note_type} onValueChange={v => setNoteForm(p => ({ ...p, note_type: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {NOTE_TYPES.map(t => (
-                    <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Staff</Label>
+              <Input value={user?.full_name || user?.email || 'Staff'} disabled className="bg-muted text-muted-foreground" />
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
