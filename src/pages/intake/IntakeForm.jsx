@@ -74,14 +74,21 @@ export default function IntakeForm() {
     enabled: !!residentId,
   });
 
-  // Populate form when existing assessment loads
+  // Reset form state when residentId changes (prevents bleeding between residents)
   React.useEffect(() => {
-    if (existingAssessment && Object.keys(formData).length === 0) {
+    setFormData({});
+    setCompletedSteps([]);
+    setCurrentStepIdx(0);
+  }, [residentId]);
+
+  // Populate form when existing assessment loads — only after reset
+  React.useEffect(() => {
+    if (existingAssessment) {
       const { id, resident_id, organization_id, status, completed_at, completed_by, scores, global_resident_id, ...sections } = existingAssessment;
       setFormData(sections);
       setCompletedSteps(INTAKE_STEPS.map(s => s.id).filter(sid => sections[sid] && Object.keys(sections[sid]).length > 0));
     }
-  }, [existingAssessment]);
+  }, [existingAssessment?.id]);
 
   const currentStep = INTAKE_STEPS[currentStepIdx];
   const StepComponent = STEP_COMPONENTS[currentStep.id];

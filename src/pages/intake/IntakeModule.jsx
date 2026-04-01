@@ -290,6 +290,18 @@ function ResidentListView({ user }) {
     return null;
   };
 
+  const getActionLabel = (status) => {
+    if (status === 'completed') return 'View Intake';
+    if (status === 'in_progress') return 'Continue Intake';
+    return 'Start Intake';
+  };
+
+  const getActionStyle = (status) => {
+    if (status === 'completed') return 'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground';
+    if (status === 'in_progress') return 'bg-amber-600 hover:bg-amber-700 text-white';
+    return 'bg-primary hover:bg-primary/90 text-primary-foreground';
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
       <PageHeader title="Intake & Barrier Assessment" subtitle="Select a resident to view or start their intake" icon={ClipboardList} />
@@ -297,25 +309,41 @@ function ResidentListView({ user }) {
         {residents.map(r => {
           const status = getStatus(r);
           const intakeDate = getIntakeDate(r);
+          const actionLabel = getActionLabel(status);
+          const actionStyle = getActionStyle(status);
           return (
-            <Link key={r.id} to={`/intake/${r.id}`}>
-              <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                    {r.first_name?.[0]}{r.last_name?.[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-heading font-semibold text-sm">{r.preferred_name || r.first_name} {r.last_name}</p>
-                    <Badge className={`text-[10px] mt-1 ${INTAKE_STATUS_STYLES[status]}`}>
+            <Card key={r.id} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
+                  {r.first_name?.[0]}{r.last_name?.[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading font-semibold text-sm truncate">{r.preferred_name || r.first_name} {r.last_name}</p>
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    <Badge className={`text-[10px] border-0 ${INTAKE_STATUS_STYLES[status]}`}>
                       {INTAKE_STATUS_LABELS[status]}
                     </Badge>
                     {intakeDate && status === 'completed' && (
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{intakeDate}</p>
+                      <span className="text-[10px] text-muted-foreground">{intakeDate}</span>
                     )}
                   </div>
                 </div>
-              </Card>
-            </Link>
+              </div>
+              <div className="flex gap-2">
+                <Link to={`/intake/${r.id}`} className="flex-1">
+                  <button className={`w-full rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${actionStyle}`}>
+                    {actionLabel}
+                  </button>
+                </Link>
+                {status === 'completed' && (
+                  <Link to={`/intake/${r.id}/form`}>
+                    <button className="rounded-md px-3 py-1.5 text-xs font-medium border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors">
+                      Update
+                    </button>
+                  </Link>
+                )}
+              </div>
+            </Card>
           );
         })}
       </div>

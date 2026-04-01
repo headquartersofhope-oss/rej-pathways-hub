@@ -133,11 +133,22 @@ export default function ResidentProfile() {
             </div>
           </div>
           <div className="sm:ml-auto flex gap-2">
-            <Link to={`/intake/${residentId}`}>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <ClipboardList className="w-3.5 h-3.5" /> Intake & Barriers
-              </Button>
-            </Link>
+            {(() => {
+              const intakeStatus = deriveIntakeStatus({ assessment, barriers, tasks, resident });
+              const label = intakeStatus === 'completed'
+                ? 'View Intake'
+                : intakeStatus === 'in_progress'
+                ? 'Continue Intake'
+                : 'Start Intake';
+              const variant = intakeStatus === 'completed' ? 'outline' : 'default';
+              return (
+                <Link to={intakeStatus === 'not_started' ? `/intake/${residentId}/form` : `/intake/${residentId}`}>
+                  <Button variant={variant} size="sm" className="gap-1.5">
+                    <ClipboardList className="w-3.5 h-3.5" /> {label}
+                  </Button>
+                </Link>
+              );
+            })()}
           </div>
         </div>
 
