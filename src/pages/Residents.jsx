@@ -1,0 +1,156 @@
+import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import PageHeader from '@/components/shared/PageHeader';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Users, Search, Plus, Filter } from 'lucide-react';
+
+const statusColors = {
+  pre_intake: 'bg-slate-100 text-slate-700',
+  active: 'bg-blue-50 text-blue-700',
+  employed: 'bg-emerald-50 text-emerald-700',
+  graduated: 'bg-purple-50 text-purple-700',
+  exited: 'bg-amber-50 text-amber-700',
+  inactive: 'bg-red-50 text-red-700',
+};
+
+const riskColors = {
+  low: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  medium: 'bg-amber-50 text-amber-700 border-amber-200',
+  high: 'bg-red-50 text-red-700 border-red-200',
+};
+
+export default function Residents() {
+  const { user } = useOutletContext();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const { data: residents = [], isLoading } = useQuery({
+    queryKey: ['residents'],
+    queryFn: () => base44.entities.Resident.filter(
+      user?.organization_id ? { organization_id: user.organization_id } : {}
+    ),
+  });
+
+  const filtered = residents.filter(r => {
+    const matchesSearch = !search ||
+      `${r.first_name} ${r.last_name} ${r.preferred_name}`.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
+      <PageHeader
+        title="Residents"
+        subtitle={`${residents.length} total residents`}
+        icon={Users}
+        actions={
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" /> Add Resident
+          </Button>
+        }
+      />
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-44">
+            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Filter status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="pre_intake">Pre-Intake</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="employed">Employed</SelectItem>
+            <SelectItem value="graduated">Graduated</SelectItem>
+            <SelectItem value="exited">Exited</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Resident Cards */}
+      {isLoading ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <Card key={i} className="p-5 animate-pulse">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-muted" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
+              <div className="h-2 bg-muted rounded mb-3" />
+              <div className="h-3 bg-muted rounded w-2/3" />
+            </Card>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <Card className="flex flex-col items-center py-16 text-center">
+          <Users className="w-12 h-12 text-muted-foreground mb-3" />
+          <p className="font-heading font-semibold text-lg">No residents found</p>
+          <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters</p>
+        </Card>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((r) => (
+            <Card key={r.id} className="p-5 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+                  {r.first_name?.[0]}{r.last_name?.[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading font-semibold text-sm truncate">
+                    {r.preferred_name || r.first_name} {r.last_name}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge className={`text-[10px] px-1.5 py-0 ${statusColors[r.status] || ''}`}>
+                      {(r.status || 'active').replace(/_/g, ' ')}
+                    </Badge>
+                    {r.risk_level && (
+                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${riskColors[r.risk_level] || ''}`}>
+                        {r.risk_level}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-muted-foreground">Job Readiness</span>
+                    <span className="text-xs font-semibold">{r.job_readiness_score || 0}%</span>
+                  </div>
+                  <Progress value={r.job_readiness_score || 0} className="h-1.5" />
+                </div>
+                {r.population && (
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {r.population.replace(/_/g, ' ')}
+                  </p>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

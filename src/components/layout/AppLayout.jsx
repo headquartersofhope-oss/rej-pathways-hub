@@ -1,0 +1,32 @@
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import { useCurrentUser } from '@/lib/useCurrentUser';
+
+export default function AppLayout() {
+  const { user, loading } = useCurrentUser();
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-heading font-bold text-sm">REJ</span>
+          </div>
+          <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar user={user} />
+      <main className="flex-1 overflow-y-auto">
+        <div className="pl-0 lg:pl-0">
+          <Outlet context={{ user }} />
+        </div>
+      </main>
+    </div>
+  );
+}

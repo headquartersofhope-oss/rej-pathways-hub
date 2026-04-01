@@ -1,0 +1,55 @@
+{
+  "name": "PartnerAgency",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "probation_parole",
+        "social_services",
+        "housing",
+        "healthcare",
+        "legal_aid",
+        "education",
+        "employment",
+        "other"
+      ]
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "referral_count": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

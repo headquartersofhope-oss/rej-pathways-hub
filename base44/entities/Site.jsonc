@@ -1,0 +1,65 @@
+{
+  "name": "Site",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Parent organization ID"
+    },
+    "name": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "capacity": {
+      "type": "number",
+      "description": "Max resident capacity"
+    },
+    "current_occupancy": {
+      "type": "number"
+    },
+    "site_type": {
+      "type": "string",
+      "enum": [
+        "residential",
+        "day_program",
+        "office",
+        "training_center",
+        "hybrid"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "under_review"
+      ],
+      "default": "active"
+    },
+    "enabled_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of enabled module slugs for this site"
+    }
+  },
+  "required": [
+    "name",
+    "organization_id"
+  ]
+}

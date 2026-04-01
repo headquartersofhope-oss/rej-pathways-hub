@@ -1,0 +1,40 @@
+{
+  "name": "FeatureFlag",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "site_id": {
+      "type": "string",
+      "description": "Optional - if null, applies to whole org"
+    },
+    "module_slug": {
+      "type": "string",
+      "enum": [
+        "intake_barriers",
+        "case_management",
+        "learning",
+        "job_readiness",
+        "job_matching",
+        "employer_portal",
+        "compliance_gps",
+        "outcomes_reporting"
+      ]
+    },
+    "module_name": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "module_slug",
+    "module_name"
+  ]
+}

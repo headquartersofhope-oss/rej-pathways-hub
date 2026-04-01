@@ -1,0 +1,43 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "description": "e.g. create_resident, update_document, login"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    }
+  },
+  "required": [
+    "action"
+  ]
+}

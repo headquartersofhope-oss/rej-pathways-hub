@@ -1,0 +1,55 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "uploaded_by": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "id",
+        "resume",
+        "certificate",
+        "court_order",
+        "lease",
+        "employment_verification",
+        "background_check",
+        "medical",
+        "other"
+      ]
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "expired",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

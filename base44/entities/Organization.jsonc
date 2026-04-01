@@ -1,0 +1,77 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Organization name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "transitional_housing",
+        "veterans_services",
+        "foster_youth",
+        "reentry_program",
+        "workforce_development",
+        "other"
+      ],
+      "description": "Organization type"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Brand color for white-label"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "suspended"
+      ],
+      "default": "active"
+    },
+    "contract_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "contract_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "Employer",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "hiring_preferences": {
+      "type": "string"
+    },
+    "open_positions": {
+      "type": "number",
+      "default": 0
+    },
+    "total_placements": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "pending_review"
+      ],
+      "default": "pending_review"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Linked user account"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_name"
+  ]
+}

@@ -1,0 +1,229 @@
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { ROLES, isStaff, isAdmin, isSuperAdmin, ROLE_LABELS } from '@/lib/roles';
+import { MODULES } from '@/lib/modules';
+import {
+  LayoutDashboard, Users, Building2, MapPin, FileText,
+  MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
+  ChevronRight, Shield, UserCircle, Briefcase, Handshake
+} from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+
+const navSections = (role) => {
+  const sections = [];
+
+  // Dashboard - everyone gets this
+  sections.push({
+    label: 'Dashboard',
+    items: [{ label: 'Home', path: '/', icon: LayoutDashboard }],
+  });
+
+  // Staff sections
+  if (isStaff(role)) {
+    sections.push({
+      label: 'People',
+      items: [
+        { label: 'Residents', path: '/residents', icon: Users },
+        { label: 'Employers', path: '/employers', icon: Briefcase },
+        { label: 'Partner Agencies', path: '/partners', icon: Handshake },
+      ],
+    });
+  }
+
+  // Admin sections
+  if (isAdmin(role)) {
+    sections.push({
+      label: 'Administration',
+      items: [
+        { label: 'Organizations', path: '/organizations', icon: Building2 },
+        { label: 'Sites', path: '/sites', icon: MapPin },
+        { label: 'User Management', path: '/users', icon: UserCircle },
+        { label: 'Module Settings', path: '/modules', icon: Settings },
+        { label: 'Audit Logs', path: '/audit-logs', icon: Shield },
+      ],
+    });
+  }
+
+  // Shared
+  sections.push({
+    label: 'Communication',
+    items: [
+      { label: 'Messages', path: '/messages', icon: MessageSquare },
+      { label: 'Documents', path: '/documents', icon: FileText },
+    ],
+  });
+
+  return sections;
+};
+
+export default function Sidebar({ user }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedModules, setExpandedModules] = useState(false);
+  const location = useLocation();
+  const role = user?.role || 'resident';
+  const sections = navSections(role);
+
+  const handleLogout = () => {
+    base44.auth.logout('/');
+  };
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
+            <span className="text-secondary-foreground font-heading font-bold text-sm">REJ</span>
+          </div>
+          <div>
+            <h1 className="font-heading font-bold text-sm text-sidebar-foreground leading-tight">
+              REJ Pathways Hub
+            </h1>
+            <p className="text-[11px] text-sidebar-foreground/50 leading-tight">
+              {ROLE_LABELS[role] || 'User'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-5">
+        {sections.map((section) => (
+          <div key={section.label}>
+            <p className="px-2 mb-1.5 text-[10px] uppercase tracking-widest font-semibold text-sidebar-foreground/40">
+              {section.label}
+            </p>
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const active = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
+                      active
+                        ? 'bg-sidebar-accent text-sidebar-primary font-medium'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    )}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {/* Module Navigation */}
+        {isStaff(role) && (
+          <div>
+            <button
+              onClick={() => setExpandedModules(!expandedModules)}
+              className="flex items-center justify-between w-full px-2 mb-1.5"
+            >
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-sidebar-foreground/40">
+                Modules
+              </p>
+              {expandedModules ? (
+                <ChevronDown className="w-3 h-3 text-sidebar-foreground/40" />
+              ) : (
+                <ChevronRight className="w-3 h-3 text-sidebar-foreground/40" />
+              )}
+            </button>
+            {expandedModules && (
+              <div className="space-y-0.5">
+                {MODULES.map((mod) => {
+                  const Icon = mod.icon;
+                  const path = `/module/${mod.slug}`;
+                  const active = location.pathname === path;
+                  return (
+                    <Link
+                      key={mod.slug}
+                      to={path}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
+                        active
+                          ? 'bg-sidebar-accent text-sidebar-primary font-medium'
+                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                      )}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span>{mod.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </nav>
+
+      {/* User footer */}
+      <div className="px-4 py-4 border-t border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground text-xs font-semibold">
+            {user?.full_name?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-sidebar-foreground truncate">
+              {user?.full_name || 'User'}
+            </p>
+            <p className="text-[10px] text-sidebar-foreground/50 truncate">
+              {user?.email}
+            </p>
+          </div>
+          <button onClick={handleLogout} className="text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors">
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-3 left-3 z-50 lg:hidden bg-card shadow-md"
+        onClick={() => setMobileOpen(true)}
+      >
+        <Menu className="w-5 h-5" />
+      </Button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar panel */}
+      <aside
+        className={cn(
+          'fixed top-0 left-0 h-full w-64 bg-sidebar z-50 transition-transform duration-200',
+          'lg:translate-x-0 lg:static lg:z-auto',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        {/* Mobile close */}
+        <button
+          className="absolute top-3 right-3 lg:hidden text-sidebar-foreground/60"
+          onClick={() => setMobileOpen(false)}
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <SidebarContent />
+      </aside>
+    </>
+  );
+}

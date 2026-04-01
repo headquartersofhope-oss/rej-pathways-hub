@@ -1,0 +1,132 @@
+{
+  "name": "Resident",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "site_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Linked user account ID"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "preferred_name": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "non_binary",
+        "prefer_not_to_say",
+        "other"
+      ]
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "population": {
+      "type": "string",
+      "enum": [
+        "justice_impacted",
+        "homeless_veteran",
+        "foster_youth",
+        "other"
+      ],
+      "description": "Primary population category"
+    },
+    "intake_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expected_exit_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "actual_exit_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pre_intake",
+        "active",
+        "employed",
+        "graduated",
+        "exited",
+        "inactive"
+      ],
+      "default": "pre_intake"
+    },
+    "job_readiness_score": {
+      "type": "number",
+      "description": "0-100 readiness score"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low"
+    },
+    "assigned_case_manager": {
+      "type": "string",
+      "description": "User ID of assigned case manager"
+    },
+    "emergency_contact_name": {
+      "type": "string"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "barriers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of identified barriers"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "missing_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "organization_id"
+  ]
+}

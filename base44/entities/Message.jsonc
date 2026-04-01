@@ -1,0 +1,52 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "from_user_id": {
+      "type": "string"
+    },
+    "to_user_id": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "alert",
+        "system",
+        "reminder"
+      ],
+      "default": "direct"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "related_entity": {
+      "type": "string",
+      "description": "e.g. resident:123 or appointment:456"
+    }
+  },
+  "required": [
+    "body"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "super_admin",
+        "org_admin",
+        "program_manager",
+        "case_manager",
+        "instructor",
+        "resident",
+        "employer",
+        "probation_officer",
+        "referral_partner",
+        "auditor"
+      ],
+      "default": "resident"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "site_id": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "avatar_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "pending"
+      ],
+      "default": "active"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
