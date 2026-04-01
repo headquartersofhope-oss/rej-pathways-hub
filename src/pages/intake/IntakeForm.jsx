@@ -182,8 +182,12 @@ export default function IntakeForm() {
         )
       );
 
-      // Update resident job readiness score
-      await base44.entities.Resident.update(resident.id, { job_readiness_score: scores.work_readiness_score });
+      // Update resident record: scores + intake completion fields
+      await base44.entities.Resident.update(resident.id, {
+        job_readiness_score: scores.work_readiness_score,
+        intake_date: new Date().toISOString().split('T')[0],
+        status: resident.status === 'pre_intake' ? 'active' : resident.status,
+      });
 
       navigate(`/intake/${residentId}`);
     } finally {

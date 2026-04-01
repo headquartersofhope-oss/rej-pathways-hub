@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -50,6 +50,20 @@ export default function IntakeModule() {
   const completedBarriers = barriers.filter(b => b.status === 'resolved').length;
   // Completed if: status is 'completed', OR barriers/tasks were already generated (generation succeeded but status may not have saved)
   const isCompleted = assessment?.status === 'completed' || (assessment && (barriers.length > 0 || tasks.length > 0));
+
+  // Backfill: if intake is completed but Resident record is missing intake_date, write it back now
+  useEffect(() => {
+    if (!resident || !isCompleted || isLoading) return;
+    const needsBackfill = !resident.intake_date || resident.status === 'pre_intake';
+    if (!needsBackfill) return;
+    const completedDate = assessment?.completed_at
+      ? assessment.completed_at.split('T')[0]
+      : (assessment?.created_date ? assessment.created_date.split('T')[0] : new Date().toISOString().split('T')[0]);
+    base44.entities.Resident.update(resident.id, {
+      intake_date: resident.intake_date || completedDate,
+      status: resident.status === 'pre_intake' ? 'active' : resident.status,
+    });
+  }, [resident, isCompleted, isLoading]);
 
   const handleExport = () => {
     const lines = [
