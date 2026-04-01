@@ -63,8 +63,8 @@ export default function IntakeForm() {
 
   const { data: resident } = useQuery({
     queryKey: ['resident', residentId],
-    queryFn: () => base44.entities.Resident.filter({ id: residentId }).then(r => r[0]),
-    enabled: !!residentId,
+    queryFn: () => base44.entities.Resident.get(residentId),
+    enabled: !!residentId && residentId !== ':residentId',
   });
 
   const { data: existingAssessment } = useQuery({
