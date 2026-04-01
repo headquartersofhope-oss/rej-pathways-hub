@@ -162,11 +162,12 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
   };
 
   const handleSave = async () => {
+    if (!residentId || !globalId) return;
     setSaving(true);
     const data = {
       global_resident_id: globalId,
       resident_id: residentId,
-      organization_id: resident.organization_id,
+      organization_id: resident?.organization_id || '',
       version_label: form.version_label,
       full_name: form.full_name,
       phone: form.phone,

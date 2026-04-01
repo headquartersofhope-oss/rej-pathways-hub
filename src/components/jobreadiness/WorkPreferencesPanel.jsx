@@ -44,12 +44,8 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
     }
   }, [profile]);
 
+  // Auto-open editing only after we've confirmed there's no profile (profile query settled)
   const hasNoProfile = !profile;
-
-  // Auto-open editing if no profile yet
-  useEffect(() => {
-    if (hasNoProfile && staff) setEditing(true);
-  }, [hasNoProfile, staff]);
 
   const toggleShift = (shift) => {
     setForm(f => ({
@@ -61,6 +57,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
   };
 
   const handleSave = async () => {
+    if (!residentId || !globalId) return;
     setSaving(true);
     const data = {
       preferred_job_types: form.preferred_job_types.split(',').map(s => s.trim()).filter(Boolean),
@@ -79,7 +76,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
       await base44.entities.EmployabilityProfile.create({
         global_resident_id: globalId,
         resident_id: residentId,
-        organization_id: resident.organization_id,
+        organization_id: resident?.organization_id || '',
         ...data,
         job_readiness_score: 0,
         resume_status: 'none',

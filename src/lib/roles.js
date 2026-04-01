@@ -38,6 +38,8 @@ export const ADMIN_ROLES = [
 ];
 
 export function isStaff(role) {
+  // Treat base44 platform default admin role as staff
+  if (role === 'admin') return true;
   return STAFF_ROLES.includes(role);
 }
 
