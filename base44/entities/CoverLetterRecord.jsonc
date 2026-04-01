@@ -1,0 +1,42 @@
+{
+  "name": "CoverLetterRecord",
+  "type": "object",
+  "description": "Cover letter record for a resident. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string",
+      "description": "e.g. General, Warehouse Roles"
+    },
+    "target_job_type": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "staff_reviewed",
+        "complete"
+      ],
+      "default": "draft"
+    },
+    "staff_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id"
+  ]
+}

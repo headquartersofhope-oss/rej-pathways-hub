@@ -1,0 +1,48 @@
+{
+  "name": "ReferenceContact",
+  "type": "object",
+  "description": "A professional reference for a resident. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "relationship": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "unavailable"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "name"
+  ]
+}

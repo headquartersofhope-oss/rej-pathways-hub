@@ -1,0 +1,101 @@
+{
+  "name": "EmployabilityProfile",
+  "type": "object",
+  "description": "Master employability profile for a resident. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Internal DB FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "job_readiness_score": {
+      "type": "number",
+      "description": "0-100 readiness score"
+    },
+    "interview_readiness_score": {
+      "type": "number",
+      "description": "0-100 interview readiness score"
+    },
+    "preferred_job_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "desired_industries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "available_shifts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "afternoon",
+          "evening",
+          "overnight",
+          "weekends",
+          "flexible"
+        ]
+      }
+    },
+    "transportation_radius_miles": {
+      "type": "number"
+    },
+    "target_hourly_wage": {
+      "type": "number"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "work_history_summary": {
+      "type": "string"
+    },
+    "resume_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "draft",
+        "staff_reviewed",
+        "complete"
+      ],
+      "default": "none"
+    },
+    "accommodations_needed": {
+      "type": "string"
+    },
+    "barrier_work_notes": {
+      "type": "string",
+      "description": "Staff notes on barrier-aware work considerations"
+    },
+    "is_job_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id"
+  ]
+}

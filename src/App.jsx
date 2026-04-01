@@ -24,6 +24,7 @@ import IntakeForm from '@/pages/intake/IntakeForm';
 import ResidentProfile from '@/pages/ResidentProfile';
 import CaseManagement from '@/pages/CaseManagement';
 import Learning from '@/pages/Learning';
+import JobReadiness from '@/pages/JobReadiness';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/residents/:residentId" element={<ResidentProfile />} />
         <Route path="/case-management" element={<CaseManagement />} />
         <Route path="/learning" element={<Learning />} />
+        <Route path="/job-readiness" element={<JobReadiness />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

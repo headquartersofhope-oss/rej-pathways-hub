@@ -1,0 +1,54 @@
+{
+  "name": "MockInterview",
+  "type": "object",
+  "description": "Mock interview session record for a resident. Linked via global_resident_id.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "conducted_by": {
+      "type": "string",
+      "description": "Staff user ID"
+    },
+    "conducted_by_name": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "overall_score": {
+      "type": "number",
+      "description": "0-100 overall score"
+    },
+    "communication_score": {
+      "type": "number"
+    },
+    "confidence_score": {
+      "type": "number"
+    },
+    "preparation_score": {
+      "type": "number"
+    },
+    "strengths": {
+      "type": "string"
+    },
+    "areas_to_improve": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "date"
+  ]
+}
