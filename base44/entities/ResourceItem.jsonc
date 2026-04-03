@@ -1,0 +1,86 @@
+{
+  "name": "ResourceItem",
+  "type": "object",
+  "description": "An inventory item available for distribution to residents. Tracks stock levels, source, and category.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Item name (e.g. Men's Jacket Size L, $25 Walmart Gift Card)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "clothing",
+        "household",
+        "gift_card",
+        "hygiene",
+        "food",
+        "bus_pass",
+        "tools_equipment",
+        "electronics",
+        "furniture",
+        "other"
+      ],
+      "description": "Item category"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "donated",
+        "purchased",
+        "grant_funded",
+        "partner_agency"
+      ],
+      "default": "internal"
+    },
+    "donor_name": {
+      "type": "string",
+      "description": "Name of donor or partner if applicable"
+    },
+    "quantity_on_hand": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock level"
+    },
+    "quantity_total_received": {
+      "type": "number",
+      "default": 0,
+      "description": "Total ever received \u2014 for grant reporting"
+    },
+    "low_stock_threshold": {
+      "type": "number",
+      "default": 2,
+      "description": "Alert when quantity falls at or below this number"
+    },
+    "unit_value": {
+      "type": "number",
+      "description": "Estimated dollar value per unit \u2014 for grant reporting"
+    },
+    "size_or_variant": {
+      "type": "string",
+      "description": "e.g. Large, $25, Twin"
+    },
+    "location": {
+      "type": "string",
+      "description": "Storage location (e.g. Closet A, Room 3)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

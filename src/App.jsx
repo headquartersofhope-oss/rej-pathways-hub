@@ -27,6 +27,7 @@ import Learning from '@/pages/Learning';
 import JobReadiness from '@/pages/JobReadiness';
 import OutcomesReport from '@/pages/OutcomesReport';
 import Alumni from '@/pages/Alumni';
+import ResourceInventory from '@/pages/ResourceInventory';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
         <Route path="/job-readiness" element={<JobReadiness />} />
         <Route path="/outcomes" element={<OutcomesReport />} />
         <Route path="/alumni" element={<Alumni />} />
+        <Route path="/resources" element={<ResourceInventory />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

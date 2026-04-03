@@ -1,0 +1,67 @@
+{
+  "name": "ResourceDistribution",
+  "type": "object",
+  "description": "A log record of a resource item distributed to a resident. Decrements stock on the ResourceItem.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References Resident.global_resident_id."
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Database object ID of the Resident record."
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "resource_item_id": {
+      "type": "string",
+      "description": "ID of the ResourceItem distributed."
+    },
+    "resource_item_name": {
+      "type": "string",
+      "description": "Snapshot of item name at time of distribution."
+    },
+    "resource_category": {
+      "type": "string",
+      "description": "Snapshot of item category."
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1,
+      "description": "Quantity distributed."
+    },
+    "distribution_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "distributed_by": {
+      "type": "string",
+      "description": "User.id of staff who logged the distribution."
+    },
+    "distributed_by_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "job_interview",
+        "work_start",
+        "general_need",
+        "emergency",
+        "program_requirement",
+        "other"
+      ],
+      "default": "general_need"
+    }
+  },
+  "required": [
+    "resident_id",
+    "global_resident_id",
+    "resource_item_id",
+    "resource_item_name"
+  ]
+}
