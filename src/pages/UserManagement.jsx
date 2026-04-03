@@ -27,7 +27,8 @@ export default function UserManagement() {
     queryFn: async () => {
       try {
         console.log('[Users Query] Fetching users...');
-        const result = await base44.functions.invoke('listUsersWithProfiles', {});
+        const response = await base44.functions.invoke('listUsersWithProfiles', {});
+        const result = response.data || response;
         const userCount = result.users?.length || 0;
         console.log(`[Users Query] Fetched ${userCount} users`, result.users);
         return result.users || [];

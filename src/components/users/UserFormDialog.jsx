@@ -117,7 +117,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
     try {
       if (isEditing) {
         // Update existing user
-        const result = await base44.functions.invoke('manageUser', {
+        const response = await base44.functions.invoke('manageUser', {
           action: 'update',
           email: user.email,
           data: {
@@ -129,11 +129,12 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
           },
         });
 
+        const result = response.data || response;
         if (result.success) {
           console.log('User update successful');
           setSaving(false);
-          setForm(EMPTY_FORM); // Clear form so isDirty() returns false
-          setSkipDirtyCheck(true); // Skip dirty check on close since save succeeded
+          setForm(EMPTY_FORM);
+          setSkipDirtyCheck(true);
           onSaved();
           handleOpenChange(false);
         } else {
@@ -141,7 +142,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
         }
       } else {
         // Create new user
-        const result = await base44.functions.invoke('manageUser', {
+        const response = await base44.functions.invoke('manageUser', {
           action: 'create',
           email: form.email,
           data: {
@@ -154,11 +155,12 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
           },
         });
 
+        const result = response.data || response;
         if (result.success) {
           console.log('User creation successful:', result.email);
           setSaving(false);
-          setForm(EMPTY_FORM); // Clear form so isDirty() returns false
-          setSkipDirtyCheck(true); // Skip dirty check on close since save succeeded
+          setForm(EMPTY_FORM);
+          setSkipDirtyCheck(true);
           setSuccessData(result);
         } else {
           throw new Error(result.error || 'Creation failed');
