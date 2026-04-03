@@ -198,12 +198,20 @@ export default function IntakeForm() {
         status: resident.status === 'pre_intake' ? 'active' : resident.status,
       };
 
-      // Backfill contact/profile fields if captured in personal section
+      // Backfill ALL contact/profile fields to Resident record
+      // These are the source-of-truth fields that must sync from intake
       if (formData.personal) {
         if (formData.personal.pronouns) residentUpdates.pronouns = formData.personal.pronouns;
         if (formData.personal.pronouns_other) residentUpdates.pronouns = formData.personal.pronouns_other;
+        if (formData.personal.gender_identity) residentUpdates.gender = formData.personal.gender_identity;
         if (formData.personal.primary_language) residentUpdates.primary_language = formData.personal.primary_language;
+        if (formData.personal.primary_language_other) residentUpdates.primary_language = formData.personal.primary_language_other;
       }
+
+      // Backfill contact info from personal section (if captured there)
+      if (formData.personal?.email) residentUpdates.email = formData.personal.email;
+      if (formData.personal?.phone) residentUpdates.phone = formData.personal.phone;
+      if (formData.personal?.date_of_birth) residentUpdates.date_of_birth = formData.personal.date_of_birth;
 
       // Backfill emergency contact if captured
       if (formData.emergency_contact?.name) {

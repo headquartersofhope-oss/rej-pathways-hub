@@ -49,6 +49,26 @@ export default function PersonalStep({ data = {}, onChange }) {
   return (
     <div className="space-y-4">
       <TextField
+        label="Email"
+        value={data.email}
+        onChange={v => set('email', v)}
+        placeholder="Email address"
+        type="email"
+      />
+      <TextField
+        label="Phone"
+        value={data.phone}
+        onChange={v => set('phone', v)}
+        placeholder="Phone number"
+        type="tel"
+      />
+      <TextField
+        label="Date of Birth"
+        value={data.date_of_birth}
+        onChange={v => set('date_of_birth', v)}
+        type="date"
+      />
+      <TextField
         label="Preferred Name"
         value={data.preferred_name}
         onChange={v => set('preferred_name', v)}

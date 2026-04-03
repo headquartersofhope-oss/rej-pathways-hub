@@ -79,9 +79,9 @@ export default function ResidentCard({
         </div>
       </div>
 
-      {/* Contact Info */}
-      {(resident.email || resident.phone) && !isCompact && (
-        <div className="py-2 border-t border-border/40 space-y-1 mb-2">
+      {/* Contact Info - Always show if present (detailed and compact) */}
+      {(resident.email || resident.phone) && (
+        <div className={`border-t border-border/40 space-y-1 mb-2 ${isCompact ? '' : 'py-2'}`}>
           {resident.email && (
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground truncate">
               <Mail className="w-3 h-3 flex-shrink-0" />
@@ -97,13 +97,7 @@ export default function ResidentCard({
         </div>
       )}
 
-      {/* Contact Mini (compact) */}
-      {(resident.email || resident.phone) && isCompact && (
-        <div className="text-[9px] text-muted-foreground mb-2 space-y-0.5">
-          {resident.email && <p className="truncate">{resident.email}</p>}
-          {resident.phone && <p className="truncate">{resident.phone}</p>}
-        </div>
-      )}
+
 
       {/* Job Readiness Score */}
       {showJobReadiness && resident.job_readiness_score !== undefined && (
