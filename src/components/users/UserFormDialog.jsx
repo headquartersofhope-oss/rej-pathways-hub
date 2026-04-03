@@ -35,6 +35,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
   const [submitError, setSubmitError] = useState('');
   const [successData, setSuccessData] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [skipDirtyCheck, setSkipDirtyCheck] = useState(false);
 
   const isEditing = !!user;
 
@@ -50,12 +51,16 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
   };
 
   const handleOpenChange = (open) => {
-    if (!open && isDirty()) {
+    if (!open && isDirty() && !skipDirtyCheck) {
       if (!confirm('Discard unsaved changes?')) {
         return;
       }
     }
+    // Always clear state when closing
     setSuccessData(null);
+    setSubmitError('');
+    setErrors({});
+    setSkipDirtyCheck(false); // Reset flag
     onOpenChange(open);
   };
 
@@ -128,6 +133,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
           console.log('User update successful');
           setSaving(false);
           setForm(EMPTY_FORM); // Clear form so isDirty() returns false
+          setSkipDirtyCheck(true); // Skip dirty check on close since save succeeded
           onSaved();
           handleOpenChange(false);
         } else {
@@ -149,8 +155,10 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
         });
 
         if (result.success) {
+          console.log('User creation successful:', result.email);
           setSaving(false);
           setForm(EMPTY_FORM); // Clear form so isDirty() returns false
+          setSkipDirtyCheck(true); // Skip dirty check on close since save succeeded
           setSuccessData(result);
         } else {
           throw new Error(result.error || 'Creation failed');
@@ -223,9 +231,11 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
             <div className="flex gap-2 border-t pt-4">
               <Button
                 onClick={() => {
-                  setSuccessData(null);
-                  onSaved();
-                  handleOpenChange(false);
+                  console.log('Closing success screen, refreshing users list');
+                  onSaved(); // Refresh parent list first
+                  setSuccessData(null); // Clear success state
+                  setSkipDirtyCheck(false); // Reset flag
+                  onOpenChange(false); // Close modal directly (skip isDirty check since save succeeded)
                 }}
               >
                 Done

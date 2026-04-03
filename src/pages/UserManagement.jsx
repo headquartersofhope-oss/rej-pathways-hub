@@ -26,14 +26,18 @@ export default function UserManagement() {
     queryKey: ['users'],
     queryFn: async () => {
       try {
+        console.log('[Users Query] Fetching users...');
         const result = await base44.functions.invoke('listUsersWithProfiles', {});
+        const userCount = result.users?.length || 0;
+        console.log(`[Users Query] Fetched ${userCount} users`, result.users);
         return result.users || [];
       } catch (err) {
-        console.error('Failed to list users:', err);
+        console.error('[Users Query] Failed to list users:', err);
         return [];
       }
     },
-    refetchInterval: 5000, // Auto-refetch every 5 seconds to catch updates
+    refetchInterval: 3000, // Auto-refetch every 3 seconds to catch updates
+    staleTime: 0, // Always consider data stale
   });
 
   const handleAddUser = () => {
@@ -47,7 +51,9 @@ export default function UserManagement() {
   };
 
   const handleSaved = () => {
+    console.log('[handleSaved] Invalidating users query and forcing refetch');
     queryClient.invalidateQueries({ queryKey: ['users'] });
+    refetch(); // Force immediate refetch
     setFormOpen(false);
     setSelectedUser(null);
   };
