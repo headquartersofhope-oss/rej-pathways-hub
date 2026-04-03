@@ -12,7 +12,6 @@ const EMPTY_FORM = {
   full_name: '',
   email: '',
   role: 'staff',
-  status: 'active',
 };
 
 const AVAILABLE_ROLES = [
@@ -65,7 +64,6 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
         full_name: user.full_name || '',
         email: user.email || '',
         role: user.role || 'staff',
-        status: user.status || 'active',
       });
       setMethod('edit');
     } else {
@@ -108,22 +106,19 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
 
     try {
       if (isEditing) {
-        // Edit mode: update the user's role and status
+        // Edit mode: update the user's role only
         await base44.entities.User.update(user.id, {
           role: form.role,
-          status: form.status,
         });
       } else if (method === 'invite') {
         // Invite mode: use inviteUser
         await base44.users.inviteUser(form.email, form.role);
       } else {
         // Create mode: create user directly via entity
-        // Note: This is a fallback if inviteUser is not available
         await base44.entities.User.create({
           full_name: form.full_name,
           email: form.email,
           role: form.role,
-          status: form.status,
         });
       }
 
@@ -133,13 +128,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
     } catch (error) {
       setSaving(false);
       console.error('User save error:', error);
-      
-      // If invite fails, offer fallback to create
-      if (method === 'invite' && error.message?.includes('invite')) {
-        setSubmitError(`Invite failed: ${error.message}. Try creating the user directly instead.`);
-      } else {
-        setSubmitError(error.message || 'Failed to save user');
-      }
+      setSubmitError(error.message || 'Failed to save user');
     }
   };
 
@@ -230,19 +219,6 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
               </SelectContent>
             </Select>
             {errors.role && <p className="text-xs text-destructive mt-1">{errors.role}</p>}
-          </div>
-
-          <div>
-            <Label className="text-xs">Status</Label>
-            <Select value={form.status} onValueChange={v => set('status', v)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="flex gap-2 border-t pt-4">

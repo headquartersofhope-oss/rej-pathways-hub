@@ -1,6 +1,7 @@
 {
   "name": "User",
   "type": "object",
+  "description": "Staff and admin user accounts. Built-in fields: id, created_date, full_name, email. Staff users should not require resident linking at creation.",
   "properties": {
     "role": {
       "type": "string",
@@ -22,7 +23,7 @@
     },
     "organization_id": {
       "type": "string",
-      "description": "Organization this user belongs to"
+      "description": "Organization this user belongs to (optional, auto-populated if available)"
     },
     "site_id": {
       "type": "string",
@@ -30,11 +31,21 @@
     },
     "resident_id": {
       "type": "string",
-      "description": "If role=resident, the linked Resident record ID"
+      "description": "If role=resident, the linked Resident record ID (optional, link separately)"
     },
     "global_resident_id": {
       "type": "string",
-      "description": "If role=resident, the linked Resident.global_resident_id"
+      "description": "If role=resident, the linked Resident.global_resident_id (optional, link separately)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "User account status"
     }
-  }
+  },
+  "required": []
 }
