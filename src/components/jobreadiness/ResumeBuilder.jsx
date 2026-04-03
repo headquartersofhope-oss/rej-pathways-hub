@@ -31,7 +31,6 @@ function WorkHistoryEditor({ items, onChange }) {
   const add = () => onChange([...items, { employer: '', title: '', start_date: '', end_date: '', description: '' }]);
   const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
   const update = (i, field, val) => onChange(items.map((item, idx) => idx === i ? { ...item, [field]: val } : item));
-
   return (
     <div>
       <SectionHeader title="Work History" onAdd={add} addLabel="Add Job" />
@@ -56,7 +55,6 @@ function EducationEditor({ items, onChange }) {
   const add = () => onChange([...items, { institution: '', credential: '', year: '' }]);
   const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
   const update = (i, field, val) => onChange(items.map((item, idx) => idx === i ? { ...item, [field]: val } : item));
-
   return (
     <div>
       <SectionHeader title="Education" onAdd={add} addLabel="Add Education" />
@@ -79,7 +77,6 @@ function ReferencesEditor({ items, onChange }) {
   const add = () => onChange([...items, { name: '', relationship: '', phone: '', email: '' }]);
   const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
   const update = (i, field, val) => onChange(items.map((item, idx) => idx === i ? { ...item, [field]: val } : item));
-
   return (
     <div>
       <SectionHeader title="References" onAdd={add} addLabel="Add Reference" />
@@ -96,6 +93,145 @@ function ReferencesEditor({ items, onChange }) {
         </div>
       ))}
     </div>
+  );
+}
+
+// Full resume view panel shown after saving
+function ResumeView({ resume, onEdit, onDelete, staff }) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <Card className="overflow-hidden">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/40">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-primary" />
+          <span className="font-semibold text-sm">{resume.version_label || 'Resume'}</span>
+          <Badge className={`text-[10px] border-0 ${STATUS_STYLES[resume.status] || 'bg-slate-100 text-slate-700'}`}>
+            {resume.status?.replace('_', ' ') || 'draft'}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-1">
+          {staff && (
+            <>
+              <Button variant="outline" size="sm" onClick={onEdit} className="h-7 gap-1 text-xs">
+                <Pencil className="w-3 h-3" /> Edit
+              </Button>
+              <Button variant="ghost" size="icon" onClick={onDelete} className="h-7 w-7 text-destructive">
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => setExpanded(e => !e)} className="h-7 w-7">
+            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="p-5 space-y-5 text-sm">
+          {/* Contact Info */}
+          <div className="text-center border-b pb-4">
+            <h2 className="text-xl font-heading font-bold">{resume.full_name || '—'}</h2>
+            <div className="flex flex-wrap justify-center gap-3 mt-1 text-xs text-muted-foreground">
+              {resume.phone && <span>{resume.phone}</span>}
+              {resume.email && <span>{resume.email}</span>}
+              {resume.address && <span>{resume.address}</span>}
+            </div>
+          </div>
+
+          {/* Summary */}
+          {resume.objective && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Professional Summary</p>
+              <p className="text-sm leading-relaxed">{resume.objective}</p>
+            </div>
+          )}
+
+          {/* Work History */}
+          {resume.work_history?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Work History</p>
+              <div className="space-y-3">
+                {resume.work_history.map((job, i) => (
+                  <div key={i} className="border-l-2 border-primary/30 pl-3">
+                    <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                      <span className="font-semibold">{job.title || 'Position'}</span>
+                      <span className="text-xs text-muted-foreground">{job.start_date}{job.end_date ? ` – ${job.end_date}` : ''}</span>
+                    </div>
+                    {job.employer && <p className="text-xs text-muted-foreground">{job.employer}</p>}
+                    {job.description && <p className="text-xs mt-1 text-foreground/80">{job.description}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education */}
+          {resume.education?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Education</p>
+              <div className="space-y-2">
+                {resume.education.map((edu, i) => (
+                  <div key={i} className="border-l-2 border-primary/30 pl-3">
+                    <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                      <span className="font-semibold">{edu.credential || 'Credential'}</span>
+                      <span className="text-xs text-muted-foreground">{edu.year}</span>
+                    </div>
+                    {edu.institution && <p className="text-xs text-muted-foreground">{edu.institution}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills */}
+          {resume.skills?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Skills</p>
+              <div className="flex flex-wrap gap-1.5">
+                {resume.skills.map(s => <Badge key={s} variant="outline" className="text-xs">{s}</Badge>)}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications */}
+          {resume.certifications?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Certifications</p>
+              <div className="flex flex-wrap gap-1.5">
+                {resume.certifications.map(c => <Badge key={c} className="text-xs bg-primary/10 text-primary border-0">{c}</Badge>)}
+              </div>
+            </div>
+          )}
+
+          {/* References */}
+          {resume.references?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">References</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {resume.references.map((ref, i) => (
+                  <div key={i} className="text-xs space-y-0.5">
+                    <p className="font-semibold">{ref.name}</p>
+                    {ref.relationship && <p className="text-muted-foreground">{ref.relationship}</p>}
+                    {ref.phone && <p className="text-muted-foreground">{ref.phone}</p>}
+                    {ref.email && <p className="text-muted-foreground">{ref.email}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Staff Notes (internal) */}
+          {staff && resume.staff_notes && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <p className="text-xs font-semibold text-amber-800 mb-1">Staff Notes (internal)</p>
+              <p className="text-xs text-amber-900">{resume.staff_notes}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -124,14 +260,14 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
   const openNew = () => {
     setEditing(null);
     setForm({
-      version_label: `Draft ${resumes.length + 1}`,
+      version_label: `Draft ${(resumes?.length || 0) + 1}`,
       full_name: `${resident?.first_name || ''} ${resident?.last_name || ''}`.trim(),
       phone: resident?.phone || '',
       email: resident?.email || '',
       address: '',
       objective: '',
       skills: (profile?.skills || []).join(', '),
-      certifications: certificates.map(c => c.certificate_name).join(', '),
+      certifications: (certificates || []).map(c => c.certificate_name).join(', '),
       staff_notes: '',
       status: 'draft',
       work_history: [],
@@ -199,66 +335,49 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-heading font-semibold text-sm">Resume Drafts</h3>
+        <h3 className="font-heading font-semibold text-sm">Resume</h3>
         {staff && (
           <Button size="sm" onClick={openNew} className="gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> Create Resume
+            <Plus className="w-3.5 h-3.5" />
+            {resumes?.length > 0 ? 'New Resume Version' : 'Create Resume'}
           </Button>
         )}
       </div>
 
-      {resumes.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-muted-foreground">
-          <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
-          <p>No resumes yet.</p>
+      {/* Empty state */}
+      {(!resumes || resumes.length === 0) ? (
+        <Card className="p-8 text-center text-sm text-muted-foreground">
+          <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="font-medium mb-1">No resume on file</p>
           {staff ? (
-            <Button size="sm" className="mt-3 gap-1.5" onClick={openNew}>
-              <Plus className="w-3.5 h-3.5" /> Create Resume
-            </Button>
+            <>
+              <p className="text-xs mb-3">Click below to build a resume for this resident.</p>
+              <Button size="sm" onClick={openNew} className="gap-1.5">
+                <Plus className="w-3.5 h-3.5" /> Create Resume
+              </Button>
+            </>
           ) : (
-            <p className="mt-1">Ask your case manager to build one.</p>
+            <p className="text-xs">Ask your case manager to create a resume for you.</p>
           )}
         </Card>
       ) : (
-        resumes.map(r => (
-          <Card key={r.id} className="p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <p className="font-semibold text-sm">{r.version_label || 'Resume'}</p>
-                  <Badge className={`text-[10px] border-0 ${STATUS_STYLES[r.status]}`}>{r.status?.replace('_', ' ')}</Badge>
-                </div>
-                {r.full_name && <p className="text-xs text-muted-foreground">{r.full_name}{r.phone ? ` · ${r.phone}` : ''}{r.email ? ` · ${r.email}` : ''}</p>}
-                {r.objective && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{r.objective}</p>}
-                <div className="flex flex-wrap gap-2 mt-2 text-[11px] text-muted-foreground">
-                  {r.work_history?.length > 0 && <span>{r.work_history.length} job{r.work_history.length > 1 ? 's' : ''}</span>}
-                  {r.education?.length > 0 && <span>{r.education.length} education</span>}
-                  {r.skills?.length > 0 && <span>{r.skills.length} skills</span>}
-                </div>
-                {r.skills?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {r.skills.slice(0, 5).map(s => <Badge key={s} variant="outline" className="text-[10px]">{s}</Badge>)}
-                    {r.skills.length > 5 && <Badge variant="outline" className="text-[10px]">+{r.skills.length - 5}</Badge>}
-                  </div>
-                )}
-              </div>
-              {staff && (
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button variant="outline" size="sm" onClick={() => openEdit(r)} className="h-7 gap-1 text-xs">
-                    <Pencil className="w-3 h-3" /> Edit
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="h-7 w-7 text-destructive">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Card>
-        ))
+        <div className="space-y-4">
+          {resumes.map(r => (
+            <ResumeView
+              key={r.id}
+              resume={r}
+              staff={staff}
+              onEdit={() => openEdit(r)}
+              onDelete={() => handleDelete(r.id)}
+            />
+          ))}
+        </div>
       )}
 
+      {/* Create / Edit Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -343,7 +462,9 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
             )}
 
             <div className="flex gap-2 pt-1 border-t">
-              <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (editing ? 'Update Resume' : 'Save Resume')}</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : (editing ? 'Update Resume' : 'Save Resume')}
+              </Button>
               <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             </div>
           </div>

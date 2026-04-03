@@ -30,6 +30,7 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
     queryFn: () => base44.entities.ResumeRecord.filter({ resident_id: residentId }),
     enabled: !!residentId,
     staleTime: 0,
+    gcTime: 0,
   });
 
   const { data: mockInterviews = [] } = useQuery({
