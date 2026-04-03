@@ -1,0 +1,140 @@
+{
+  "name": "OutcomeRecord",
+  "type": "object",
+  "description": "Long-term follow-up milestone record for a resident. Tracks program outcomes at defined checkpoints post-exit or post-graduation. Used for grant analytics and program reporting.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References Resident.global_resident_id \u2014 the master person identifier."
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK)."
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "milestone": {
+      "type": "string",
+      "enum": [
+        "30_days",
+        "60_days",
+        "90_days",
+        "6_months",
+        "1_year",
+        "2_years"
+      ],
+      "description": "Which follow-up checkpoint this record represents."
+    },
+    "follow_up_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date this follow-up was conducted."
+    },
+    "conducted_by": {
+      "type": "string",
+      "description": "User.id of the staff who conducted the follow-up."
+    },
+    "conducted_by_name": {
+      "type": "string"
+    },
+    "employment_status": {
+      "type": "string",
+      "enum": [
+        "employed_full_time",
+        "employed_part_time",
+        "self_employed",
+        "unemployed",
+        "unable_to_work",
+        "unknown"
+      ],
+      "description": "Employment status at this checkpoint."
+    },
+    "employer_name": {
+      "type": "string",
+      "description": "Name of employer if employed."
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "hourly_wage": {
+      "type": "number",
+      "description": "Hourly wage at this checkpoint (used for income tracking)."
+    },
+    "job_retention": {
+      "type": "string",
+      "enum": [
+        "retained_same_job",
+        "changed_jobs",
+        "promoted",
+        "lost_job",
+        "never_employed",
+        "unknown"
+      ],
+      "description": "Whether the resident has retained their job since last checkpoint."
+    },
+    "housing_stability": {
+      "type": "string",
+      "enum": [
+        "stable_housed",
+        "transitional",
+        "unstable",
+        "experiencing_homelessness",
+        "unknown"
+      ],
+      "description": "Housing status at this checkpoint."
+    },
+    "income_stability": {
+      "type": "string",
+      "enum": [
+        "stable",
+        "improving",
+        "declining",
+        "no_income",
+        "unknown"
+      ]
+    },
+    "successfully_placed": {
+      "type": "boolean",
+      "description": "Whether the resident is considered successfully placed at this checkpoint. Used for grant reporting."
+    },
+    "recidivism_flag": {
+      "type": "boolean",
+      "description": "Whether any new justice involvement has occurred since exit. Applies to justice-impacted population."
+    },
+    "ongoing_barriers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Any ongoing barrier categories still present at this checkpoint."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Follow-up narrative notes, contact summary, observations."
+    },
+    "contact_method": {
+      "type": "string",
+      "enum": [
+        "phone_call",
+        "in_person",
+        "email",
+        "text",
+        "home_visit",
+        "no_contact",
+        "other"
+      ],
+      "default": "phone_call"
+    },
+    "contact_successful": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the resident was successfully contacted."
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "milestone"
+  ]
+}

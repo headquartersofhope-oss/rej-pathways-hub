@@ -19,6 +19,7 @@ import DocumentsTab from '@/components/casemanagement/DocumentsTab';
 import ResidentLearningTab from '@/components/learning/ResidentLearningTab';
 import JobReadinessTab from '@/components/jobreadiness/JobReadinessTab';
 import ProbationNotesPanel from '@/components/casemanagement/ProbationNotesPanel';
+import OutcomeMilestoneTab from '@/components/outcomes/OutcomeMilestoneTab';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -223,6 +224,7 @@ export default function ResidentProfile() {
           <TabsTrigger value="job-readiness">Job Readiness</TabsTrigger>
           {!perms.isProbationOfficer && <TabsTrigger value="documents">Documents</TabsTrigger>}
           {perms.canViewProbationNotes && <TabsTrigger value="probation-notes">Probation Notes</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="outcomes">Outcomes</TabsTrigger>}
         </TabsList>
 
         {!perms.isProbationOfficer && (
@@ -270,6 +272,12 @@ export default function ResidentProfile() {
         {perms.canViewProbationNotes && (
           <TabsContent value="probation-notes">
             <ProbationNotesPanel resident={resident} user={user} canAddNote={perms.canAddProbationNote} />
+          </TabsContent>
+        )}
+
+        {!perms.isProbationOfficer && (
+          <TabsContent value="outcomes">
+            <OutcomeMilestoneTab resident={resident} user={user} canEdit={perms.canEditProfile} />
           </TabsContent>
         )}
       </Tabs>

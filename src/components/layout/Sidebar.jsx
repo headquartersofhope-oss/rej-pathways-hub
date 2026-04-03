@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
   LayoutDashboard, Users, Building2, MapPin, FileText,
   MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-  ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star
+  ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ const navSections = (role) => {
         { label: 'Intake & Barriers', path: '/intake', icon: ClipboardList },
         { label: 'Case Management', path: '/case-management', icon: FolderOpen },
         { label: 'Job Readiness', path: '/job-readiness', icon: Star },
+        { label: 'Outcomes & Reporting', path: '/outcomes', icon: BarChart2 },
         { label: 'Employers', path: '/employers', icon: Briefcase },
         { label: 'Partner Agencies', path: '/partners', icon: Handshake },
       ],
