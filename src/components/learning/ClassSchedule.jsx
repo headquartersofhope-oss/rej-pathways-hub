@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Calendar, MapPin, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, Clock, ClipboardList } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 const statusColors = {
@@ -20,7 +20,7 @@ const statusColors = {
 
 const emptyForm = { class_id: '', date: '', start_time: '', end_time: '', location: '', notes: '', status: 'scheduled' };
 
-export default function ClassSchedule({ user }) {
+export default function ClassSchedule({ user, onTakeAttendance }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editSession, setEditSession] = useState(null);
@@ -75,11 +75,14 @@ export default function ClassSchedule({ user }) {
           {sorted.map(session => {
             const cls = classMap[session.class_id];
             return (
-              <Card key={session.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => openEdit(session)}>
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Card key={session.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:shadow-sm transition-shadow">
+                <div
+                  className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 cursor-pointer"
+                  onClick={() => openEdit(session)}
+                >
                   <Calendar className="w-5 h-5 text-primary" />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openEdit(session)}>
                   <p className="font-semibold text-sm">{cls?.title || 'Unknown Class'}</p>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{session.date ? format(parseISO(session.date), 'EEE, MMM d yyyy') : '—'}</span>
@@ -89,7 +92,19 @@ export default function ClassSchedule({ user }) {
                     {session.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{session.location}</span>}
                   </div>
                 </div>
-                <Badge className={`text-[10px] border-0 flex-shrink-0 ${statusColors[session.status] || ''}`}>{session.status}</Badge>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {onTakeAttendance && session.status !== 'cancelled' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1"
+                      onClick={(e) => { e.stopPropagation(); onTakeAttendance(session); }}
+                    >
+                      <ClipboardList className="w-3 h-3" /> Attendance
+                    </Button>
+                  )}
+                  <Badge className={`text-[10px] border-0 ${statusColors[session.status] || ''}`}>{session.status}</Badge>
+                </div>
               </Card>
             );
           })}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
@@ -22,11 +22,20 @@ const statusColors = {
   excused: 'bg-slate-100 text-slate-600',
 };
 
-export default function AttendanceSheet({ user, classes, residents }) {
+export default function AttendanceSheet({ user, classes, residents, preselectedSession, onPreselectedConsumed }) {
   const queryClient = useQueryClient();
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [saving, setSaving] = useState({});
+
+  // Consume preselected session from parent (e.g. "Take Attendance" button on schedule)
+  useEffect(() => {
+    if (preselectedSession) {
+      setSelectedClassId(preselectedSession.class_id);
+      setSelectedSessionId(preselectedSession.id);
+      onPreselectedConsumed?.();
+    }
+  }, [preselectedSession]);
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['class-sessions'],

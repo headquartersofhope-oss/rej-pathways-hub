@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { GraduationCap, Award, Plus, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, Award, Plus, MessageSquare, CheckCircle2, ClipboardList, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 const statusConfig = {
   enrolled: { color: 'bg-blue-50 text-blue-700', label: 'Enrolled' },
@@ -63,6 +63,12 @@ export default function ResidentLearningTab({ resident, user }) {
   const { data: classes = [] } = useQuery({
     queryKey: ['learning-classes'],
     queryFn: () => base44.entities.LearningClass.list('-created_date', 200),
+  });
+
+  const { data: attendanceRecords = [] } = useQuery({
+    queryKey: ['resident-attendance', resident.id],
+    queryFn: () => base44.entities.AttendanceRecord.filter({ resident_id: resident.id }),
+    enabled: !!resident.id,
   });
 
   const classMap = Object.fromEntries(classes.map(c => [c.id, c]));
@@ -176,10 +182,15 @@ export default function ResidentLearningTab({ resident, user }) {
 
   const isStaffUser = !user?.role || user?.role !== 'resident';
 
+  // Attendance stats
+  const totalAttendance = attendanceRecords.length;
+  const presentCount = attendanceRecords.filter(a => a.status === 'present' || a.status === 'late').length;
+  const attendanceRate = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : null;
+
   return (
     <div className="space-y-5">
       {/* Summary row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="bg-muted/50 rounded-lg p-3 text-center">
           <p className="font-heading font-bold text-lg">{enrollments.length}</p>
           <p className="text-[10px] text-muted-foreground">Enrolled</p>
@@ -191,6 +202,10 @@ export default function ResidentLearningTab({ resident, user }) {
         <div className="bg-muted/50 rounded-lg p-3 text-center">
           <p className="font-heading font-bold text-lg">{certificates.length}</p>
           <p className="text-[10px] text-muted-foreground">Certificates</p>
+        </div>
+        <div className="bg-muted/50 rounded-lg p-3 text-center">
+          <p className="font-heading font-bold text-lg">{attendanceRate !== null ? `${attendanceRate}%` : '—'}</p>
+          <p className="text-[10px] text-muted-foreground">Attendance</p>
         </div>
       </div>
 
@@ -291,6 +306,41 @@ export default function ResidentLearningTab({ resident, user }) {
                 </div>
               </Card>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Attendance History */}
+      {attendanceRecords.length > 0 && (
+        <div>
+          <h4 className="font-heading font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-2">Attendance History</h4>
+          <div className="space-y-1.5">
+            {[...attendanceRecords].sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 10).map(rec => {
+              const cls = classMap[rec.class_id];
+              const icons = {
+                present: <CheckCircle className="w-4 h-4 text-emerald-600" />,
+                absent: <XCircle className="w-4 h-4 text-red-500" />,
+                late: <Clock className="w-4 h-4 text-amber-500" />,
+                excused: <ClipboardList className="w-4 h-4 text-slate-400" />,
+              };
+              const colors = {
+                present: 'bg-emerald-50 text-emerald-700',
+                absent: 'bg-red-50 text-red-700',
+                late: 'bg-amber-50 text-amber-700',
+                excused: 'bg-slate-100 text-slate-600',
+              };
+              return (
+                <div key={rec.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                  {icons[rec.status] || <ClipboardList className="w-4 h-4 text-muted-foreground" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{cls?.title || 'Class'}</p>
+                  </div>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium capitalize ${colors[rec.status] || ''}`}>
+                    {rec.status}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

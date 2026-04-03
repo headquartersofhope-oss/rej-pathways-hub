@@ -11,10 +11,11 @@ import { base44 } from '@/api/base44Client';
  *   - Skills listed                  10
  *   - Certifications present         10
  *   - References present             10
- *   - Target wage set                 5
- *   - Transportation radius set       5
+ *   - Attendance rate ≥ 75%          5
+ *   - Target wage set                 3
+ *   - Transportation radius set       2
  */
-export function computeReadinessScore({ profile, resumes = [], mockInterviews = [], references = [], certificates = [] }) {
+export function computeReadinessScore({ profile, resumes = [], mockInterviews = [], references = [], certificates = [], attendanceRecords = [] }) {
   let score = 0;
 
   // Interview score (25 pts — proportional to the latest interview overall_score)
@@ -45,11 +46,18 @@ export function computeReadinessScore({ profile, resumes = [], mockInterviews = 
   const confirmedRefs = references.filter(r => r.status === 'confirmed' || !r.status);
   if (confirmedRefs.length > 0) score += 10;
 
-  // Target wage set (5 pts)
-  if (profile?.target_hourly_wage) score += 5;
+  // Attendance rate ≥ 75% (5 pts — proportional)
+  if (attendanceRecords.length > 0) {
+    const present = attendanceRecords.filter(a => a.status === 'present' || a.status === 'late').length;
+    const rate = present / attendanceRecords.length;
+    score += Math.round(rate * 5);
+  }
 
-  // Transportation radius set (5 pts)
-  if (profile?.transportation_radius_miles) score += 5;
+  // Target wage set (3 pts)
+  if (profile?.target_hourly_wage) score += 3;
+
+  // Transportation radius set (2 pts)
+  if (profile?.transportation_radius_miles) score += 2;
 
   return Math.min(100, score);
 }
@@ -61,10 +69,10 @@ export function computeReadinessScore({ profile, resumes = [], mockInterviews = 
  * Safe to call from any save handler — all params are optional and
  * will be fetched live if not supplied.
  */
-export async function syncReadinessScore({ profile, residentId, resumes = [], mockInterviews = [], references = [], certificates = [] }) {
+export async function syncReadinessScore({ profile, residentId, resumes = [], mockInterviews = [], references = [], certificates = [], attendanceRecords = [] }) {
   if (!profile?.id || !residentId) return;
 
-  const score = computeReadinessScore({ profile, resumes, mockInterviews, references, certificates });
+  const score = computeReadinessScore({ profile, resumes, mockInterviews, references, certificates, attendanceRecords });
 
   // Only write if score differs to avoid unnecessary updates
   await Promise.all([

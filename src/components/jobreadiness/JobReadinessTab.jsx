@@ -109,6 +109,14 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
     gcTime: 0,
   });
 
+  const { data: attendanceRecords = [] } = useQuery({
+    queryKey: ['attendance-jr', residentId],
+    queryFn: () => base44.entities.AttendanceRecord.filter({ resident_id: residentId }),
+    enabled: !!residentId,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
   const refreshProfile = async () => {
     await Promise.all([
       queryClient.refetchQueries({ queryKey: ['employability-profile', queryId] }),
@@ -117,6 +125,7 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
       queryClient.refetchQueries({ queryKey: ['references', queryId] }),
       queryClient.refetchQueries({ queryKey: ['cover-letters', queryId] }),
       queryClient.refetchQueries({ queryKey: ['certificates-jr', queryId] }),
+      queryClient.refetchQueries({ queryKey: ['attendance-jr', residentId] }),
     ]);
     // Also refresh the resident record so header + list scores are up-to-date
     queryClient.invalidateQueries({ queryKey: ['residents'] });
@@ -134,13 +143,14 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
       mockInterviews,
       references,
       certificates,
+      attendanceRecords,
     }).then(() => {
       queryClient.invalidateQueries({ queryKey: ['residents'] });
       if (residentId) queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
     });
     // Only re-run when the profile id or supporting data counts change — not on every render
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.id, resumes.length, mockInterviews.length, references.length, certificates.length]);
+  }, [profile?.id, resumes.length, mockInterviews.length, references.length, certificates.length, attendanceRecords.length]);
 
   // Probation officers and auditors are read-only — no create/edit actions
   const staff = !perms.isReadOnly && (!user?.role || isStaff(user?.role));
