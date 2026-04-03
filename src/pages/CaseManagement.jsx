@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { FolderOpen, Search, Clock, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
+import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 import { format, isPast, isToday, parseISO } from 'date-fns';
 
 const severityColors = {
@@ -121,9 +122,7 @@ export default function CaseManagement() {
                         <p className="font-heading font-semibold text-sm truncate">{r.preferred_name || r.first_name} {r.last_name}</p>
                         {r.global_resident_id && <p className="text-[10px] font-mono text-muted-foreground">{r.global_resident_id}</p>}
                       </div>
-                      {r.risk_level === 'high' && (
-                        <Badge className="text-[10px] bg-red-50 text-red-700">High Risk</Badge>
-                      )}
+                      <ProgressStatusBadge resident={r} tasks={allTasks.filter(t => t.resident_id === r.id)} variant="dot+label" />
                     </div>
                     <div className="flex gap-3 text-xs text-muted-foreground">
                       <span>{residentTasks.length} open tasks</span>

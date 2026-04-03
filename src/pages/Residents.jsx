@@ -15,6 +15,7 @@ import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { nextGlobalResidentId } from '@/lib/residentIdentity';
 import { filterResidentsByAccess, getResidentPermissions } from '@/lib/rbac';
+import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -157,11 +158,7 @@ export default function Residents() {
                     <Badge className={`text-[10px] px-1.5 py-0 ${statusColors[r.status] || ''}`}>
                       {(r.status || 'active').replace(/_/g, ' ')}
                     </Badge>
-                    {r.risk_level && (
-                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${riskColors[r.risk_level] || ''}`}>
-                        {r.risk_level}
-                      </Badge>
-                    )}
+                    <ProgressStatusBadge resident={r} variant="badge" />
                   </div>
                   {r.global_resident_id && (
                     <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{r.global_resident_id}</p>

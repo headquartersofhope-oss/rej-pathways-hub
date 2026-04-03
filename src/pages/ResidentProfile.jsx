@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, ClipboardList, AlertTriangle, Shield } from 'lucide-react';
 import { deriveIntakeStatus } from '@/lib/intakeStatus';
 import { canAccessResident, getResidentPermissions, isAdmin } from '@/lib/rbac';
+import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 import ResidentOverviewTab from '@/components/resident/ResidentOverviewTab';
 import CaseManagementTab from '@/components/casemanagement/CaseManagementTab';
 import TasksTab from '@/components/casemanagement/TasksTab';
@@ -143,6 +144,7 @@ export default function ResidentProfile() {
                     {resident.risk_level} risk
                   </Badge>
                 )}
+                <ProgressStatusBadge resident={resident} barriers={barriers} tasks={tasks} variant="badge" />
                 {resident.population && (
                   <Badge variant="outline" className="text-xs capitalize">
                     {resident.population.replace(/_/g, ' ')}

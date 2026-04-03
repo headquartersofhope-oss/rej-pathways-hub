@@ -12,6 +12,7 @@ import {
   Users, AlertTriangle, Calendar, Briefcase,
   Clock, UserCheck, FileWarning, AlertCircle, GraduationCap, Award
 } from 'lucide-react';
+import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 
 const severityColors = {
   low: 'bg-slate-100 text-slate-600',
@@ -135,9 +136,7 @@ export default function StaffDashboard({ user }) {
                         {r.status === 'pre_intake' ? 'No intake completed' : `${r.barriers?.length || 0} barriers`}
                       </p>
                     </div>
-                    <Badge variant="outline" className={`text-xs ${r.risk_level === 'high' ? 'border-destructive/30 text-destructive' : ''}`}>
-                      {r.risk_level || r.status}
-                    </Badge>
+                    <ProgressStatusBadge resident={r} variant="badge" />
                   </div>
                 </Link>
               ))
@@ -307,6 +306,7 @@ export default function StaffDashboard({ user }) {
                       <p className="font-medium text-sm">{r.preferred_name || r.first_name} {r.last_name}</p>
                       <p className="text-xs text-muted-foreground">{r.barriers?.length} barriers identified</p>
                     </div>
+                    <ProgressStatusBadge resident={r} variant="dot+label" />
                   </div>
                 </Link>
               ))
