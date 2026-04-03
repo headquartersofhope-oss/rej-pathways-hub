@@ -47,6 +47,34 @@ export default function EmployerFormDialog({ open, onOpenChange, employer, onSav
   const [errors, setErrors] = useState({});
 
   const isEditing = !!employer;
+  const [confirmClose, setConfirmClose] = useState(false);
+
+  const isDirty = () => {
+    if (!employer) {
+      // New form: dirty if any field has content
+      return Object.entries(form).some(([k, v]) => {
+        if (k === 'status') return v !== 'active';
+        if (k === 'second_chance_friendly' || k === 'veteran_friendly') return v === true;
+        if (typeof v === 'number') return v !== 0;
+        return v !== '' && v !== false;
+      });
+    }
+    // Edit form: dirty if any field differs from original
+    return Object.keys(EMPTY_FORM).some(k => String(form[k] ?? '') !== String(employer[k] ?? ''));
+  };
+
+  const handleOpenChange = (open) => {
+    if (!open && isDirty()) {
+      setConfirmClose(true);
+      return;
+    }
+    onOpenChange(open);
+  };
+
+  const handleConfirmDiscard = () => {
+    setConfirmClose(false);
+    onOpenChange(false);
+  };
 
   useEffect(() => {
     if (employer) {
@@ -111,7 +139,20 @@ export default function EmployerFormDialog({ open, onOpenChange, employer, onSav
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Discard unsaved changes?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">You have unsaved changes. If you close now, all entered data will be lost.</p>
+        <div className="flex gap-2 justify-end pt-2">
+          <Button variant="outline" onClick={() => setConfirmClose(false)}>Keep Editing</Button>
+          <Button variant="destructive" onClick={handleConfirmDiscard}>Discard Changes</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Employer' : 'Onboard New Employer'}</DialogTitle>
@@ -270,10 +311,11 @@ export default function EmployerFormDialog({ open, onOpenChange, employer, onSav
             <Button onClick={handleSave} disabled={saving}>
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Save Employer'}
             </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
