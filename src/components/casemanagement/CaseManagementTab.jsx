@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, FileText, AlertCircle, MessageSquare } from 'lucide-react';
 import { isStaff } from '@/lib/roles';
 import IncidentPanel from '@/components/casemanagement/IncidentPanel';
+import AISuggestionsPanel from '@/components/casemanagement/AISuggestionsPanel';
 import { format } from 'date-fns';
 
 const NOTE_TYPES = ['general', 'progress', 'incident', 'plan_update', 'employment', 'housing', 'mental_health', 'legal', 'other'];
@@ -118,6 +119,11 @@ export default function CaseManagementTab({ resident, user, barriers, perms = {}
           </div>
         )}
       </Card>
+
+      {/* AI Service Plan Assistant */}
+      {barriers && barriers.length > 0 && (
+        <AISuggestionsPanel resident={resident} barriers={barriers} />
+      )}
 
       {/* Incidents */}
       <IncidentPanel resident={resident} user={user} />
