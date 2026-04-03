@@ -23,7 +23,14 @@ export default function UserManagement() {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: async () => {
+      try {
+        return await base44.asServiceRole.entities.User.list();
+      } catch (err) {
+        console.error('Failed to list users:', err);
+        return [];
+      }
+    },
   });
 
   const handleAddUser = () => {
@@ -94,7 +101,7 @@ export default function UserManagement() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground text-sm">{u.email}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-sm hidden sm:table-cell">{u.phone || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-sm hidden sm:table-cell">{u.phone_number || '—'}</td>
                       <td className="px-4 py-3 hidden md:table-cell">
                         <Badge variant="outline" className="text-xs">
                           {ROLE_LABELS[u.role] || u.role || 'User'}

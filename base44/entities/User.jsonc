@@ -21,6 +21,22 @@
       "default": "staff",
       "description": "User role controlling access permissions"
     },
+    "app_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "case_manager",
+        "probation_officer",
+        "resident",
+        "program_manager",
+        "staff"
+      ],
+      "description": "Application-specific role for dashboard routing"
+    },
+    "phone_number": {
+      "type": "string",
+      "description": "User phone number"
+    },
     "organization_id": {
       "type": "string",
       "description": "Organization this user belongs to (optional, auto-populated if available)"

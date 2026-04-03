@@ -69,19 +69,24 @@ Deno.serve(async (req) => {
     }
 
     // Invite the user to the platform using the built-in inviteUser
-    // This creates them with the specified app_role
+    // Platform roles are limited to "user" and "admin" - map app_role to platform role
     let inviteResult = { email, full_name, app_role };
+    const platformRole = (app_role === 'admin' || app_role === 'super_admin' || app_role === 'org_admin') ? 'admin' : 'user';
     
     try {
-      // The inviteUser function will create or update the user
-      await base44.users.inviteUser(email, app_role);
-      console.log('User invited successfully:', email);
+      // The inviteUser function only accepts "user" or "admin"
+      await base44.users.inviteUser(email, platformRole);
+      console.log('User invited successfully:', email, 'as platform role:', platformRole);
     } catch (inviteError) {
-      console.log('Invite error (may be expected):', inviteError.message);
+      console.log('Invite error (continuing):', inviteError.message);
       // Continue even if invite fails - we still return the onboarding link
       inviteResult.invite_error = inviteError.message;
     }
     
+    // Generate onboarding token/link first
+    const onboardingToken = crypto.getRandomValues(new Uint8Array(16));
+    const tokenHex = Array.from(onboardingToken).map(b => b.toString(16).padStart(2, '0')).join('');
+
     // Try to store in custom User entity (best effort, may fail due to platform restrictions)
     try {
       const existingUser = await base44.asServiceRole.entities.User.filter({ email });
@@ -90,6 +95,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.User.update(existingUser[0].id, {
           full_name,
           role: app_role,
+          app_role,
           status: status || 'active',
           ...(phone && { phone_number: phone }),
           ...(organization_id && { organization_id }),
@@ -103,6 +109,7 @@ Deno.serve(async (req) => {
           email,
           full_name,
           role: app_role,
+          app_role,
           status: status || 'active',
           ...(phone && { phone_number: phone }),
           ...(organization_id && { organization_id }),
@@ -117,24 +124,20 @@ Deno.serve(async (req) => {
       const tempId = tokenHex.substring(0, 16);
       inviteResult.user_id = tempId;
     }
-
-    // Generate onboarding token/link
-    const onboardingToken = crypto.getRandomValues(new Uint8Array(16));
-    const tokenHex = Array.from(onboardingToken).map(b => b.toString(16).padStart(2, '0')).join('');
     
     // Store onboarding record if supported
-    let onboardingRecord;
     try {
-      onboardingRecord = await base44.asServiceRole.entities.Onboarding.create({
-        user_id: createdUser.id,
+      await base44.asServiceRole.entities.Onboarding.create({
+        user_id: inviteResult.user_id,
         organization_id,
         assigned_by: user.id,
         is_active: true,
         dismissed: false,
         completed_steps: [],
       });
+      console.log('Onboarding record created');
     } catch (e) {
-      console.log('Onboarding entity not available, skipping');
+      console.log('Onboarding entity not available, skipping:', e.message);
     }
 
     // Build onboarding URL
