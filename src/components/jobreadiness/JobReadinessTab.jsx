@@ -10,7 +10,7 @@ import WorkPreferencesPanel from './WorkPreferencesPanel';
 import ReferencesPanel from './ReferencesPanel';
 import CoverLetterPanel from './CoverLetterPanel';
 
-export default function JobReadinessTab({ resident, user, barriers = [], tasks = [] }) {
+export default function JobReadinessTab({ resident, user, barriers = [], tasks = [], perms = {} }) {
   const queryClient = useQueryClient();
   const residentId = resident?.id;
   const globalId = resident?.global_resident_id;
@@ -63,9 +63,8 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
     queryClient.refetchQueries({ queryKey: ['certificates-jr', residentId] });
   };
 
-  // Default to staff=true when role is not yet loaded or is unrecognized
-  // so that buttons (Create Resume, Add Interview, etc.) are always visible
-  const staff = !user?.role || isStaff(user?.role);
+  // Probation officers and auditors are read-only — no create/edit actions
+  const staff = !perms.isReadOnly && (!user?.role || isStaff(user?.role));
 
   if (profileLoading) {
     return <div className="animate-pulse h-40 bg-muted rounded-lg" />;

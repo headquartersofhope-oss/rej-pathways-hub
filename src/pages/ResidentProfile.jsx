@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, ClipboardList, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ClipboardList, AlertTriangle, Shield } from 'lucide-react';
 import { deriveIntakeStatus } from '@/lib/intakeStatus';
 import { canAccessResident, getResidentPermissions, isAdmin } from '@/lib/rbac';
 import ResidentOverviewTab from '@/components/resident/ResidentOverviewTab';
@@ -17,6 +17,7 @@ import AppointmentsTab from '@/components/casemanagement/AppointmentsTab';
 import DocumentsTab from '@/components/casemanagement/DocumentsTab';
 import ResidentLearningTab from '@/components/learning/ResidentLearningTab';
 import JobReadinessTab from '@/components/jobreadiness/JobReadinessTab';
+import ProbationNotesPanel from '@/components/casemanagement/ProbationNotesPanel';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -197,33 +198,48 @@ export default function ResidentProfile() {
             <p className="text-sm text-red-700 font-medium">High-risk resident — requires priority attention</p>
           </Card>
         )}
+
+        {/* Probation officer read-only notice */}
+        {perms.isProbationOfficer && (
+          <Card className="mt-4 p-3 border-blue-200 bg-blue-50 flex items-center gap-3">
+            <Shield className="w-4 h-4 text-blue-600 flex-shrink-0" />
+            <p className="text-sm text-blue-700 font-medium">
+              Read-only view — you can add probation notes but cannot edit resident data.
+            </p>
+          </Card>
+        )}
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue={perms.isProbationOfficer ? 'probation-notes' : 'overview'}>
         <TabsList className="mb-4 flex-wrap h-auto gap-1">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="case">Case Management</TabsTrigger>
+          {!perms.isProbationOfficer && <TabsTrigger value="overview">Overview</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="case">Case Management</TabsTrigger>}
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="learning">Learning</TabsTrigger>
+          {!perms.isProbationOfficer && <TabsTrigger value="learning">Learning</TabsTrigger>}
           <TabsTrigger value="job-readiness">Job Readiness</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          {!perms.isProbationOfficer && <TabsTrigger value="documents">Documents</TabsTrigger>}
+          {perms.canViewProbationNotes && <TabsTrigger value="probation-notes">Probation Notes</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="overview">
-          <ResidentOverviewTab
-            resident={resident}
-            assessment={assessment}
-            barriers={barriers}
-            residentId={residentId}
-            canEdit={perms.canEditProfile}
-          />
-        </TabsContent>
+        {!perms.isProbationOfficer && (
+          <TabsContent value="overview">
+            <ResidentOverviewTab
+              resident={resident}
+              assessment={assessment}
+              barriers={barriers}
+              residentId={residentId}
+              canEdit={perms.canEditProfile}
+            />
+          </TabsContent>
+        )}
 
-        <TabsContent value="case">
-          <CaseManagementTab resident={resident} user={user} barriers={barriers} perms={perms} />
-        </TabsContent>
+        {!perms.isProbationOfficer && (
+          <TabsContent value="case">
+            <CaseManagementTab resident={resident} user={user} barriers={barriers} perms={perms} />
+          </TabsContent>
+        )}
 
         <TabsContent value="tasks">
           <TasksTab resident={resident} user={user} tasks={tasks} barriers={barriers} perms={perms} />
@@ -233,17 +249,27 @@ export default function ResidentProfile() {
           <AppointmentsTab resident={resident} user={user} perms={perms} />
         </TabsContent>
 
-        <TabsContent value="learning">
-          <ResidentLearningTab resident={resident} user={user} perms={perms} />
-        </TabsContent>
+        {!perms.isProbationOfficer && (
+          <TabsContent value="learning">
+            <ResidentLearningTab resident={resident} user={user} perms={perms} />
+          </TabsContent>
+        )}
 
         <TabsContent value="job-readiness">
           <JobReadinessTab resident={resident} user={user} barriers={barriers} tasks={tasks} perms={perms} />
         </TabsContent>
 
-        <TabsContent value="documents">
-          <DocumentsTab resident={resident} user={user} perms={perms} />
-        </TabsContent>
+        {!perms.isProbationOfficer && (
+          <TabsContent value="documents">
+            <DocumentsTab resident={resident} user={user} perms={perms} />
+          </TabsContent>
+        )}
+
+        {perms.canViewProbationNotes && (
+          <TabsContent value="probation-notes">
+            <ProbationNotesPanel resident={resident} user={user} canAddNote={perms.canAddProbationNote} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

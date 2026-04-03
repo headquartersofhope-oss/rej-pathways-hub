@@ -130,6 +130,14 @@
       "type": "string",
       "description": "User.id of the assigned case manager \u2014 used for permission checks"
     },
+    "assigned_probation_officer_id": {
+      "type": "string",
+      "description": "User.id of the assigned probation officer \u2014 grants that PO read-only access to this resident"
+    },
+    "assigned_probation_officer": {
+      "type": "string",
+      "description": "Display name or email of the assigned probation officer"
+    },
     "emergency_contact_name": {
       "type": "string"
     },

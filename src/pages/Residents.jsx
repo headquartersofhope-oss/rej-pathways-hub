@@ -50,6 +50,7 @@ export default function Residents() {
   // Apply caseload filter based on role
   const residents = filterResidentsByAccess(allResidents, user);
   const canAdd = !user || getResidentPermissions(user, {}).canAddResident;
+  const isPO = user?.role === 'probation_officer';
 
   const handleAddResident = async () => {
     setSaving(true);
@@ -180,11 +181,13 @@ export default function Residents() {
                     {r.population.replace(/_/g, ' ')}
                   </p>
                 )}
-                <Link to={`/intake/${r.id}`} onClick={e => e.stopPropagation()}>
-                  <Button variant="outline" size="sm" className="w-full h-7 text-xs gap-1.5">
-                    <ClipboardList className="w-3 h-3" /> Intake & Barriers
-                  </Button>
-                </Link>
+                {!isPO && (
+                  <Link to={`/intake/${r.id}`} onClick={e => e.stopPropagation()}>
+                    <Button variant="outline" size="sm" className="w-full h-7 text-xs gap-1.5">
+                      <ClipboardList className="w-3 h-3" /> Intake & Barriers
+                    </Button>
+                  </Link>
+                )}
               </div>
             </Card>
             </Link>

@@ -1,0 +1,68 @@
+{
+  "name": "ProbationNote",
+  "type": "object",
+  "description": "Compliance-focused notes written by probation officers. Linked via global_resident_id. Visible to admin and case managers.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id."
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK)."
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "note_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the observation or contact"
+    },
+    "author_id": {
+      "type": "string",
+      "description": "User.id of the probation officer authoring this note"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Display name of the probation officer"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Note content \u2014 compliance observations, contact summaries, concerns, etc."
+    },
+    "contact_type": {
+      "type": "string",
+      "enum": [
+        "office_visit",
+        "home_visit",
+        "phone_call",
+        "court_date",
+        "drug_test",
+        "employment_check",
+        "general_observation",
+        "other"
+      ],
+      "default": "general_observation"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "non_compliant",
+        "pending_review",
+        "unknown"
+      ],
+      "default": "unknown"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "content",
+    "note_date"
+  ]
+}

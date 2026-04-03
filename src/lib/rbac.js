@@ -77,8 +77,14 @@ export function canAccessResident(user, resident) {
     return resident.user_id === user.id || resident.email === user.email;
   }
 
-  // Probation officer — conservative: no access unless explicitly linked (extend later)
-  if (isProbationOfficer(role)) return false;
+  // Probation officer — read-only access only if explicitly assigned to this resident
+  if (isProbationOfficer(role)) {
+    return (
+      resident.assigned_probation_officer_id === user.id ||
+      resident.assigned_probation_officer === user.email ||
+      resident.assigned_probation_officer === user.full_name
+    );
+  }
 
   // Base44 default 'user' role – treat as staff (no caseload filter yet)
   if (role === 'user') return true;
@@ -95,20 +101,24 @@ export function getResidentPermissions(user, resident) {
 
   const fullEdit = isAdmin(role);
   const staffEdit = access && isStaff(role);
-  const readOnly = access && ['auditor', 'probation_officer', 'referral_partner'].includes(role);
+  const isPO = access && isProbationOfficer(role);
   const residentSelf = access && isResident(role);
 
   return {
     canView: access,
-    canEditProfile: fullEdit || staffEdit,         // can edit resident identity/contact fields
-    canAddNote: staffEdit,                          // case notes
-    canAddTask: staffEdit,                          // service tasks
-    canAddAppointment: staffEdit,                   // appointments
-    canUploadDocument: staffEdit || residentSelf,   // documents – residents can upload their own
-    canUpdateDocumentStatus: fullEdit || (staffEdit && !residentSelf), // verify/reject docs – staff only
-    canManageIntake: staffEdit,                     // intake form
-    canViewCaseNotes: staffEdit || residentSelf,    // residents can see non-confidential notes
+    canEditProfile: fullEdit || staffEdit,
+    canAddNote: staffEdit,
+    canAddTask: staffEdit,
+    canAddAppointment: staffEdit,
+    canUploadDocument: staffEdit || residentSelf,
+    canUpdateDocumentStatus: fullEdit || (staffEdit && !residentSelf),
+    canManageIntake: staffEdit,
+    canViewCaseNotes: staffEdit || residentSelf,
     canViewConfidentialNotes: staffEdit && !isResident(role),
+    canAddProbationNote: isPO,                      // only probation officers can create probation notes
+    canViewProbationNotes: fullEdit || staffEdit || isPO, // admins, staff, and POs can view probation notes
+    isProbationOfficer: isPO,                       // convenience flag for UI read-only rendering
+    isReadOnly: isPO || (access && role === 'auditor'), // general read-only flag
     canAddResident: isAdmin(role) || ['program_manager', 'case_manager'].includes(role),
     canViewSettings: isAdmin(role),
     canViewAllResidents: isAdmin(role) || ['program_manager', 'instructor', 'auditor'].includes(role),
@@ -139,6 +149,15 @@ export function filterResidentsByAccess(residents, user) {
   }
 
   if (isResident(role)) return []; // residents don't use this list page
+
+  // Probation officers see only their assigned residents
+  if (isProbationOfficer(role)) {
+    return residents.filter(r =>
+      r.assigned_probation_officer_id === user.id ||
+      r.assigned_probation_officer === user.email ||
+      r.assigned_probation_officer === user.full_name
+    );
+  }
 
   return [];
 }
