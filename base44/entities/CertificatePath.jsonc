@@ -1,0 +1,59 @@
+{
+  "name": "CertificatePath",
+  "type": "object",
+  "description": "Defines certificate requirements and the classes needed to earn it",
+  "properties": {
+    "certificate_name": {
+      "type": "string",
+      "description": "Name of the certificate (e.g., Job Ready Certificate)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what the certificate represents"
+    },
+    "required_class_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "LearningClass IDs required to earn this certificate"
+    },
+    "passing_score_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Must pass all classes to earn certificate"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "job_ready",
+        "stability",
+        "digital_readiness",
+        "financial_basics",
+        "life_skills",
+        "other"
+      ],
+      "description": "Certificate category"
+    },
+    "icon_color": {
+      "type": "string",
+      "description": "Hex color for certificate display (e.g., #10b981 for green)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Certificate is available"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "certificate_name",
+    "category",
+    "required_class_ids"
+  ]
+}

@@ -1,45 +1,67 @@
 {
   "name": "Certificate",
   "type": "object",
-  "description": "Certificate issued to a resident upon class completion. Linked via global_resident_id.",
+  "description": "Issued certificate for a resident who completed a learning pathway",
   "properties": {
-    "global_resident_id": {
-      "type": "string"
-    },
     "resident_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Resident.id"
     },
-    "class_id": {
-      "type": "string"
+    "global_resident_id": {
+      "type": "string",
+      "description": "Resident master identifier"
+    },
+    "certificate_path_id": {
+      "type": "string",
+      "description": "CertificatePath.id that defines this certificate"
+    },
+    "certificate_name": {
+      "type": "string",
+      "description": "Name of the certificate earned"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "job_ready",
+        "stability",
+        "digital_readiness",
+        "financial_basics",
+        "life_skills",
+        "other"
+      ]
+    },
+    "issued_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date certificate was issued"
+    },
+    "issued_by": {
+      "type": "string",
+      "description": "User.id of staff who issued certificate (or 'system' for auto-issued)"
+    },
+    "issued_by_name": {
+      "type": "string",
+      "description": "Name of issuing staff member"
     },
     "organization_id": {
       "type": "string"
     },
-    "certificate_name": {
-      "type": "string"
+    "completed_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of LearningAssignment IDs that were completed"
     },
-    "issued_date": {
+    "certificate_number": {
       "type": "string",
-      "format": "date"
-    },
-    "issued_by": {
-      "type": "string",
-      "description": "User ID of issuing staff"
-    },
-    "issued_by_name": {
-      "type": "string"
-    },
-    "expiry_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "notes": {
-      "type": "string"
+      "description": "Unique certificate ID for printing/records"
     }
   },
   "required": [
-    "global_resident_id",
     "resident_id",
+    "global_resident_id",
+    "certificate_path_id",
     "certificate_name",
     "issued_date"
   ]
