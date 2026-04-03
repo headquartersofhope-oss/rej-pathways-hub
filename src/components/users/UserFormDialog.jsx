@@ -100,10 +100,12 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
   const handleSave = async () => {
     const errs = validate();
     if (Object.keys(errs).length) {
+      console.log('Validation failed:', errs);
       setErrors(errs);
       return;
     }
 
+    console.log(isEditing ? 'Updating user...' : 'Creating user...');
     setSaving(true);
     setSubmitError('');
 
@@ -123,7 +125,9 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
         });
 
         if (result.success) {
+          console.log('User update successful');
           setSaving(false);
+          setForm(EMPTY_FORM); // Clear form so isDirty() returns false
           onSaved();
           handleOpenChange(false);
         } else {
@@ -146,6 +150,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
 
         if (result.success) {
           setSaving(false);
+          setForm(EMPTY_FORM); // Clear form so isDirty() returns false
           setSuccessData(result);
         } else {
           throw new Error(result.error || 'Creation failed');
@@ -153,8 +158,12 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
       }
     } catch (error) {
       setSaving(false);
-      console.error('User save error:', error);
-      setSubmitError(error.message || 'Failed to save user');
+      console.error('User save failed:', {
+        message: error.message,
+        error: error,
+        response: error.response?.data
+      });
+      setSubmitError(error.message || error?.response?.data?.error || 'Failed to save user');
     }
   };
 
