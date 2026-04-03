@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { isStaff } from '@/lib/roles';
+import { syncReadinessScore } from '@/lib/syncReadinessScore';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ReadinessOverview from './ReadinessOverview';
 import ResumeBuilder from './ResumeBuilder';
@@ -117,7 +118,29 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
       queryClient.refetchQueries({ queryKey: ['cover-letters', queryId] }),
       queryClient.refetchQueries({ queryKey: ['certificates-jr', queryId] }),
     ]);
+    // Also refresh the resident record so header + list scores are up-to-date
+    queryClient.invalidateQueries({ queryKey: ['residents'] });
+    if (residentId) queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
   };
+
+  // Backfill: once profile + all data is loaded, recompute the true score and sync
+  // both EmployabilityProfile and Resident so all views show the same value.
+  useEffect(() => {
+    if (!profile?.id || !residentId) return;
+    syncReadinessScore({
+      profile,
+      residentId,
+      resumes,
+      mockInterviews,
+      references,
+      certificates,
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+      if (residentId) queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+    });
+    // Only re-run when the profile id or supporting data counts change — not on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, resumes.length, mockInterviews.length, references.length, certificates.length]);
 
   // Probation officers and auditors are read-only — no create/edit actions
   const staff = !perms.isReadOnly && (!user?.role || isStaff(user?.role));

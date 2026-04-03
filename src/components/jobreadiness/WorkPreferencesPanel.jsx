@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { syncReadinessScore } from '@/lib/syncReadinessScore';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,10 +71,12 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
       accommodations_needed: form.accommodations_needed,
       barrier_work_notes: form.barrier_work_notes,
     };
+    let activeProfile = profile;
     if (profile) {
       await base44.entities.EmployabilityProfile.update(profile.id, data);
+      activeProfile = { ...profile, ...data };
     } else {
-      await base44.entities.EmployabilityProfile.create({
+      const created = await base44.entities.EmployabilityProfile.create({
         global_resident_id: globalId || residentId,
         resident_id: residentId,
         organization_id: resident?.organization_id || '',
@@ -82,7 +85,12 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
         resume_status: 'none',
         is_job_ready: false,
       });
+      activeProfile = created;
     }
+
+    // Recompute readiness score — preferences affect the score
+    await syncReadinessScore({ profile: activeProfile, residentId });
+
     await onRefresh();
     setSaving(false);
     setEditing(false);

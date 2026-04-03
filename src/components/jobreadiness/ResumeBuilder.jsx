@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { syncReadinessScore } from '@/lib/syncReadinessScore';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -323,6 +324,13 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
     } else {
       await base44.entities.ResumeRecord.create(data);
     }
+
+    // Recompute readiness score — resume presence is a major factor
+    const updatedResumes = editing
+      ? (resumes || []).map(r => r.id === editing.id ? { ...r, ...data } : r)
+      : [...(resumes || []), data];
+    await syncReadinessScore({ profile, residentId, resumes: updatedResumes });
+
     await onRefresh();
     setSaving(false);
     setShowForm(false);

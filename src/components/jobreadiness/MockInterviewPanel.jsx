@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { syncReadinessScore } from '@/lib/syncReadinessScore';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,12 +98,18 @@ export default function MockInterviewPanel({ resident, profile, staff, residentI
       await base44.entities.MockInterview.create(payload);
     }
 
-    // Sync latest overall score to the employability profile
+    // Sync interview score to employability profile
     if (profile && payload.overall_score != null) {
       await base44.entities.EmployabilityProfile.update(profile.id, {
         interview_readiness_score: payload.overall_score,
       });
     }
+
+    // Recompute and write back full readiness score to both Profile + Resident
+    const updatedInterviews = editingId
+      ? mockInterviews.map(m => m.id === editingId ? { ...m, ...payload } : m)
+      : [...mockInterviews, payload];
+    await syncReadinessScore({ profile, residentId, mockInterviews: updatedInterviews });
 
     await onRefresh();
     setSaving(false);

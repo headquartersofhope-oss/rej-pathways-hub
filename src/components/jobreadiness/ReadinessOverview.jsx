@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { syncReadinessScore } from '@/lib/syncReadinessScore';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ export default function ReadinessOverview({
 
   const handleCreateProfile = async () => {
     setCreating(true);
-    await base44.entities.EmployabilityProfile.create({
+    const created = await base44.entities.EmployabilityProfile.create({
       global_resident_id: globalId || residentId,
       resident_id: residentId,
       organization_id: resident?.organization_id || '',
@@ -55,6 +56,8 @@ export default function ReadinessOverview({
       resume_status: 'none',
       is_job_ready: false,
     });
+    // Compute initial score and sync to Resident immediately
+    await syncReadinessScore({ profile: created, residentId, resumes, mockInterviews, references, certificates });
     await onRefresh();
     setCreating(false);
   };
