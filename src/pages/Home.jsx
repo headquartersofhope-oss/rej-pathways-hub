@@ -26,15 +26,18 @@ export default function Home() {
     if (isResident(role)) return <ResidentDashboard user={user} />;
 
     // Employers
-    if (role === ROLES.EMPLOYER) return <EmployerDashboard user={user} />;
+    if (role === 'employer' || role === ROLES.EMPLOYER) return <EmployerDashboard user={user} />;
 
     // Auditors (read-only admin view)
-    if (role === ROLES.AUDITOR) return <AdminDashboard user={user} />;
+    if (role === 'auditor' || role === ROLES.AUDITOR) return <AdminDashboard user={user} />;
 
     // Referral partners
-    if (role === ROLES.REFERRAL_PARTNER) return <StaffDashboard user={user} />;
+    if (role === 'referral_partner' || role === ROLES.REFERRAL_PARTNER) return <StaffDashboard user={user} />;
 
-    // Default: instructors, program managers, staff
+    // Program managers
+    if (role === 'program_manager') return <StaffDashboard user={user} />;
+
+    // Default: instructors, staff (including unrecognized roles default to staff)
     return <StaffDashboard user={user} />;
   };
 
