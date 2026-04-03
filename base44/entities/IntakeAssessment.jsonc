@@ -33,8 +33,24 @@
     "personal": {
       "type": "object",
       "properties": {
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
         "preferred_name": {
           "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "date_of_birth": {
+          "type": "string",
+          "format": "date"
         },
         "pronouns": {
           "type": "string",
@@ -60,6 +76,10 @@
             "other",
             "prefer_not_to_say"
           ]
+        },
+        "ssn_last4": {
+          "type": "string",
+          "description": "Last 4 digits of SSN for identity verification only."
         },
         "race_ethnicity": {
           "type": "array",

@@ -249,6 +249,7 @@ export default function IntakeForm() {
       if (formData.personal?.email) residentUpdates.email = formData.personal.email;
       if (formData.personal?.phone) residentUpdates.phone = formData.personal.phone;
       if (formData.personal?.date_of_birth) residentUpdates.date_of_birth = formData.personal.date_of_birth;
+      if (formData.personal?.ssn_last4) residentUpdates.ssn_last4 = formData.personal.ssn_last4;
 
       // Backfill emergency contact if captured
       if (formData.emergency_contact?.name) {

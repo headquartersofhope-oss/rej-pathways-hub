@@ -135,6 +135,18 @@ export default function PersonalStep({ data = {}, onChange }) {
         value={data.interpreter_needed}
         onChange={v => set('interpreter_needed', v)}
       />
-    </div>
-  );
-}
+      <TextField
+        label="SSN Last 4 Digits (Optional)"
+        value={data.ssn_last4}
+        onChange={v => {
+          // Only allow 4 digits
+          const sanitized = v.replace(/\D/g, '').slice(-4);
+          set('ssn_last4', sanitized);
+        }}
+        placeholder="e.g. 1234"
+        maxLength="4"
+        description="For identity verification only. Do not enter full SSN."
+      />
+      </div>
+      );
+      }

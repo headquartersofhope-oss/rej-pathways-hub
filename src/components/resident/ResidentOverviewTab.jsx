@@ -136,8 +136,11 @@ export default function ResidentOverviewTab({ resident, assessment, barriers, re
           {canViewField(userRole, 'pronouns', 'identity') && (canEdit ? <EditableField label="Pronouns" value={resident.pronouns} onSave={v => save('pronouns', v)} options={PRONOUNS_LABELS} /> : <ReadonlyField label="Pronouns" value={PRONOUNS_LABELS[resident.pronouns] || resident.pronouns} />)}
           {canViewField(userRole, 'gender', 'identity') && (canEdit ? <EditableField label="Gender" value={resident.gender} onSave={v => save('gender', v)} options={GENDER_LABELS} /> : <ReadonlyField label="Gender" value={GENDER_LABELS[resident.gender] || resident.gender} />)}
           {canViewField(userRole, 'primary_language', 'identity') && (canEdit ? <EditableField label="Primary Language" value={resident.primary_language} onSave={v => save('primary_language', v)} options={LANGUAGE_LABELS} /> : <ReadonlyField label="Primary Language" value={LANGUAGE_LABELS[resident.primary_language] || resident.primary_language} />)}
-        </dl>
-      </Card>
+          {userRole === 'admin' && resident.ssn_last4 && (
+            <ReadonlyField label="SSN Last 4" value={`●●●●${resident.ssn_last4}`} />
+          )}
+          </dl>
+          </Card>
 
       {/* Program Info */}
       <Card className="p-5">

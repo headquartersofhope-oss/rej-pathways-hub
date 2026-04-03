@@ -72,6 +72,10 @@
     "email": {
       "type": "string"
     },
+    "ssn_last4": {
+      "type": "string",
+      "description": "Last 4 digits of SSN for identity verification only. Do not display in public views."
+    },
     "photo_url": {
       "type": "string"
     },

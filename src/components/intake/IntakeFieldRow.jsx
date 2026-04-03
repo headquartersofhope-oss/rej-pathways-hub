@@ -19,11 +19,20 @@ export function BooleanField({ label, description, value, onChange }) {
   );
 }
 
-export function TextField({ label, value, onChange, placeholder, type = 'text' }) {
+export function TextField({ label, value, onChange, placeholder, type = 'text', description, maxLength }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm">{label}</Label>
-      <Input type={type} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+      <div>
+        <Label className="text-sm">{label}</Label>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+      <Input 
+        type={type} 
+        value={value || ''} 
+        onChange={e => onChange(e.target.value)} 
+        placeholder={placeholder}
+        maxLength={maxLength}
+      />
     </div>
   );
 }
