@@ -63,13 +63,15 @@ export default function UserManagement() {
     setTogglingStatus(userEmail);
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      const result = await base44.functions.invoke('manageUser', {
+      const response = await base44.functions.invoke('manageUser', {
         action: newStatus === 'active' ? 'activate' : 'deactivate',
         email: userEmail,
       });
 
+      const result = response.data || response;
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['users'] });
+        refetch();
       }
     } catch (error) {
       console.error('Status toggle error:', error);

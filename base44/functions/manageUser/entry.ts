@@ -25,7 +25,9 @@ Deno.serve(async (req) => {
       }
 
       // Map app_role to platform role (only admin/user allowed by platform)
+      // All custom roles (case_manager, probation_officer, staff, etc.) map to 'user'
       const platformRole = (app_role === 'admin') ? 'admin' : 'user';
+      console.log(`[manageUser] Mapping app_role="${app_role}" to platformRole="${platformRole}"`);
 
       try {
         // Try to invite user to platform
