@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { syncReadinessScore } from '@/lib/syncReadinessScore';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,9 @@ export default function ResidentLearningTab({ resident, user }) {
   const queryClient = useQueryClient();
   const [showEnroll, setShowEnroll] = useState(false);
   const [showNote, setShowNote] = useState(false);
+  const [showIssueCert, setShowIssueCert] = useState(false);
+  const [certEnrollment, setCertEnrollment] = useState(null); // the enrollment being certificated
+  const [certForm, setCertForm] = useState({ certificate_name: '', expiry_date: '', notes: '' });
   const [enrollForm, setEnrollForm] = useState({ class_id: '', notes: '' });
   const [noteForm, setNoteForm] = useState({ class_id: '', note: '', is_flagged: false });
   const [saving, setSaving] = useState(false);
@@ -120,6 +124,56 @@ export default function ResidentLearningTab({ resident, user }) {
     queryClient.invalidateQueries({ queryKey: ['resident-enrollments', resident.id] });
   };
 
+  const openIssueCert = (enrollment) => {
+    const cls = classMap[enrollment.class_id];
+    setCertEnrollment(enrollment);
+    setCertForm({
+      certificate_name: cls ? `${cls.title} Certificate` : 'Certificate of Completion',
+      expiry_date: '',
+      notes: '',
+    });
+    setShowIssueCert(true);
+  };
+
+  const handleIssueCertificate = async () => {
+    if (!certEnrollment) return;
+    setSaving(true);
+    const today = new Date().toISOString().split('T')[0];
+    const newCert = await base44.entities.Certificate.create({
+      global_resident_id: resident.global_resident_id || resident.id,
+      resident_id: resident.id,
+      organization_id: resident.organization_id,
+      class_id: certEnrollment.class_id,
+      certificate_name: certForm.certificate_name,
+      issued_date: today,
+      issued_by: user?.id,
+      issued_by_name: user?.full_name,
+      expiry_date: certForm.expiry_date || undefined,
+      notes: certForm.notes || undefined,
+    });
+    await queryClient.invalidateQueries({ queryKey: ['resident-certificates', resident.id] });
+
+    // Sync readiness score with updated certs list
+    const updatedCerts = [...certificates, newCert];
+    const profiles = await base44.entities.EmployabilityProfile.filter({ resident_id: resident.id });
+    if (profiles[0]) {
+      await syncReadinessScore({
+        profile: profiles[0],
+        residentId: resident.id,
+        resumes: [],
+        mockInterviews: [],
+        references: [],
+        certificates: updatedCerts,
+      });
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+      queryClient.invalidateQueries({ queryKey: ['resident', resident.id] });
+    }
+
+    setSaving(false);
+    setShowIssueCert(false);
+    setCertEnrollment(null);
+  };
+
   const isStaffUser = !user?.role || user?.role !== 'resident';
 
   return (
@@ -193,14 +247,26 @@ export default function ResidentLearningTab({ resident, user }) {
                     {enr.completion_date && <p className="text-xs text-muted-foreground">Completed {enr.completion_date}</p>}
                   </div>
                   {isStaffUser ? (
-                    <Select value={enr.status} onValueChange={v => updateStatus(enr.id, v)}>
-                      <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(statusConfig).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {enr.status === 'completed' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs gap-1 border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                          onClick={() => openIssueCert(enr)}
+                        >
+                          <Award className="w-3 h-3" /> Issue Cert
+                        </Button>
+                      )}
+                      <Select value={enr.status} onValueChange={v => updateStatus(enr.id, v)}>
+                        <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(statusConfig).map(([k, v]) => (
+                            <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   ) : (
                     <Badge className={`text-[10px] border-0 ${conf.color}`}>{conf.label}</Badge>
                   )}
@@ -273,6 +339,45 @@ export default function ResidentLearningTab({ resident, user }) {
               <Button variant="outline" onClick={() => setShowEnroll(false)}>Cancel</Button>
               <Button onClick={handleEnroll} disabled={saving || !enrollForm.class_id}>
                 {saving ? 'Enrolling…' : 'Enroll'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Issue Certificate dialog */}
+      <Dialog open={showIssueCert} onOpenChange={setShowIssueCert}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Award className="w-4 h-4 text-yellow-600" /> Issue Certificate</DialogTitle></DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div>
+              <Label>Certificate Name *</Label>
+              <Input
+                value={certForm.certificate_name}
+                onChange={e => setCertForm(f => ({ ...f, certificate_name: e.target.value }))}
+                placeholder="e.g. Resume Preparation Certificate"
+              />
+            </div>
+            <div>
+              <Label>Expiry Date <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Input
+                type="date"
+                value={certForm.expiry_date}
+                onChange={e => setCertForm(f => ({ ...f, expiry_date: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>Notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Input
+                value={certForm.notes}
+                onChange={e => setCertForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="Additional context..."
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outline" onClick={() => setShowIssueCert(false)}>Cancel</Button>
+              <Button onClick={handleIssueCertificate} disabled={saving || !certForm.certificate_name}>
+                {saving ? 'Issuing…' : 'Issue Certificate'}
               </Button>
             </div>
           </div>
