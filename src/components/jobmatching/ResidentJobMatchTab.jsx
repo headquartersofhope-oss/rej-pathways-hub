@@ -5,7 +5,7 @@ import { computeMatchScore } from '@/lib/jobMatchScoring';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Zap, RefreshCw } from 'lucide-react';
+import { Briefcase, Zap, RefreshCw, RotateCcw } from 'lucide-react';
 import JobMatchCard from './JobMatchCard';
 
 export default function ResidentJobMatchTab({ resident, user, barriers = [], perms = {} }) {
@@ -15,6 +15,7 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
   const queryId = globalId || residentId;
   const staff = !perms.isReadOnly;
   const [generating, setGenerating] = useState(false);
+  const [rescoring, setRescoring] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ['employability-profile', queryId],
@@ -93,6 +94,12 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
   };
 
   const handleStatusChange = async (match, newStatus) => {
+    // Prevent duplicate applications: if already applied/further along, require override
+    const appliedStatuses = ['applied', 'interview_requested', 'interview_scheduled', 'hired', 'retained_30', 'retained_60', 'retained_90'];
+    if (newStatus === 'applied' && appliedStatuses.includes(match.status)) {
+      // Already applied or beyond — silently skip (UI will show the warning)
+      return;
+    }
     const update = { status: newStatus };
     if (newStatus === 'applied') update.applied_date = new Date().toISOString().split('T')[0];
     if (newStatus === 'hired') update.hired_date = new Date().toISOString().split('T')[0];
@@ -103,6 +110,22 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
   const handleApprove = async (match) => {
     await base44.entities.JobMatch.update(match.id, { staff_approved: true, approved_by: user?.id });
     await refresh();
+  };
+
+  // Re-score all existing matches with latest profile/barrier/cert data
+  const handleRescore = async () => {
+    if (!residentId || existingMatches.length === 0) return;
+    setRescoring(true);
+    for (const match of existingMatches) {
+      const job = jobById[match.job_listing_id];
+      if (!job) continue;
+      const { match_score, match_reasons, blockers } = computeMatchScore({
+        resident, profile, barriers, certificates, job,
+      });
+      await base44.entities.JobMatch.update(match.id, { match_score, match_reasons, blockers });
+    }
+    await refresh();
+    setRescoring(false);
   };
 
   // Build a job lookup map
@@ -131,10 +154,16 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
           </p>
         </div>
         {staff && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={refresh} className="gap-1.5 h-8">
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
+            {existingMatches.length > 0 && (
+              <Button size="sm" variant="outline" onClick={handleRescore} disabled={rescoring} className="gap-1.5 h-8">
+                <RotateCcw className="w-3.5 h-3.5" />
+                {rescoring ? 'Rescoring...' : 'Re-score'}
+              </Button>
+            )}
             <Button size="sm" onClick={handleGenerateMatches} disabled={generating} className="gap-1.5 h-8">
               <Zap className="w-3.5 h-3.5" />
               {generating ? 'Matching...' : 'Run Match Engine'}

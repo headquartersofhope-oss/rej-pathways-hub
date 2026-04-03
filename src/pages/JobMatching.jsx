@@ -85,7 +85,11 @@ export default function JobMatching() {
     const activeJobs = jobListings.filter(j => j.status === 'active');
     const activeResidents = residents.filter(r => ['active', 'pre_intake'].includes(r.status));
 
-    const existingMatchKeys = new Set(allMatches.map(m => `${m.resident_id}__${m.job_listing_id}`));
+    // Build duplicate keys from both resident_id and global_resident_id to be safe
+    const existingMatchKeys = new Set([
+      ...allMatches.map(m => `${m.resident_id}__${m.job_listing_id}`),
+      ...allMatches.map(m => `${m.global_resident_id}__${m.job_listing_id}`).filter(k => !k.startsWith('__')),
+    ]);
     const profileByGlobal = {};
     profiles.forEach(p => { profileByGlobal[p.global_resident_id] = p; profileByGlobal[p.resident_id] = p; });
     const barriersByGlobal = {};

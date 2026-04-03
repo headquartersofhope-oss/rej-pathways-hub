@@ -4,8 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { matchLabel, JOB_STATUSES } from '@/lib/jobMatchScoring';
-import { CheckCircle2, AlertCircle, MapPin, DollarSign, Clock, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, AlertCircle, MapPin, DollarSign, Clock, ChevronDown, ChevronUp, ShieldCheck, Ban } from 'lucide-react';
 import { useState } from 'react';
+
+const APPLIED_OR_BEYOND = ['applied', 'interview_requested', 'interview_scheduled', 'hired', 'retained_30', 'retained_60', 'retained_90'];
 
 export default function JobMatchCard({ match, job, staff, onStatusChange, onApprove }) {
   const [expanded, setExpanded] = useState(false);
@@ -13,6 +15,7 @@ export default function JobMatchCard({ match, job, staff, onStatusChange, onAppr
 
   const { label, color, bg, border } = matchLabel(match.match_score);
   const statusInfo = JOB_STATUSES[match.status] || JOB_STATUSES.recommended;
+  const alreadyApplied = APPLIED_OR_BEYOND.includes(match.status);
 
   const wageStr = job.wage_min
     ? job.wage_max && job.wage_max !== job.wage_min
@@ -77,16 +80,38 @@ export default function JobMatchCard({ match, job, staff, onStatusChange, onAppr
             </div>
           )}
 
+          {/* Duplicate application warning */}
+          {alreadyApplied && staff && (
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded-md px-2.5 py-1.5">
+              <Ban className="w-3.5 h-3.5 flex-shrink-0" />
+              Already {match.status === 'applied' ? 'applied' : `in ${statusInfo.label} stage`} — change status to advance, not re-apply
+            </div>
+          )}
+
           {/* Actions */}
           {staff && (
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <Select value={match.status} onValueChange={v => onStatusChange(match, v)}>
+              <Select
+                value={match.status}
+                onValueChange={v => {
+                  // Block setting "applied" if already applied or further
+                  if (v === 'applied' && alreadyApplied) return;
+                  onStatusChange(match, v);
+                }}
+              >
                 <SelectTrigger className="h-7 text-xs w-44">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(JOB_STATUSES).map(([k, v]) => (
-                    <SelectItem key={k} value={k} className="text-xs">{v.label}</SelectItem>
+                    <SelectItem
+                      key={k}
+                      value={k}
+                      className="text-xs"
+                      disabled={k === 'applied' && alreadyApplied && match.status !== 'applied'}
+                    >
+                      {v.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
