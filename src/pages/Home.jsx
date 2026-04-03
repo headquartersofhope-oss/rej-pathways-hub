@@ -1,22 +1,41 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { ROLES, isStaff, isAdmin } from '@/lib/roles';
-import ResidentDashboard from '@/components/dashboard/ResidentDashboard';
-import StaffDashboard from '@/components/dashboard/StaffDashboard';
-import EmployerDashboard from '@/components/dashboard/EmployerDashboard';
+import { ROLES, isAdmin, isCaseManager, isProbationOfficer, isResident } from '@/lib/roles';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
+import CaseManagerDashboard from '@/components/dashboard/CaseManagerDashboard';
+import StaffDashboard from '@/components/dashboard/StaffDashboard';
+import ProbationDashboard from '@/components/dashboard/ProbationDashboard';
+import ResidentDashboard from '@/components/dashboard/ResidentDashboard';
+import EmployerDashboard from '@/components/dashboard/EmployerDashboard';
 
 export default function Home() {
   const { user } = useOutletContext();
   const role = user?.role;
 
   const renderDashboard = () => {
+    // Admin roles (full access)
     if (isAdmin(role)) return <AdminDashboard user={user} />;
-    if (isStaff(role)) return <StaffDashboard user={user} />;
+
+    // Case managers (caseload-focused)
+    if (isCaseManager(role)) return <CaseManagerDashboard user={user} />;
+
+    // Probation officers (read-only access)
+    if (isProbationOfficer(role)) return <ProbationDashboard user={user} />;
+
+    // Residents (personal dashboard)
+    if (isResident(role)) return <ResidentDashboard user={user} />;
+
+    // Employers
     if (role === ROLES.EMPLOYER) return <EmployerDashboard user={user} />;
-    if (role === ROLES.PROBATION_OFFICER || role === ROLES.REFERRAL_PARTNER) return <StaffDashboard user={user} />;
+
+    // Auditors (read-only admin view)
     if (role === ROLES.AUDITOR) return <AdminDashboard user={user} />;
-    return <ResidentDashboard user={user} />;
+
+    // Referral partners
+    if (role === ROLES.REFERRAL_PARTNER) return <StaffDashboard user={user} />;
+
+    // Default: instructors, program managers, staff
+    return <StaffDashboard user={user} />;
   };
 
   return (
