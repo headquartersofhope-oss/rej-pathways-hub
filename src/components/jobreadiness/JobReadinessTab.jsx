@@ -55,12 +55,12 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
   });
 
   const refreshProfile = () => {
-    queryClient.refetchQueries({ queryKey: ['employability-profile', residentId] });
-    queryClient.refetchQueries({ queryKey: ['resumes', residentId] });
-    queryClient.refetchQueries({ queryKey: ['mock-interviews', residentId] });
-    queryClient.refetchQueries({ queryKey: ['references', residentId] });
-    queryClient.refetchQueries({ queryKey: ['cover-letters', residentId] });
-    queryClient.refetchQueries({ queryKey: ['certificates-jr', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['employability-profile', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['resumes', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['mock-interviews', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['references', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['cover-letters', residentId] });
+    queryClient.invalidateQueries({ queryKey: ['certificates-jr', residentId] });
   };
 
   // Probation officers and auditors are read-only — no create/edit actions

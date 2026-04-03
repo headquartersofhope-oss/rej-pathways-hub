@@ -32,10 +32,10 @@ export default function MockInterviewPanel({ resident, profile, staff, residentI
   };
 
   const handleSave = async () => {
-    if (!residentId || !globalId) return;
+    if (!residentId) return;
     setSaving(true);
     const data = {
-      global_resident_id: globalId,
+      global_resident_id: globalId || residentId,
       resident_id: residentId,
       organization_id: resident?.organization_id || '',
       conducted_by: user?.id,

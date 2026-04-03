@@ -45,7 +45,7 @@ export default function ReadinessOverview({
   const handleCreateProfile = async () => {
     setCreating(true);
     await base44.entities.EmployabilityProfile.create({
-      global_resident_id: globalId,
+      global_resident_id: globalId || residentId,
       resident_id: residentId,
       organization_id: resident.organization_id,
       job_readiness_score: resident.job_readiness_score || 0,

@@ -21,12 +21,14 @@ export const ROLES = {
 
 /** Returns true for any administrative role with full system access */
 export function isAdmin(role) {
-  return ['admin', 'super_admin', 'org_admin'].includes(role);
+  // 'user' is the Base44 platform default role — treat as admin
+  return ['admin', 'user', 'super_admin', 'org_admin'].includes(role);
 }
 
 /** Returns true for any staff role that can manage residents */
 export function isStaff(role) {
-  return ['admin', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff'].includes(role);
+  // 'user' is the Base44 platform default role — treat as admin/staff
+  return ['admin', 'user', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff'].includes(role);
 }
 
 export function isCaseManager(role) {

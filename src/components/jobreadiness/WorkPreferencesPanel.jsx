@@ -42,7 +42,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
         barrier_work_notes: profile.barrier_work_notes || '',
       });
     }
-  }, [profile]);
+  }, [profile?.id, profile?.updated_date]);
 
   // Auto-open editing only after we've confirmed there's no profile (profile query settled)
   const hasNoProfile = !profile;
@@ -57,7 +57,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
   };
 
   const handleSave = async () => {
-    if (!residentId || !globalId) return;
+    if (!residentId) return;
     setSaving(true);
     const data = {
       preferred_job_types: form.preferred_job_types.split(',').map(s => s.trim()).filter(Boolean),
@@ -74,7 +74,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
       await base44.entities.EmployabilityProfile.update(profile.id, data);
     } else {
       await base44.entities.EmployabilityProfile.create({
-        global_resident_id: globalId,
+        global_resident_id: globalId || residentId,
         resident_id: residentId,
         organization_id: resident?.organization_id || '',
         ...data,
