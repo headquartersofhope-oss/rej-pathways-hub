@@ -11,6 +11,7 @@ import { UserCircle, Plus, Search, Shield } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/roles';
 import { useOutletContext } from 'react-router-dom';
 import OnboardingManager from '@/components/onboarding/OnboardingManager';
+import NotificationDispatcher from '@/components/notifications/NotificationDispatcher';
 
 export default function UserManagement() {
   const { user } = useOutletContext();
@@ -40,6 +41,7 @@ export default function UserManagement() {
         <TabsList className="mb-5">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
@@ -92,6 +94,10 @@ export default function UserManagement() {
           <Card className="p-5">
             <OnboardingManager user={user} />
           </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <NotificationDispatcher user={user} />
         </TabsContent>
       </Tabs>
     </div>

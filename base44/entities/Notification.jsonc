@@ -1,0 +1,51 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "description": "Log of email notifications sent to residents.",
+  "properties": {
+    "resident_id": {
+      "type": "string"
+    },
+    "global_resident_id": {
+      "type": "string"
+    },
+    "recipient_email": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "new_task",
+        "upcoming_class",
+        "onboarding_digest",
+        "custom"
+      ],
+      "description": "Category of notification"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "sent_by": {
+      "type": "string",
+      "description": "User.id of staff who triggered it"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "failed"
+      ],
+      "default": "sent"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type"
+  ]
+}
