@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 import { ROLES, isStaff, isAdmin, isSuperAdmin, ROLE_LABELS } from '@/lib/roles';
 import { MODULES } from '@/lib/modules';
 import {
-  LayoutDashboard, Users, Building2, MapPin, FileText,
-  MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-  ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package
+LayoutDashboard, Users, Building2, MapPin, FileText,
+MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ const navSections = (role) => {
         { label: 'Outcomes & Reporting', path: '/outcomes', icon: BarChart2 },
         { label: 'Alumni', path: '/alumni', icon: Award },
         { label: 'Resource Inventory', path: '/resources', icon: Package },
+        { label: 'Job Matching', path: '/job-matching', icon: Zap },
         { label: 'Employers', path: '/employers', icon: Briefcase },
         { label: 'Partner Agencies', path: '/partners', icon: Handshake },
       ],

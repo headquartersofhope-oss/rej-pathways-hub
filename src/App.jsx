@@ -28,6 +28,7 @@ import JobReadiness from '@/pages/JobReadiness';
 import OutcomesReport from '@/pages/OutcomesReport';
 import Alumni from '@/pages/Alumni';
 import ResourceInventory from '@/pages/ResourceInventory';
+import JobMatching from '@/pages/JobMatching';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
         <Route path="/outcomes" element={<OutcomesReport />} />
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/resources" element={<ResourceInventory />} />
+        <Route path="/job-matching" element={<JobMatching />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

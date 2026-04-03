@@ -1,0 +1,88 @@
+{
+  "name": "JobMatch",
+  "type": "object",
+  "description": "A scored match between a resident and a job listing. Created by the matching engine or by staff.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "DB FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "job_listing_id": {
+      "type": "string"
+    },
+    "job_title": {
+      "type": "string",
+      "description": "Snapshot of job title at time of match"
+    },
+    "employer_name": {
+      "type": "string"
+    },
+    "match_score": {
+      "type": "number",
+      "description": "0-100 computed fit score"
+    },
+    "match_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Why this is a good match"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Factors reducing fit"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "recommended",
+        "viewed",
+        "applied",
+        "interview_requested",
+        "interview_scheduled",
+        "hired",
+        "not_selected",
+        "retained_30",
+        "retained_60",
+        "retained_90"
+      ],
+      "default": "recommended"
+    },
+    "staff_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "applied_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "hired_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "job_listing_id"
+  ]
+}

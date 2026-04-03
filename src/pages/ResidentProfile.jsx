@@ -22,6 +22,7 @@ import ProbationNotesPanel from '@/components/casemanagement/ProbationNotesPanel
 import OutcomeMilestoneTab from '@/components/outcomes/OutcomeMilestoneTab';
 import AlumniProfileTab from '@/components/alumni/AlumniProfileTab';
 import ResourceDistributionTab from '@/components/resources/ResourceDistributionTab';
+import ResidentJobMatchTab from '@/components/jobmatching/ResidentJobMatchTab';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -224,6 +225,7 @@ export default function ResidentProfile() {
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           {!perms.isProbationOfficer && <TabsTrigger value="learning">Learning</TabsTrigger>}
           <TabsTrigger value="job-readiness">Job Readiness</TabsTrigger>
+          {!perms.isProbationOfficer && <TabsTrigger value="job-matching">Job Matching</TabsTrigger>}
           {!perms.isProbationOfficer && <TabsTrigger value="documents">Documents</TabsTrigger>}
           {perms.canViewProbationNotes && <TabsTrigger value="probation-notes">Probation Notes</TabsTrigger>}
           {!perms.isProbationOfficer && <TabsTrigger value="outcomes">Outcomes</TabsTrigger>}
@@ -266,6 +268,12 @@ export default function ResidentProfile() {
         <TabsContent value="job-readiness">
           <JobReadinessTab resident={resident} user={user} barriers={barriers} tasks={tasks} perms={perms} />
         </TabsContent>
+
+        {!perms.isProbationOfficer && (
+          <TabsContent value="job-matching">
+            <ResidentJobMatchTab resident={resident} user={user} barriers={barriers} perms={perms} />
+          </TabsContent>
+        )}
 
         {!perms.isProbationOfficer && (
           <TabsContent value="documents">

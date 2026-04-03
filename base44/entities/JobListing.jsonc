@@ -1,0 +1,166 @@
+{
+  "name": "JobListing",
+  "type": "object",
+  "description": "A job opportunity available for resident matching. Can come from employers, internal staff, staffing partners, or workforce boards.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "employer_id": {
+      "type": "string",
+      "description": "Links to Employer entity if employer-sourced"
+    },
+    "employer_name": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "employer_direct",
+        "internal",
+        "staffing_partner",
+        "workforce_board",
+        "external_board"
+      ],
+      "default": "internal"
+    },
+    "source_label": {
+      "type": "string",
+      "description": "Display label for the source (e.g. partner agency name)"
+    },
+    "location": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "is_remote": {
+      "type": "boolean",
+      "default": false
+    },
+    "wage_min": {
+      "type": "number"
+    },
+    "wage_max": {
+      "type": "number"
+    },
+    "wage_type": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "salary",
+        "commission",
+        "stipend"
+      ],
+      "default": "hourly"
+    },
+    "schedule_type": {
+      "type": "string",
+      "enum": [
+        "full_time",
+        "part_time",
+        "contract",
+        "seasonal",
+        "flexible"
+      ],
+      "default": "full_time"
+    },
+    "shifts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "afternoon",
+          "evening",
+          "overnight",
+          "weekends",
+          "flexible"
+        ]
+      }
+    },
+    "industry": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "requirements": {
+      "type": "string",
+      "description": "Free-text job requirements"
+    },
+    "certifications_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "skills_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "transportation_accessible": {
+      "type": "boolean",
+      "default": true
+    },
+    "max_commute_miles": {
+      "type": "number"
+    },
+    "second_chance_friendly": {
+      "type": "boolean",
+      "default": false
+    },
+    "veteran_friendly": {
+      "type": "boolean",
+      "default": false
+    },
+    "accommodations_available": {
+      "type": "boolean",
+      "default": false
+    },
+    "background_check_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "drug_test_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "filled",
+        "draft"
+      ],
+      "default": "active"
+    },
+    "posted_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "employer_name"
+  ]
+}
