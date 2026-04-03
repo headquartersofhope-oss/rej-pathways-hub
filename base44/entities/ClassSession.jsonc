@@ -1,43 +1,69 @@
 {
   "name": "ClassSession",
   "type": "object",
-  "description": "A scheduled session for a LearningClass.",
+  "description": "A scheduled session/instance of a learning class",
   "properties": {
     "class_id": {
       "type": "string",
-      "description": "LearningClass record ID"
+      "description": "LearningClass.id"
     },
-    "organization_id": {
-      "type": "string"
-    },
-    "date": {
+    "class_title": {
       "type": "string",
-      "format": "date"
+      "description": "Class name (snapshot)"
+    },
+    "session_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the session is/was held"
     },
     "start_time": {
-      "type": "string"
+      "type": "string",
+      "description": "Start time (HH:MM format)"
     },
     "end_time": {
-      "type": "string"
+      "type": "string",
+      "description": "End time (HH:MM format)"
     },
     "location": {
-      "type": "string"
+      "type": "string",
+      "description": "Physical location or 'Online'"
     },
-    "notes": {
+    "instructor_name": {
+      "type": "string",
+      "description": "Instructor or facilitator name"
+    },
+    "instructor_id": {
+      "type": "string",
+      "description": "User.id of instructor"
+    },
+    "organization_id": {
       "type": "string"
     },
     "status": {
       "type": "string",
       "enum": [
         "scheduled",
+        "in_progress",
         "completed",
         "cancelled"
       ],
-      "default": "scheduled"
+      "default": "scheduled",
+      "description": "Session status"
+    },
+    "expected_attendees": {
+      "type": "number",
+      "description": "Expected number of residents"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
     }
   },
   "required": [
     "class_id",
-    "date"
+    "class_title",
+    "session_date"
   ]
 }

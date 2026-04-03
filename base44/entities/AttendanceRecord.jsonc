@@ -1,23 +1,31 @@
 {
   "name": "AttendanceRecord",
   "type": "object",
-  "description": "Attendance for a resident at a specific class session. Linked via global_resident_id.",
+  "description": "Tracks attendance for a resident in a class session",
   "properties": {
     "global_resident_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Master resident identifier"
     },
     "resident_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Resident.id"
+    },
+    "class_session_id": {
+      "type": "string",
+      "description": "ClassSession.id"
     },
     "class_id": {
-      "type": "string"
-    },
-    "session_id": {
       "type": "string",
-      "description": "ClassSession record ID"
+      "description": "LearningClass.id for reference"
     },
     "organization_id": {
       "type": "string"
+    },
+    "session_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the class session"
     },
     "status": {
       "type": "string",
@@ -27,20 +35,31 @@
         "late",
         "excused"
       ],
-      "default": "present"
+      "description": "Attendance status"
     },
-    "recorded_by": {
-      "type": "string"
+    "marked_by": {
+      "type": "string",
+      "description": "User.id of staff who marked attendance"
+    },
+    "marked_by_name": {
+      "type": "string",
+      "description": "Name of staff who marked attendance"
+    },
+    "marked_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When attendance was recorded"
     },
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Optional notes about absence or late arrival"
     }
   },
   "required": [
     "global_resident_id",
     "resident_id",
-    "class_id",
-    "session_id",
+    "class_session_id",
+    "session_date",
     "status"
   ]
 }
