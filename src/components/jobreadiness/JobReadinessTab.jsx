@@ -110,8 +110,16 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
   });
 
   const { data: attendanceRecords = [] } = useQuery({
-    queryKey: ['attendance-jr', residentId],
-    queryFn: () => base44.entities.AttendanceRecord.filter({ resident_id: residentId }),
+    queryKey: ['attendance-jr', queryId],
+    queryFn: async () => {
+      let list = globalId
+        ? await base44.entities.AttendanceRecord.filter({ global_resident_id: globalId })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.AttendanceRecord.filter({ resident_id: residentId });
+      }
+      return list;
+    },
     enabled: !!residentId,
     staleTime: 0,
     gcTime: 0,

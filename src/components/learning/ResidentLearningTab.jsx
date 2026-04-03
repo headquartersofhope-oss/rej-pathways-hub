@@ -48,9 +48,18 @@ export default function ResidentLearningTab({ resident, user }) {
     enabled: !!resident.id,
   });
 
+  const queryId = resident?.global_resident_id || resident?.id;
   const { data: certificates = [] } = useQuery({
-    queryKey: ['resident-certificates', resident.id],
-    queryFn: () => base44.entities.Certificate.filter({ resident_id: resident.id }),
+    queryKey: ['resident-certificates', queryId],
+    queryFn: async () => {
+      let list = resident?.global_resident_id
+        ? await base44.entities.Certificate.filter({ global_resident_id: resident.global_resident_id })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.Certificate.filter({ resident_id: resident.id });
+      }
+      return list;
+    },
     enabled: !!resident.id,
   });
 

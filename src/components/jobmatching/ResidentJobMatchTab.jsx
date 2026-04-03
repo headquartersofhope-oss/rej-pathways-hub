@@ -41,6 +41,12 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     staleTime: 30000,
   });
 
+  const { data: allJobsForRescore = [] } = useQuery({
+    queryKey: ['all-job-listings'],
+    queryFn: () => base44.entities.JobListing.list(),
+    staleTime: 30000,
+  });
+
   const { data: existingMatches = [], refetch: refetchMatches } = useQuery({
     queryKey: ['job-matches', queryId],
     queryFn: async () => {
@@ -112,12 +118,20 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     await refresh();
   };
 
+  // Build a job lookup map from active jobs
+  const jobById = {};
+  activeJobs.forEach(j => { jobById[j.id] = j; });
+
+  // Build a complete job lookup map for rescoring (includes inactive jobs)
+  const jobByIdAll = {};
+  allJobsForRescore.forEach(j => { jobByIdAll[j.id] = j; });
+
   // Re-score all existing matches with latest profile/barrier/cert data
   const handleRescore = async () => {
     if (!residentId || existingMatches.length === 0) return;
     setRescoring(true);
     for (const match of existingMatches) {
-      const job = jobById[match.job_listing_id];
+      const job = jobByIdAll[match.job_listing_id];
       if (!job) continue;
       const { match_score, match_reasons, blockers } = computeMatchScore({
         resident, profile, barriers, certificates, job,
@@ -127,10 +141,6 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     await refresh();
     setRescoring(false);
   };
-
-  // Build a job lookup map
-  const jobById = {};
-  activeJobs.forEach(j => { jobById[j.id] = j; });
 
   // Also fetch jobs for matches whose job might no longer be "active"
   const allMatchedJobIds = existingMatches.map(m => m.job_listing_id);
