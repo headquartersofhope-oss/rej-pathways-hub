@@ -110,25 +110,41 @@ function ResidentNotifyRow({ resident, user, onSent }) {
     if (type === 'upcoming_class') emailData = buildClassEmail(residentName, upcomingSessions);
     if (type === 'onboarding_digest') emailData = buildOnboardingEmail(residentName, incompleteSteps);
 
-    await base44.integrations.Core.SendEmail({
-      to: email,
-      subject: emailData.subject,
-      body: emailData.body,
-    });
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: email,
+        subject: emailData.subject,
+        body: emailData.body,
+      });
 
-    await base44.entities.Notification.create({
-      resident_id: resident.id,
-      global_resident_id: resident.global_resident_id,
-      recipient_email: email,
-      recipient_name: residentName,
-      type,
-      subject: emailData.subject,
-      body: emailData.body,
-      sent_by: user?.id,
-      status: 'sent',
-    });
+      await base44.entities.Notification.create({
+        resident_id: resident.id,
+        global_resident_id: resident.global_resident_id,
+        recipient_email: email,
+        recipient_name: residentName,
+        type,
+        subject: emailData.subject,
+        body: emailData.body,
+        sent_by: user?.id,
+        status: 'sent',
+      });
 
-    setSentTypes(prev => [...prev, type]);
+      setSentTypes(prev => [...prev, type]);
+    } catch (error) {
+      console.error('Email send failed:', error.message);
+      // Log failed attempt
+      await base44.entities.Notification.create({
+        resident_id: resident.id,
+        global_resident_id: resident.global_resident_id,
+        recipient_email: email,
+        recipient_name: residentName,
+        type,
+        subject: emailData.subject,
+        body: emailData.body,
+        sent_by: user?.id,
+        status: 'failed',
+      });
+    }
     setSending(null);
     onSent?.();
   };
