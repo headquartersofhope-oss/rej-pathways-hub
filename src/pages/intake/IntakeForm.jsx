@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Save } from 'lucide-react';
 import IntakeStepNav from '@/components/intake/IntakeStepNav';
 import { INTAKE_STEPS, detectBarriers, generateTasksForBarrier, calculateScores } from '@/lib/intakeBarriers';
+import SmartTriggerPanel from '@/components/intake/SmartTriggerPanel';
 
 import PersonalStep from '@/components/intake/steps/PersonalStep';
 import HousingStep from '@/components/intake/steps/HousingStep';
@@ -220,7 +221,7 @@ export default function IntakeForm() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <Button variant="ghost" size="icon" onClick={() => navigate(`/intake/${residentId}`)}>
@@ -254,37 +255,47 @@ export default function IntakeForm() {
         />
       </div>
 
-      {/* Step Card */}
-      <Card className="p-5 mb-5">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-2xl">{currentStep.icon}</span>
-          <div>
-            <h2 className="font-heading font-bold text-base">{currentStep.label}</h2>
-            <p className="text-xs text-muted-foreground">Step {currentStepIdx + 1} of {INTAKE_STEPS.length}</p>
+      {/* Two-column layout: form + smart panel */}
+      <div className="flex gap-6 items-start">
+        {/* Left: step form + nav */}
+        <div className="flex-1 min-w-0">
+          <Card className="p-5 mb-5">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-2xl">{currentStep.icon}</span>
+              <div>
+                <h2 className="font-heading font-bold text-base">{currentStep.label}</h2>
+                <p className="text-xs text-muted-foreground">Step {currentStepIdx + 1} of {INTAKE_STEPS.length}</p>
+              </div>
+            </div>
+            <StepComponent
+              data={formData[currentStep.id] || {}}
+              onChange={(val) => handleStepChange(currentStep.id, val)}
+            />
+          </Card>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <Button variant="outline" onClick={() => setCurrentStepIdx(prev => Math.max(0, prev - 1))} disabled={currentStepIdx === 0}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Previous
+            </Button>
+
+            {currentStepIdx < INTAKE_STEPS.length - 1 ? (
+              <Button onClick={handleNext}>
+                Next <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            ) : (
+              <Button onClick={handleComplete} disabled={completing} className="gap-2 bg-accent hover:bg-accent/90">
+                {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                Complete & Generate Plan
+              </Button>
+            )}
           </div>
         </div>
-        <StepComponent
-          data={formData[currentStep.id] || {}}
-          onChange={(val) => handleStepChange(currentStep.id, val)}
-        />
-      </Card>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => setCurrentStepIdx(prev => Math.max(0, prev - 1))} disabled={currentStepIdx === 0}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Previous
-        </Button>
-
-        {currentStepIdx < INTAKE_STEPS.length - 1 ? (
-          <Button onClick={handleNext}>
-            Next <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        ) : (
-          <Button onClick={handleComplete} disabled={completing} className="gap-2 bg-accent hover:bg-accent/90">
-            {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-            Complete & Generate Plan
-          </Button>
-        )}
+        {/* Right: live smart trigger panel */}
+        <div className="w-80 shrink-0 sticky top-6 hidden lg:block">
+          <SmartTriggerPanel formData={formData} />
+        </div>
       </div>
     </div>
   );
