@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
@@ -16,6 +15,7 @@ import { Link } from 'react-router-dom';
 import { nextGlobalResidentId } from '@/lib/residentIdentity';
 import { filterResidentsByAccess, getResidentPermissions } from '@/lib/rbac';
 import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
+import ResidentCard from '@/components/shared/ResidentCard';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -143,53 +143,19 @@ export default function Residents() {
         </Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((r) => (
-            <Link key={r.id} to={`/residents/${r.id}`}>
-            <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                  {r.first_name?.[0]}{r.last_name?.[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-heading font-semibold text-sm truncate">
-                    {r.preferred_name || r.first_name} {r.last_name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <Badge className={`text-[10px] px-1.5 py-0 ${statusColors[r.status] || ''}`}>
-                      {(r.status || 'active').replace(/_/g, ' ')}
-                    </Badge>
-                    <ProgressStatusBadge resident={r} variant="badge" />
-                  </div>
-                  {r.global_resident_id && (
-                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{r.global_resident_id}</p>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">Job Readiness</span>
-                    <span className="text-xs font-semibold">{r.job_readiness_score || 0}%</span>
-                  </div>
-                  <Progress value={r.job_readiness_score || 0} className="h-1.5" />
-                </div>
-                {r.population && (
-                  <p className="text-xs text-muted-foreground capitalize mb-2">
-                    {r.population.replace(/_/g, ' ')}
-                  </p>
-                )}
-                {!isPO && (
-                  <Link to={`/intake/${r.id}`} onClick={e => e.stopPropagation()}>
-                    <Button variant="outline" size="sm" className="w-full h-7 text-xs gap-1.5">
-                      <ClipboardList className="w-3 h-3" /> Intake & Barriers
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </Card>
-            </Link>
-          ))}
-        </div>
+           {filtered.map((r) => (
+             <Link key={r.id} to={`/residents/${r.id}`}>
+               <ResidentCard
+                 resident={r}
+                 variant="summary"
+                 showJobReadiness={true}
+                 showPopulation={true}
+                 showRisk={true}
+                 statusColors={statusColors}
+               />
+             </Link>
+           ))}
+         </div>
       )}
 
       <Dialog open={showAdd} onOpenChange={setShowAdd}>

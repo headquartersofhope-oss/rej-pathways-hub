@@ -327,6 +327,12 @@ function ResidentListView({ user }) {
                       <span className="text-[10px] text-muted-foreground">{intakeDate}</span>
                     )}
                   </div>
+                  {(r.email || r.phone) && (
+                    <div className="text-[9px] text-muted-foreground mt-1 space-y-0.5">
+                      {r.email && <p className="truncate">{r.email}</p>}
+                      {r.phone && <p className="truncate">{r.phone}</p>}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">

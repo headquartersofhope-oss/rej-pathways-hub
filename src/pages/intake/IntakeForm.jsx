@@ -191,12 +191,29 @@ export default function IntakeForm() {
         )
       );
 
-      // Update resident record: scores + intake completion fields
-      await base44.entities.Resident.update(resident.id, {
+      // Sync profile fields from intake back to Resident record
+      const residentUpdates = {
         job_readiness_score: scores.work_readiness_score,
         intake_date: new Date().toISOString().split('T')[0],
         status: resident.status === 'pre_intake' ? 'active' : resident.status,
-      });
+      };
+
+      // Backfill contact/profile fields if captured in personal section
+      if (formData.personal) {
+        if (formData.personal.pronouns) residentUpdates.pronouns = formData.personal.pronouns;
+        if (formData.personal.pronouns_other) residentUpdates.pronouns = formData.personal.pronouns_other;
+        if (formData.personal.primary_language) residentUpdates.primary_language = formData.personal.primary_language;
+      }
+
+      // Backfill emergency contact if captured
+      if (formData.emergency_contact?.name) {
+        residentUpdates.emergency_contact_name = formData.emergency_contact.name;
+      }
+      if (formData.emergency_contact?.phone) {
+        residentUpdates.emergency_contact_phone = formData.emergency_contact.phone;
+      }
+
+      await base44.entities.Resident.update(resident.id, residentUpdates);
 
       // Re-fetch to verify write succeeded
       const updated = await base44.entities.Resident.get(resident.id);

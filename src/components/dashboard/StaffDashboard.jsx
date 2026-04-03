@@ -13,6 +13,7 @@ import {
   Clock, UserCheck, FileWarning, AlertCircle, GraduationCap, Award
 } from 'lucide-react';
 import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
+import ResidentCard from '@/components/shared/ResidentCard';
 
 const severityColors = {
   low: 'bg-slate-100 text-slate-600',
@@ -126,17 +127,15 @@ export default function StaffDashboard({ user }) {
             ) : (
               needingAttention.slice(0, 5).map((r) => (
                 <Link key={r.id} to={`/residents/${r.id}`}>
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center text-xs font-semibold text-destructive">
-                      {r.first_name?.[0]}{r.last_name?.[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{r.preferred_name || r.first_name} {r.last_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {r.status === 'pre_intake' ? 'No intake completed' : `${r.barriers?.length || 0} barriers`}
-                      </p>
-                    </div>
-                    <ProgressStatusBadge resident={r} variant="badge" />
+                  <div className="p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                    <ResidentCard
+                      resident={r}
+                      variant="summary"
+                      showJobReadiness={false}
+                      showPopulation={false}
+                      showRisk={true}
+                      className="p-2"
+                    />
                   </div>
                 </Link>
               ))
@@ -240,17 +239,23 @@ export default function StaffDashboard({ user }) {
             {recentCompletions.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No completions yet</p>
             ) : (
-              recentCompletions.map(enr => (
-                <Link key={enr.id} to={`/residents/${enr.resident_id}`}>
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <Award className="w-4 h-4 text-yellow-600 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{classMap[enr.class_id]?.title || 'Class'}</p>
-                      <p className="text-xs text-muted-foreground">{residentName(enr.resident_id)} · {enr.completion_date || ''}</p>
+              recentCompletions.map(enr => {
+                const r = residents.find(res => res.id === enr.resident_id);
+                return (
+                  <Link key={enr.id} to={`/residents/${enr.resident_id}`}>
+                    <div className="p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                      <ResidentCard
+                        resident={r}
+                        variant="summary"
+                        showJobReadiness={false}
+                        showPopulation={false}
+                        showRisk={false}
+                        className="p-2"
+                      />
                     </div>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                );
+              })
             )}
           </div>
         </Card>
@@ -266,18 +271,23 @@ export default function StaffDashboard({ user }) {
             {noShowAlerts.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No alerts</p>
             ) : (
-              noShowAlerts.map(enr => (
-                <Link key={enr.id} to={`/residents/${enr.resident_id}`}>
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <GraduationCap className="w-4 h-4 text-destructive flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{classMap[enr.class_id]?.title || 'Class'}</p>
-                      <p className="text-xs text-muted-foreground">{residentName(enr.resident_id)}</p>
+              noShowAlerts.map(enr => {
+                const r = residents.find(res => res.id === enr.resident_id);
+                return (
+                  <Link key={enr.id} to={`/residents/${enr.resident_id}`}>
+                    <div className="p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                      <ResidentCard
+                        resident={r}
+                        variant="summary"
+                        showJobReadiness={false}
+                        showPopulation={false}
+                        showRisk={false}
+                        className="p-2"
+                      />
                     </div>
-                    <Badge className="text-[10px] bg-red-50 text-red-700 border-0">No Show</Badge>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                );
+              })
             )}
           </div>
         </Card>
@@ -298,15 +308,15 @@ export default function StaffDashboard({ user }) {
             ) : (
               highBarrierResidents.slice(0, 5).map(r => (
                 <Link key={r.id} to={`/residents/${r.id}`}>
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-xs font-semibold text-amber-700">
-                      {r.first_name?.[0]}{r.last_name?.[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{r.preferred_name || r.first_name} {r.last_name}</p>
-                      <p className="text-xs text-muted-foreground">{r.barriers?.length} barriers identified</p>
-                    </div>
-                    <ProgressStatusBadge resident={r} variant="dot+label" />
+                  <div className="p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <ResidentCard
+                      resident={r}
+                      variant="summary"
+                      showJobReadiness={false}
+                      showPopulation={false}
+                      showRisk={false}
+                      className="p-2"
+                    />
                   </div>
                 </Link>
               ))
