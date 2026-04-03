@@ -27,9 +27,9 @@ const statusIcons = {
   blocked: <AlertTriangle className="w-4 h-4 text-destructive" />,
 };
 
-export default function TasksTab({ resident, user, tasks: initialTasks, barriers }) {
+export default function TasksTab({ resident, user, tasks: initialTasks, barriers, perms = {} }) {
   const queryClient = useQueryClient();
-  const isStaffUser = !user?.role || user?.role !== 'resident';
+  const isStaffUser = perms.canAddTask ?? (!user?.role || user?.role !== 'resident');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', category: '', priority: 'medium', due_date: '', status: 'pending', assigned_to: '', is_resident_visible: true });
   const [saving, setSaving] = useState(false);
@@ -148,7 +148,7 @@ export default function TasksTab({ resident, user, tasks: initialTasks, barriers
                         {task.category && <span className="text-[10px] text-muted-foreground">{task.category}</span>}
                       </div>
                     </div>
-                    {isStaffUser && (
+                    {(perms.canAddTask ?? isStaffUser) && (
                       <Select value={task.status} onValueChange={v => handleStatusChange(task, v)}>
                         <SelectTrigger className="h-6 w-28 text-[10px]"><SelectValue /></SelectTrigger>
                         <SelectContent>

@@ -28,10 +28,9 @@ const noteTypeColors = {
   other: 'bg-gray-100 text-gray-700',
 };
 
-export default function CaseManagementTab({ resident, user, barriers }) {
+export default function CaseManagementTab({ resident, user, barriers, perms = {} }) {
   const queryClient = useQueryClient();
-  // Show add button for any staff role, or admin/user (default Base44 roles)
-  const canAddNote = !user?.role || user?.role !== 'resident';
+  const canAddNote = perms.canAddNote ?? (!user?.role || user?.role !== 'resident');
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [noteForm, setNoteForm] = useState({
     note_type: 'general',
@@ -94,7 +93,9 @@ export default function CaseManagementTab({ resident, user, barriers }) {
           <p className="text-sm text-muted-foreground text-center py-6">No case notes yet.</p>
         ) : (
           <div className="space-y-3">
-            {notes.map(note => (
+            {notes
+              .filter(note => !note.is_confidential || (perms.canViewConfidentialNotes ?? true))
+              .map(note => (
               <div key={note.id} className="border rounded-lg p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">

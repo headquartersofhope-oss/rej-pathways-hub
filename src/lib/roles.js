@@ -1,15 +1,18 @@
-export const ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  ORG_ADMIN: 'org_admin',
-  PROGRAM_MANAGER: 'program_manager',
-  CASE_MANAGER: 'case_manager',
-  INSTRUCTOR: 'instructor',
-  RESIDENT: 'resident',
-  EMPLOYER: 'employer',
-  PROBATION_OFFICER: 'probation_officer',
-  REFERRAL_PARTNER: 'referral_partner',
-  AUDITOR: 'auditor',
-};
+/**
+ * Re-exports from rbac.js for backward compatibility.
+ * New code should import from @/lib/rbac directly.
+ */
+export {
+  ROLES,
+  isAdmin,
+  isStaff,
+  isCaseManager,
+  isResident,
+  isProbationOfficer,
+  canAccessResident,
+  getResidentPermissions,
+  filterResidentsByAccess,
+} from '@/lib/rbac';
 
 export const ROLE_LABELS = {
   super_admin: 'Super Admin',
@@ -17,6 +20,7 @@ export const ROLE_LABELS = {
   program_manager: 'Program Manager',
   case_manager: 'Case Manager',
   instructor: 'Instructor',
+  staff: 'Staff',
   resident: 'Resident',
   employer: 'Employer',
   probation_officer: 'Probation/Parole Officer',
@@ -24,29 +28,9 @@ export const ROLE_LABELS = {
   auditor: 'Read-Only Auditor',
 };
 
-export const STAFF_ROLES = [
-  ROLES.SUPER_ADMIN,
-  ROLES.ORG_ADMIN,
-  ROLES.PROGRAM_MANAGER,
-  ROLES.CASE_MANAGER,
-  ROLES.INSTRUCTOR,
-];
-
-export const ADMIN_ROLES = [
-  ROLES.SUPER_ADMIN,
-  ROLES.ORG_ADMIN,
-];
-
-export function isStaff(role) {
-  // Treat base44 platform default admin role as staff
-  if (role === 'admin') return true;
-  return STAFF_ROLES.includes(role);
-}
-
-export function isAdmin(role) {
-  return ADMIN_ROLES.includes(role);
-}
+export const STAFF_ROLES = ['admin', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff'];
+export const ADMIN_ROLES = ['admin', 'super_admin', 'org_admin'];
 
 export function isSuperAdmin(role) {
-  return role === ROLES.SUPER_ADMIN;
+  return role === 'super_admin';
 }

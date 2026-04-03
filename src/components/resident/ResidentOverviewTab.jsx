@@ -102,7 +102,7 @@ function ReadonlyField({ label, value }) {
   );
 }
 
-export default function ResidentOverviewTab({ resident, assessment, barriers, residentId }) {
+export default function ResidentOverviewTab({ resident, assessment, barriers, residentId, canEdit = true }) {
   const queryClient = useQueryClient();
 
   const save = async (field, value) => {
@@ -128,13 +128,13 @@ export default function ResidentOverviewTab({ resident, assessment, barriers, re
         <dl>
           <ReadonlyField label="Resident ID" value={resident.global_resident_id} />
           <ReadonlyField label="Full Name" value={`${resident.first_name || ''} ${resident.last_name || ''}`.trim()} />
-          <EditableField label="Preferred Name" value={resident.preferred_name} onSave={v => save('preferred_name', v)} />
-          <EditableField label="Email" value={resident.email} onSave={v => save('email', v)} type="email" />
-          <EditableField label="Phone" value={resident.phone} onSave={v => save('phone', v)} type="tel" />
-          <EditableField label="Date of Birth" value={resident.date_of_birth} onSave={v => save('date_of_birth', v)} type="date" />
-          <EditableField label="Pronouns" value={resident.pronouns} onSave={v => save('pronouns', v)} options={PRONOUNS_LABELS} />
-          <EditableField label="Gender" value={resident.gender} onSave={v => save('gender', v)} options={GENDER_LABELS} />
-          <EditableField label="Primary Language" value={resident.primary_language} onSave={v => save('primary_language', v)} options={LANGUAGE_LABELS} />
+          {canEdit ? <EditableField label="Preferred Name" value={resident.preferred_name} onSave={v => save('preferred_name', v)} /> : <ReadonlyField label="Preferred Name" value={resident.preferred_name} />}
+          {canEdit ? <EditableField label="Email" value={resident.email} onSave={v => save('email', v)} type="email" /> : <ReadonlyField label="Email" value={resident.email} />}
+          {canEdit ? <EditableField label="Phone" value={resident.phone} onSave={v => save('phone', v)} type="tel" /> : <ReadonlyField label="Phone" value={resident.phone} />}
+          {canEdit ? <EditableField label="Date of Birth" value={resident.date_of_birth} onSave={v => save('date_of_birth', v)} type="date" /> : <ReadonlyField label="Date of Birth" value={resident.date_of_birth} />}
+          {canEdit ? <EditableField label="Pronouns" value={resident.pronouns} onSave={v => save('pronouns', v)} options={PRONOUNS_LABELS} /> : <ReadonlyField label="Pronouns" value={PRONOUNS_LABELS[resident.pronouns] || resident.pronouns} />}
+          {canEdit ? <EditableField label="Gender" value={resident.gender} onSave={v => save('gender', v)} options={GENDER_LABELS} /> : <ReadonlyField label="Gender" value={GENDER_LABELS[resident.gender] || resident.gender} />}
+          {canEdit ? <EditableField label="Primary Language" value={resident.primary_language} onSave={v => save('primary_language', v)} options={LANGUAGE_LABELS} /> : <ReadonlyField label="Primary Language" value={LANGUAGE_LABELS[resident.primary_language] || resident.primary_language} />}
         </dl>
       </Card>
 
@@ -145,19 +145,19 @@ export default function ResidentOverviewTab({ resident, assessment, barriers, re
         </h3>
         <dl>
           <ReadonlyField label="Status" value={resident.status?.replace(/_/g, ' ')} />
-          <EditableField label="Population" value={resident.population} onSave={v => save('population', v)} options={POPULATION_LABELS} />
+          {canEdit ? <EditableField label="Population" value={resident.population} onSave={v => save('population', v)} options={POPULATION_LABELS} /> : <ReadonlyField label="Population" value={POPULATION_LABELS[resident.population] || resident.population} />}
           <ReadonlyField label="Intake Date" value={intakeDateDisplay} />
-          <EditableField label="Expected Exit" value={resident.expected_exit_date} onSave={v => save('expected_exit_date', v)} type="date" />
-          <EditableField label="Actual Exit" value={resident.actual_exit_date} onSave={v => save('actual_exit_date', v)} type="date" />
-          <EditableField label="Case Manager" value={resident.assigned_case_manager} onSave={v => save('assigned_case_manager', v)} />
+          {canEdit ? <EditableField label="Expected Exit" value={resident.expected_exit_date} onSave={v => save('expected_exit_date', v)} type="date" /> : <ReadonlyField label="Expected Exit" value={resident.expected_exit_date} />}
+          {canEdit ? <EditableField label="Actual Exit" value={resident.actual_exit_date} onSave={v => save('actual_exit_date', v)} type="date" /> : <ReadonlyField label="Actual Exit" value={resident.actual_exit_date} />}
+          {canEdit ? <EditableField label="Case Manager" value={resident.assigned_case_manager} onSave={v => save('assigned_case_manager', v)} /> : <ReadonlyField label="Case Manager" value={resident.assigned_case_manager} />}
         </dl>
 
         <h3 className="font-heading font-semibold text-sm mt-5 mb-3 flex items-center gap-2">
           <Phone className="w-4 h-4 text-primary" /> Emergency Contact
         </h3>
         <dl>
-          <EditableField label="Name" value={resident.emergency_contact_name} onSave={v => save('emergency_contact_name', v)} />
-          <EditableField label="Phone" value={resident.emergency_contact_phone} onSave={v => save('emergency_contact_phone', v)} type="tel" />
+          {canEdit ? <EditableField label="Name" value={resident.emergency_contact_name} onSave={v => save('emergency_contact_name', v)} /> : <ReadonlyField label="Name" value={resident.emergency_contact_name} />}
+          {canEdit ? <EditableField label="Phone" value={resident.emergency_contact_phone} onSave={v => save('emergency_contact_phone', v)} type="tel" /> : <ReadonlyField label="Phone" value={resident.emergency_contact_phone} />}
         </dl>
       </Card>
 

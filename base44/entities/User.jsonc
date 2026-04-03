@@ -5,50 +5,36 @@
     "role": {
       "type": "string",
       "enum": [
+        "admin",
         "super_admin",
         "org_admin",
         "program_manager",
         "case_manager",
         "instructor",
+        "staff",
         "resident",
-        "employer",
         "probation_officer",
         "referral_partner",
         "auditor"
       ],
-      "default": "resident"
+      "default": "staff",
+      "description": "User role controlling access permissions"
     },
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Organization this user belongs to"
     },
     "site_id": {
-      "type": "string"
-    },
-    "phone": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
-    "avatar_url": {
-      "type": "string"
-    },
-    "status": {
       "type": "string",
-      "enum": [
-        "active",
-        "inactive",
-        "pending"
-      ],
-      "default": "active"
+      "description": "Specific site assignment (optional)"
     },
-    "last_login": {
+    "resident_id": {
       "type": "string",
-      "format": "date-time"
+      "description": "If role=resident, the linked Resident record ID"
     },
-    "onboarding_complete": {
-      "type": "boolean",
-      "default": false
+    "global_resident_id": {
+      "type": "string",
+      "description": "If role=resident, the linked Resident.global_resident_id"
     }
   }
 }

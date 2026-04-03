@@ -17,7 +17,7 @@
     },
     "user_id": {
       "type": "string",
-      "description": "Linked user account ID (portal login)"
+      "description": "Linked user account ID (portal login) \u2014 used for resident self-access"
     },
     "first_name": {
       "type": "string"
@@ -124,7 +124,11 @@
     },
     "assigned_case_manager": {
       "type": "string",
-      "description": "User ID of assigned case manager"
+      "description": "Display name or email of the assigned case manager"
+    },
+    "assigned_case_manager_id": {
+      "type": "string",
+      "description": "User.id of the assigned case manager \u2014 used for permission checks"
     },
     "emergency_contact_name": {
       "type": "string"

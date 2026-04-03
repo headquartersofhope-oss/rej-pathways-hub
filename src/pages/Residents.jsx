@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { nextGlobalResidentId } from '@/lib/residentIdentity';
+import { filterResidentsByAccess, getResidentPermissions } from '@/lib/rbac';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -39,12 +40,16 @@ export default function Residents() {
   const [newResident, setNewResident] = useState({ first_name: '', last_name: '' });
   const [saving, setSaving] = useState(false);
 
-  const { data: residents = [], isLoading } = useQuery({
+  const { data: allResidents = [], isLoading } = useQuery({
     queryKey: ['residents'],
     queryFn: () => base44.entities.Resident.filter(
       user?.organization_id ? { organization_id: user.organization_id } : {}
     ),
   });
+
+  // Apply caseload filter based on role
+  const residents = filterResidentsByAccess(allResidents, user);
+  const canAdd = !user || getResidentPermissions(user, {}).canAddResident;
 
   const handleAddResident = async () => {
     setSaving(true);
@@ -75,9 +80,11 @@ export default function Residents() {
         subtitle={`${residents.length} total residents`}
         icon={Users}
         actions={
-          <Button className="gap-2" onClick={() => setShowAdd(true)}>
-            <Plus className="w-4 h-4" /> Add Resident
-          </Button>
+          canAdd && (
+            <Button className="gap-2" onClick={() => setShowAdd(true)}>
+              <Plus className="w-4 h-4" /> Add Resident
+            </Button>
+          )
         }
       />
 

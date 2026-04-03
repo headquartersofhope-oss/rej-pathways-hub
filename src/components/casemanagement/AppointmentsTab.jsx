@@ -24,9 +24,9 @@ const statusColors = {
   rescheduled: 'bg-amber-50 text-amber-700',
 };
 
-export default function AppointmentsTab({ resident, user }) {
+export default function AppointmentsTab({ resident, user, perms = {} }) {
   const queryClient = useQueryClient();
-  const isStaffUser = isStaff(user?.role);
+  const isStaffUser = perms.canAddAppointment ?? isStaff(user?.role);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     title: '',

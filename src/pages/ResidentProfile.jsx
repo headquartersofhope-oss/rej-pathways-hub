@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, ClipboardList, AlertTriangle } from 'lucide-react';
 import { deriveIntakeStatus } from '@/lib/intakeStatus';
+import { canAccessResident, getResidentPermissions, isAdmin } from '@/lib/rbac';
 import ResidentOverviewTab from '@/components/resident/ResidentOverviewTab';
 import CaseManagementTab from '@/components/casemanagement/CaseManagementTab';
 import TasksTab from '@/components/casemanagement/TasksTab';
@@ -86,6 +87,26 @@ export default function ResidentProfile() {
     );
   }
 
+  // Access control gate — block unauthorized URL access
+  if (user && !canAccessResident(user, resident)) {
+    return (
+      <div className="p-6 pt-14 lg:pt-6 max-w-md mx-auto mt-16 text-center">
+        <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-7 h-7 text-destructive" />
+        </div>
+        <h2 className="font-heading font-bold text-xl mb-2">Access Denied</h2>
+        <p className="text-muted-foreground text-sm mb-5">
+          You don't have permission to view this resident's profile. Only the assigned case manager or an administrator can access this record.
+        </p>
+        <Link to="/residents">
+          <Button variant="outline" size="sm"><ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Residents</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const perms = getResidentPermissions(user, resident);
+
   const openTasks = tasks.filter(t => t.status !== 'completed').length;
   const activeBarriersCount = barriers.length > 0
     ? barriers.filter(b => b.status !== 'resolved').length
@@ -132,13 +153,15 @@ export default function ResidentProfile() {
               </div>
             </div>
           </div>
-          <div className="sm:ml-auto flex gap-2">
-            <Link to={intakeStatus === 'not_started' ? `/intake/${residentId}/form` : `/intake/${residentId}`}>
-              <Button variant={intakeStatus === 'completed' ? 'outline' : 'default'} size="sm" className="gap-1.5">
-                <ClipboardList className="w-3.5 h-3.5" /> {intakeLabel}
-              </Button>
-            </Link>
-          </div>
+          {perms.canManageIntake && (
+            <div className="sm:ml-auto flex gap-2">
+              <Link to={intakeStatus === 'not_started' ? `/intake/${residentId}/form` : `/intake/${residentId}`}>
+                <Button variant={intakeStatus === 'completed' ? 'outline' : 'default'} size="sm" className="gap-1.5">
+                  <ClipboardList className="w-3.5 h-3.5" /> {intakeLabel}
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Quick stats row */}
@@ -194,31 +217,32 @@ export default function ResidentProfile() {
             assessment={assessment}
             barriers={barriers}
             residentId={residentId}
+            canEdit={perms.canEditProfile}
           />
         </TabsContent>
 
         <TabsContent value="case">
-          <CaseManagementTab resident={resident} user={user} barriers={barriers} />
+          <CaseManagementTab resident={resident} user={user} barriers={barriers} perms={perms} />
         </TabsContent>
 
         <TabsContent value="tasks">
-          <TasksTab resident={resident} user={user} tasks={tasks} barriers={barriers} />
+          <TasksTab resident={resident} user={user} tasks={tasks} barriers={barriers} perms={perms} />
         </TabsContent>
 
         <TabsContent value="appointments">
-          <AppointmentsTab resident={resident} user={user} />
+          <AppointmentsTab resident={resident} user={user} perms={perms} />
         </TabsContent>
 
         <TabsContent value="learning">
-          <ResidentLearningTab resident={resident} user={user} />
+          <ResidentLearningTab resident={resident} user={user} perms={perms} />
         </TabsContent>
 
         <TabsContent value="job-readiness">
-          <JobReadinessTab resident={resident} user={user} barriers={barriers} tasks={tasks} />
+          <JobReadinessTab resident={resident} user={user} barriers={barriers} tasks={tasks} perms={perms} />
         </TabsContent>
 
         <TabsContent value="documents">
-          <DocumentsTab resident={resident} user={user} />
+          <DocumentsTab resident={resident} user={user} perms={perms} />
         </TabsContent>
       </Tabs>
     </div>

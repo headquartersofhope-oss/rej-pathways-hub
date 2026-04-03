@@ -22,9 +22,10 @@ const statusColors = {
   rejected: 'bg-gray-100 text-gray-600',
 };
 
-export default function DocumentsTab({ resident, user }) {
+export default function DocumentsTab({ resident, user, perms = {} }) {
   const queryClient = useQueryClient();
-  const isStaffUser = isStaff(user?.role);
+  const isStaffUser = perms.canUploadDocument ?? isStaff(user?.role);
+  const canUpdateStatus = perms.canUpdateDocumentStatus ?? isStaff(user?.role);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'id', status: 'pending', expiry_date: '', notes: '' });
   const [file, setFile] = useState(null);
@@ -68,9 +69,11 @@ export default function DocumentsTab({ resident, user }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" className="gap-1.5" onClick={() => setShowForm(true)}>
-          <Plus className="w-3.5 h-3.5" /> Add Document
-        </Button>
+        {isStaffUser && (
+          <Button size="sm" className="gap-1.5" onClick={() => setShowForm(true)}>
+            <Plus className="w-3.5 h-3.5" /> Add Document
+          </Button>
+        )}
       </div>
 
       {missingDocs.length > 0 && (
@@ -115,7 +118,7 @@ export default function DocumentsTab({ resident, user }) {
                       </Button>
                     </a>
                   )}
-                  {isStaffUser && (
+                  {canUpdateStatus && (
                     <Select value={doc.status} onValueChange={v => handleStatusUpdate(doc, v)}>
                       <SelectTrigger className="h-6 w-24 text-[10px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
