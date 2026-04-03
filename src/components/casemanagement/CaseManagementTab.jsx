@@ -69,6 +69,7 @@ export default function CaseManagementTab({ resident, user, barriers, perms = {}
       staff_name: user?.full_name || user?.email || 'Staff',
     });
     queryClient.invalidateQueries({ queryKey: ['case-notes', resident.id] });
+    queryClient.invalidateQueries({ queryKey: ['all-notes'] });
     setShowNoteForm(false);
     setNoteForm({ note_type: 'general', description: '', is_confidential: false, note_date: new Date().toISOString().split('T')[0] });
     setSaving(false);

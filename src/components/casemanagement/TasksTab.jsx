@@ -57,6 +57,7 @@ export default function TasksTab({ resident, user, tasks: initialTasks, barriers
       requires_staff_action: true,
     });
     queryClient.invalidateQueries({ queryKey: ['service-tasks', resident.id] });
+    queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
     setShowForm(false);
     setForm({ title: '', description: '', category: '', priority: 'medium', due_date: '', status: 'pending', assigned_to: '', is_resident_visible: true });
     setSaving(false);
@@ -68,6 +69,7 @@ export default function TasksTab({ resident, user, tasks: initialTasks, barriers
       ...(newStatus === 'completed' ? { completed_at: new Date().toISOString() } : {}),
     });
     queryClient.invalidateQueries({ queryKey: ['service-tasks', resident.id] });
+    queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
   };
 
   const open = tasks.filter(t => t.status !== 'completed');

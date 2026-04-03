@@ -35,19 +35,27 @@ export default function JobReadiness() {
     queryFn: () => base44.entities.MockInterview.list(),
   });
 
+  // Index by BOTH resident_id and global_resident_id for consistent lookups
   const profileByResident = {};
-  profiles.forEach(p => { profileByResident[p.resident_id] = p; });
+  profiles.forEach(p => {
+    if (p.resident_id) profileByResident[p.resident_id] = p;
+    if (p.global_resident_id) profileByResident[p.global_resident_id] = p;
+  });
 
   const resumeByResident = {};
   resumes.forEach(r => {
-    if (!resumeByResident[r.resident_id]) resumeByResident[r.resident_id] = [];
-    resumeByResident[r.resident_id].push(r);
+    [r.resident_id, r.global_resident_id].filter(Boolean).forEach(key => {
+      if (!resumeByResident[key]) resumeByResident[key] = [];
+      resumeByResident[key].push(r);
+    });
   });
 
   const interviewByResident = {};
   mockInterviews.forEach(m => {
-    if (!interviewByResident[m.resident_id]) interviewByResident[m.resident_id] = [];
-    interviewByResident[m.resident_id].push(m);
+    [m.resident_id, m.global_resident_id].filter(Boolean).forEach(key => {
+      if (!interviewByResident[key]) interviewByResident[key] = [];
+      interviewByResident[key].push(m);
+    });
   });
 
   const activeResidents = residents.filter(r =>
@@ -61,9 +69,9 @@ export default function JobReadiness() {
   const needsWork = activeResidents.filter(r => (r.job_readiness_score || 0) < 70);
 
   const ResidentCard = ({ r }) => {
-    const profile = profileByResident[r.id];
-    const hasResume = (resumeByResident[r.id] || []).length > 0;
-    const hasInterview = (interviewByResident[r.id] || []).length > 0;
+    const profile = profileByResident[r.id] || profileByResident[r.global_resident_id];
+    const hasResume = ((resumeByResident[r.id] || resumeByResident[r.global_resident_id] || [])).length > 0;
+    const hasInterview = ((interviewByResident[r.id] || interviewByResident[r.global_resident_id] || [])).length > 0;
     const score = profile?.job_readiness_score ?? r.job_readiness_score ?? 0;
     const missing = r.missing_documents?.filter(Boolean) || [];
     const blockerCount = (!hasResume ? 1 : 0) + (!hasInterview ? 1 : 0) + missing.length;
