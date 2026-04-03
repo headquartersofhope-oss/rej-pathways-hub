@@ -90,7 +90,7 @@ export default function OnboardingChecklist({ user, resident, onboarding }) {
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {allDone
-                ? 'You've completed all setup steps. You're all set!'
+                ? "You've completed all setup steps. You're all set!"
                 : `${checklist.filter(s => s.completed).length} of ${checklist.length} steps done`}
             </p>
           </div>
