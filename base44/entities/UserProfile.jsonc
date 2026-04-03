@@ -7,6 +7,10 @@
       "type": "string",
       "description": "User email - links to platform User entity"
     },
+    "full_name": {
+      "type": "string",
+      "description": "User's full name"
+    },
     "app_role": {
       "type": "string",
       "enum": [

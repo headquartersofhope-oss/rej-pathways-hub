@@ -30,16 +30,22 @@ Deno.serve(async (req) => {
       console.log(`[manageUser] Mapping app_role="${app_role}" to platformRole="${platformRole}"`);
 
       try {
-        // Try to invite user to platform
-        await base44.users.inviteUser(email, platformRole);
-        console.log('User invited to platform:', email);
+        // Try to invite user to platform first
+        try {
+          await base44.users.inviteUser(email, platformRole);
+          console.log('User invited to platform:', email);
+        } catch (inviteErr) {
+          // User may already exist, that's ok
+          console.log('User invite skipped (may already exist):', email);
+        }
 
-        // Create or update UserProfile with custom fields
+        // Now create or update UserProfile with custom fields
+        // The platform may have auto-created a profile when inviting, so we update it to set proper values
         const existingProfile = await base44.entities.UserProfile.filter({ email: email.toLowerCase() }, '', 1);
         
         let profile;
         if (existingProfile.length > 0) {
-          // Update existing profile
+          // Update existing profile (set/override all fields)
           profile = await base44.entities.UserProfile.update(existingProfile[0].id, {
             email: email.toLowerCase(),
             full_name,
@@ -50,11 +56,12 @@ Deno.serve(async (req) => {
             status,
             onboarding_status: 'invited',
           });
-          console.log('UserProfile updated:', email);
+          console.log('UserProfile updated after invite:', email, 'with full_name:', full_name);
         } else {
-          // Create new profile
+          // Create new profile if it doesn't exist
           profile = await base44.entities.UserProfile.create({
             email: email.toLowerCase(),
+            full_name,
             phone_number: phone_number || undefined,
             app_role,
             organization_id: organization_id || undefined,

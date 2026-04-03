@@ -25,12 +25,13 @@ Deno.serve(async (req) => {
     const profileMap = {};
     const profileEmails = new Set();
     profiles.forEach(p => {
-      // Handle both direct fields and nested data field
-      const email = (p.data?.email || p.email || '').toLowerCase();
-      if (email) {
-        profileMap[email] = p.data || p;
-        profileEmails.add(email);
-      }
+     // Handle both direct fields and nested data field
+     const email = (p.data?.email || p.email || '').toLowerCase();
+     if (email) {
+       const profileData = p.data || p;
+       profileMap[email] = profileData;
+       profileEmails.add(email);
+     }
     });
 
     // Create a set of platform user emails for deduplication
@@ -41,7 +42,7 @@ Deno.serve(async (req) => {
       const profile = profileMap[u.email.toLowerCase()];
       return {
         id: u.id,
-        full_name: u.full_name,
+        full_name: profile?.full_name || u.full_name || u.email,
         email: u.email,
         phone_number: profile?.phone_number || null,
         app_role: profile?.app_role || 'staff',
