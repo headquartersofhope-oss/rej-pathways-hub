@@ -11,8 +11,11 @@ import { AlertCircle, Copy, Check } from 'lucide-react';
 const EMPTY_FORM = {
   full_name: '',
   email: '',
-  phone: '',
+  phone_number: '',
   app_role: 'staff',
+  organization_id: '',
+  site_id: '',
+  status: 'active',
 };
 
 const AVAILABLE_ROLES = [
@@ -30,11 +33,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
-  const [method, setMethod] = useState('create');
-  const [confirmClose, setConfirmClose] = useState(false);
   const [successData, setSuccessData] = useState(null);
-  const [sendInviteEmail, setSendInviteEmail] = useState(false);
-  const [sendSMS, setSendSMS] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const isEditing = !!user;
@@ -43,6 +42,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
     if (!user) {
       return Object.entries(form).some(([k, v]) => {
         if (k === 'app_role') return v !== 'staff';
+        if (k === 'status') return v !== 'active';
         return v !== '';
       });
     }
@@ -51,15 +51,12 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
 
   const handleOpenChange = (open) => {
     if (!open && isDirty()) {
-      setConfirmClose(true);
-      return;
+      if (!confirm('Discard unsaved changes?')) {
+        return;
+      }
     }
+    setSuccessData(null);
     onOpenChange(open);
-  };
-
-  const handleConfirmDiscard = () => {
-    setConfirmClose(false);
-    onOpenChange(false);
   };
 
   useEffect(() => {
@@ -67,19 +64,18 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
       setForm({
         full_name: user.full_name || '',
         email: user.email || '',
-        phone: user.phone || '',
-        app_role: user.role || 'staff',
+        phone_number: user.phone_number || '',
+        app_role: user.app_role || 'staff',
+        organization_id: user.organization_id || '',
+        site_id: user.site_id || '',
+        status: user.status || 'active',
       });
-      setMethod('edit');
     } else {
       setForm(EMPTY_FORM);
-      setMethod('create');
     }
     setErrors({});
     setSubmitError('');
     setSuccessData(null);
-    setSendInviteEmail(false);
-    setSendSMS(false);
   }, [user, open]);
 
   const set = (key, val) => {
@@ -92,18 +88,12 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
     if (!form.full_name.trim()) errs.full_name = 'Full name is required.';
     if (!form.email.trim()) errs.email = 'Email is required.';
     if (!form.app_role) errs.app_role = 'Role is required.';
-    
-    // Basic email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (form.email && !emailRegex.test(form.email)) {
       errs.email = 'Please enter a valid email address.';
     }
-    
-    // If SMS is requested, phone is required
-    if (sendSMS && !form.phone?.trim()) {
-      errs.phone = 'Phone is required to send SMS onboarding link.';
-    }
-    
+
     return errs;
   };
 
@@ -119,33 +109,48 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
 
     try {
       if (isEditing) {
-        // Edit mode: update the user's role only
-        await base44.entities.User.update(user.id, {
-          role: form.app_role,
-        });
-        setSaving(false);
-        onSaved();
-        onOpenChange(false);
-      } else {
-        // Create or invite mode: use backend function for proper handling
-        const result = await base44.functions.invoke('createUserWithOnboarding', {
-          full_name: form.full_name,
-          email: form.email,
-          phone: form.phone || undefined,
-          app_role: form.app_role,
-          send_invite: sendInviteEmail,
-          send_sms: sendSMS,
+        // Update existing user
+        const result = await base44.functions.invoke('manageUser', {
+          action: 'update',
+          user_id: user.id,
+          data: {
+            full_name: form.full_name,
+            email: form.email,
+            phone_number: form.phone_number,
+            app_role: form.app_role,
+            organization_id: form.organization_id || undefined,
+            site_id: form.site_id || undefined,
+            status: form.status,
+          },
         });
 
-        setSaving(false);
-        
-        // Show success with onboarding link
-        if (result.user_id) {
+        if (result.success) {
+          setSaving(false);
+          onSaved();
+          handleOpenChange(false);
+        } else {
+          throw new Error(result.error || 'Update failed');
+        }
+      } else {
+        // Create new user
+        const result = await base44.functions.invoke('manageUser', {
+          action: 'create',
+          data: {
+            full_name: form.full_name,
+            email: form.email,
+            phone_number: form.phone_number,
+            app_role: form.app_role,
+            organization_id: form.organization_id || undefined,
+            site_id: form.site_id || undefined,
+            status: form.status,
+          },
+        });
+
+        if (result.success) {
+          setSaving(false);
           setSuccessData(result);
         } else {
-          setSubmitError('User was created but without onboarding data.');
-          onSaved();
-          onOpenChange(false);
+          throw new Error(result.error || 'Creation failed');
         }
       }
     } catch (error) {
@@ -164,7 +169,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
   // Success state: show onboarding link
   if (successData && !isEditing) {
     return (
-      <Dialog open={open} onOpenChange={() => { setSuccessData(null); onOpenChange(false); }}>
+      <Dialog open={open} onOpenChange={() => { setSuccessData(null); handleOpenChange(false); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>✓ User Created Successfully</DialogTitle>
@@ -176,22 +181,10 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
               </p>
             </div>
 
-            {successData.invite_sent && (
-              <div className="p-3 bg-blue-50/50 border border-blue-200/50 rounded-md">
-                <p className="text-sm text-blue-900">Invitation email sent to <strong>{successData.email}</strong></p>
-              </div>
-            )}
-
-            {successData.invite_error && (
-              <div className="p-3 bg-amber-50/50 border border-amber-200/50 rounded-md">
-                <p className="text-sm text-amber-900">Email could not be sent: {successData.invite_error}</p>
-              </div>
-            )}
-
             <div>
               <Label className="text-xs mb-2 block">Onboarding Link</Label>
               <div className="flex items-center gap-2 p-2 bg-muted rounded text-xs break-all">
-                <code className="flex-1">{successData.onboarding_url}</code>
+                <code className="flex-1 font-mono text-[10px]">{successData.onboarding_url}</code>
                 <button
                   onClick={() => copyToClipboard(successData.onboarding_url)}
                   className="flex-shrink-0 p-1 hover:bg-muted-foreground/10 rounded transition-colors"
@@ -200,23 +193,23 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
                   {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Share this link with the user or send via SMS.</p>
+              <p className="text-xs text-muted-foreground mt-1">Share this link to onboard the user.</p>
             </div>
 
-            {successData.sms_ready && successData.phone && (
+            {successData.phone && (
               <div>
-                <Label className="text-xs mb-2 block">SMS Message</Label>
+                <Label className="text-xs mb-2 block">SMS Message (copy & send)</Label>
                 <div className="flex items-center gap-2 p-2 bg-muted rounded text-xs break-all">
-                  <code className="flex-1">{successData.sms_message}</code>
+                  <code className="flex-1 font-mono text-[10px]">Welcome! Complete your onboarding: {successData.onboarding_url}</code>
                   <button
-                    onClick={() => copyToClipboard(successData.sms_message)}
+                    onClick={() => copyToClipboard(`Welcome! Complete your onboarding: ${successData.onboarding_url}`)}
                     className="flex-shrink-0 p-1 hover:bg-muted-foreground/10 rounded transition-colors"
                     title="Copy SMS"
                   >
                     {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Copy and paste into SMS to {successData.phone}</p>
+                <p className="text-xs text-muted-foreground mt-1">Send to {successData.phone}</p>
               </div>
             )}
 
@@ -225,7 +218,7 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
                 onClick={() => {
                   setSuccessData(null);
                   onSaved();
-                  onOpenChange(false);
+                  handleOpenChange(false);
                 }}
               >
                 Done
@@ -238,26 +231,10 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
   }
 
   return (
-    <>
-    <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Discard unsaved changes?</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">You have unsaved changes. If you close now, all entered data will be lost.</p>
-        <div className="flex gap-2 justify-end pt-2">
-          <Button variant="outline" onClick={() => setConfirmClose(false)}>Keep Editing</Button>
-          <Button variant="destructive" onClick={handleConfirmDiscard}>Discard Changes</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-
     <Dialog open={open && !successData} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Edit User' : 'Create New User'}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit User' : 'Create New User'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
@@ -275,7 +252,6 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
               onChange={e => set('full_name', e.target.value)}
               placeholder="e.g. John Smith"
               className={errors.full_name ? 'border-destructive mt-1' : 'mt-1'}
-              disabled={isEditing}
             />
             {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name}</p>}
           </div>
@@ -288,7 +264,6 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
               onChange={e => set('email', e.target.value)}
               placeholder="user@example.com"
               className={errors.email ? 'border-destructive mt-1' : 'mt-1'}
-              disabled={isEditing}
             />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
           </div>
@@ -297,13 +272,11 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
             <Label className="text-xs">Phone <span className="text-muted-foreground">(optional)</span></Label>
             <Input
               type="tel"
-              value={form.phone}
-              onChange={e => set('phone', e.target.value)}
+              value={form.phone_number}
+              onChange={e => set('phone_number', e.target.value)}
               placeholder="+1 (555) 123-4567"
               className="mt-1"
-              disabled={isEditing}
             />
-            {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone}</p>}
           </div>
 
           <div>
@@ -323,43 +296,47 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
             {errors.app_role && <p className="text-xs text-destructive mt-1">{errors.app_role}</p>}
           </div>
 
-          {!isEditing && (
-            <>
-              <div className="border-t pt-2 mt-2">
-                <Label className="text-xs mb-2 block font-medium">Onboarding Options</Label>
-                <label className="flex items-center gap-2 mb-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={sendInviteEmail}
-                    onChange={e => setSendInviteEmail(e.target.checked)}
-                    className="w-4 h-4 rounded"
-                  />
-                  <span className="text-sm">Send invitation email</span>
-                </label>
-                {form.phone && (
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sendSMS}
-                      onChange={e => setSendSMS(e.target.checked)}
-                      className="w-4 h-4 rounded"
-                    />
-                    <span className="text-sm">Generate SMS onboarding link</span>
-                  </label>
-                )}
-              </div>
-            </>
-          )}
+          <div>
+            <Label className="text-xs">Status</Label>
+            <Select value={form.status} onValueChange={v => set('status', v)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-xs">Organization ID <span className="text-muted-foreground">(optional)</span></Label>
+            <Input
+              value={form.organization_id}
+              onChange={e => set('organization_id', e.target.value)}
+              placeholder="org-12345"
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs">Site ID <span className="text-muted-foreground">(optional)</span></Label>
+            <Input
+              value={form.site_id}
+              onChange={e => set('site_id', e.target.value)}
+              placeholder="site-12345"
+              className="mt-1"
+            />
+          </div>
 
           <div className="flex gap-2 border-t pt-4">
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'Creating...' : 'Create User'}
+              {saving ? (isEditing ? 'Saving...' : 'Creating...') : isEditing ? 'Save Changes' : 'Create User'}
             </Button>
             <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
-    </>
   );
 }

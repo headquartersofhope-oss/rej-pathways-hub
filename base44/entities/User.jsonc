@@ -7,19 +7,10 @@
       "type": "string",
       "enum": [
         "admin",
-        "super_admin",
-        "org_admin",
-        "program_manager",
-        "case_manager",
-        "instructor",
-        "staff",
-        "resident",
-        "probation_officer",
-        "referral_partner",
-        "auditor"
+        "user"
       ],
-      "default": "staff",
-      "description": "User role controlling access permissions"
+      "default": "user",
+      "description": "Platform role (admin or user). Maps from app_role."
     },
     "app_role": {
       "type": "string",
@@ -29,9 +20,13 @@
         "probation_officer",
         "resident",
         "program_manager",
-        "staff"
+        "staff",
+        "employer",
+        "instructor",
+        "auditor"
       ],
-      "description": "Application-specific role for dashboard routing"
+      "default": "staff",
+      "description": "Application-specific role for dashboard routing and permissions"
     },
     "phone_number": {
       "type": "string",
@@ -39,7 +34,7 @@
     },
     "organization_id": {
       "type": "string",
-      "description": "Organization this user belongs to (optional, auto-populated if available)"
+      "description": "Organization this user belongs to (optional)"
     },
     "site_id": {
       "type": "string",
@@ -47,11 +42,11 @@
     },
     "resident_id": {
       "type": "string",
-      "description": "If role=resident, the linked Resident record ID (optional, link separately)"
+      "description": "If role=resident, the linked Resident record ID (optional)"
     },
     "global_resident_id": {
       "type": "string",
-      "description": "If role=resident, the linked Resident.global_resident_id (optional, link separately)"
+      "description": "If role=resident, the linked Resident.global_resident_id (optional)"
     },
     "status": {
       "type": "string",
@@ -61,6 +56,17 @@
       ],
       "default": "active",
       "description": "User account status"
+    },
+    "onboarding_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "invited",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started",
+      "description": "Onboarding workflow status"
     }
   },
   "required": []
