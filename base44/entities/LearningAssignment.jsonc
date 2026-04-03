@@ -1,0 +1,111 @@
+{
+  "name": "LearningAssignment",
+  "type": "object",
+  "description": "Tracks assignment of classes to residents with recommendation source and completion tracking.",
+  "properties": {
+    "resident_id": {
+      "type": "string",
+      "description": "Resident being assigned the class"
+    },
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master resident identifier"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "LearningClass ID"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "assignment_type": {
+      "type": "string",
+      "enum": [
+        "required",
+        "recommended",
+        "optional",
+        "ai_suggested"
+      ],
+      "default": "optional",
+      "description": "How the class was assigned"
+    },
+    "assignment_reason": {
+      "type": "string",
+      "description": "Why this class was recommended (e.g., 'low_digital_literacy', 'missing_resume', 'housing_barrier')"
+    },
+    "assigned_by": {
+      "type": "string",
+      "description": "User ID of staff who assigned (or 'system' for AI assignment)"
+    },
+    "assigned_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Optional deadline"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "assigned",
+        "in_progress",
+        "completed",
+        "passed",
+        "failed",
+        "declined"
+      ],
+      "default": "assigned",
+      "description": "Current assignment status"
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "quiz_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of quiz attempts"
+    },
+    "quiz_score": {
+      "type": "number",
+      "description": "Latest quiz score (0-100)"
+    },
+    "best_quiz_score": {
+      "type": "number",
+      "description": "Highest quiz score achieved"
+    },
+    "quiz_passed": {
+      "type": "boolean",
+      "description": "Met passing score requirement"
+    },
+    "certificate_earned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Certificate issued upon completion"
+    },
+    "reflection_notes": {
+      "type": "string",
+      "description": "Resident's reflection on learning (optional)"
+    },
+    "staff_notes": {
+      "type": "string",
+      "description": "Notes from case manager or instructor"
+    },
+    "watched_video": {
+      "type": "boolean",
+      "default": false,
+      "description": "Resident confirmed watching video content"
+    },
+    "time_spent_minutes": {
+      "type": "number",
+      "description": "Actual time spent on class"
+    }
+  },
+  "required": [
+    "resident_id",
+    "global_resident_id",
+    "class_id"
+  ]
+}

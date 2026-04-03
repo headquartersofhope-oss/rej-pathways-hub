@@ -1,66 +1,152 @@
 {
   "name": "LearningClass",
   "type": "object",
-  "description": "A class or course in the learning catalog.",
+  "description": "Educational class/course in the Learning Center. Designed for beginner-friendly education with multiple literacy levels.",
   "properties": {
-    "organization_id": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
     "category": {
       "type": "string",
       "enum": [
-        "work_readiness",
-        "soft_skills",
-        "interview_preparation",
-        "resume_preparation",
-        "digital_literacy",
+        "orientation",
+        "employment",
+        "housing",
         "financial_literacy",
-        "workplace_communication",
-        "conflict_management",
-        "recovery_support_education",
-        "certifications",
-        "trade_intro"
-      ]
+        "digital_literacy",
+        "ai_literacy",
+        "life_skills",
+        "wellness",
+        "documentation"
+      ],
+      "description": "Major category of learning"
     },
-    "instructor_name": {
-      "type": "string"
+    "title": {
+      "type": "string",
+      "description": "Class title (plain language, beginner-friendly)"
     },
-    "instructor_id": {
-      "type": "string"
+    "description": {
+      "type": "string",
+      "description": "Short description (2-3 sentences, plain language)"
     },
-    "duration_hours": {
-      "type": "number"
+    "estimated_minutes": {
+      "type": "number",
+      "description": "Estimated time to complete (in minutes)"
     },
-    "max_capacity": {
-      "type": "number"
-    },
-    "is_active": {
-      "type": "boolean",
-      "default": true
-    },
-    "barrier_tags": {
+    "learning_objectives": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Barrier categories this class addresses (e.g. digital_literacy, interview_readiness)"
+      "description": "What learner will be able to do after completing (plain language)"
     },
-    "completion_grants_certificate": {
+    "youtube_url": {
+      "type": "string",
+      "description": "Optional: Direct YouTube video URL"
+    },
+    "youtube_search_phrase": {
+      "type": "string",
+      "description": "Search phrase to find related YouTube videos if direct link not available"
+    },
+    "difficulty_level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "basic",
+        "intermediate"
+      ],
+      "default": "beginner",
+      "description": "Course difficulty"
+    },
+    "literacy_level_support": {
+      "type": "string",
+      "enum": [
+        "low",
+        "standard"
+      ],
+      "description": "Designed for low-literacy or standard literacy. Low = extra support, short sentences, visual aids."
+    },
+    "passing_score": {
+      "type": "number",
+      "default": 70,
+      "description": "Minimum percentage to pass quiz (0-100)"
+    },
+    "is_required": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Must be completed by residents"
     },
-    "certificate_name": {
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Available for assignment and enrollment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Publication status"
+    },
+    "content_outline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_title": {
+            "type": "string"
+          },
+          "key_points": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Outline of class content (optional)"
+    },
+    "quiz_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correct_answer": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Quiz questions (plain language, multiple choice)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Search tags (e.g., 'job_search', 'resume', 'interview')"
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "organization_id": {
       "type": "string"
     }
   },
   "required": [
     "title",
-    "category"
+    "category",
+    "description"
   ]
 }
