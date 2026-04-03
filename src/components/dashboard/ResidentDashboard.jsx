@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import OnboardingChecklist from '@/components/onboarding/OnboardingChecklist';
 import StatCard from '@/components/shared/StatCard';
 import QuickAction from '@/components/shared/QuickAction';
 import { Card } from '@/components/ui/card';
@@ -60,6 +61,13 @@ export default function ResidentDashboard({ user }) {
     .slice(0, 3);
   const completedClasses = myEnrollments.filter(e => e.status === 'completed').length;
 
+  const { data: onboardingList = [] } = useQuery({
+    queryKey: ['my-onboarding', user?.id],
+    queryFn: () => base44.entities.Onboarding.filter({ user_id: user.id, is_active: true }),
+    enabled: !!user?.id,
+  });
+  const onboarding = onboardingList.find(o => !o.dismissed) || null;
+
   return (
     <div className="space-y-6">
       {/* Greeting */}
@@ -71,6 +79,11 @@ export default function ResidentDashboard({ user }) {
           Here's what's happening today. You're doing great — keep going!
         </p>
       </div>
+
+      {/* Onboarding checklist — shown when active & not dismissed */}
+      {onboarding && myResident && (
+        <OnboardingChecklist user={user} resident={myResident} onboarding={onboarding} />
+      )}
 
       {/* Progress */}
       <Card className="p-5">
