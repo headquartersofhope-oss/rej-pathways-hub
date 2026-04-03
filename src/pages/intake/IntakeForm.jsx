@@ -124,6 +124,35 @@ export default function IntakeForm() {
     } else {
       await base44.entities.IntakeAssessment.create(payload);
     }
+
+    // Also sync identity/contact fields during partial saves
+    const residentUpdates = {};
+    if (formData.personal) {
+      if (formData.personal.first_name) residentUpdates.first_name = formData.personal.first_name;
+      if (formData.personal.last_name) residentUpdates.last_name = formData.personal.last_name;
+      if (formData.personal.preferred_name) residentUpdates.preferred_name = formData.personal.preferred_name;
+      if (formData.personal.pronouns) residentUpdates.pronouns = formData.personal.pronouns;
+      if (formData.personal.pronouns_other) residentUpdates.pronouns = formData.personal.pronouns_other;
+      if (formData.personal.gender_identity) residentUpdates.gender = formData.personal.gender_identity;
+      if (formData.personal.primary_language) residentUpdates.primary_language = formData.personal.primary_language;
+      if (formData.personal.primary_language_other) residentUpdates.primary_language = formData.personal.primary_language_other;
+      if (formData.personal.email) residentUpdates.email = formData.personal.email;
+      if (formData.personal.phone) residentUpdates.phone = formData.personal.phone;
+      if (formData.personal.date_of_birth) residentUpdates.date_of_birth = formData.personal.date_of_birth;
+    }
+    if (formData.emergency_contact?.name) {
+      residentUpdates.emergency_contact_name = formData.emergency_contact.name;
+    }
+    if (formData.emergency_contact?.phone) {
+      residentUpdates.emergency_contact_phone = formData.emergency_contact.phone;
+    }
+
+    if (Object.keys(residentUpdates).length > 0) {
+      await base44.entities.Resident.update(resident.id, residentUpdates);
+      queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+    }
+
     setSaving(false);
   };
 
@@ -192,15 +221,23 @@ export default function IntakeForm() {
       );
 
       // Sync profile fields from intake back to Resident record
+      const intakeDateStr = new Date().toISOString().split('T')[0];
+      const intakeDate = new Date(intakeDateStr);
+      const expectedExitDate = new Date(intakeDate.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
       const residentUpdates = {
         job_readiness_score: scores.work_readiness_score,
-        intake_date: new Date().toISOString().split('T')[0],
+        intake_date: intakeDateStr,
+        expected_exit_date: expectedExitDate,
         status: resident.status === 'pre_intake' ? 'active' : resident.status,
       };
 
       // Backfill ALL contact/profile fields to Resident record
       // These are the source-of-truth fields that must sync from intake
       if (formData.personal) {
+        if (formData.personal.first_name) residentUpdates.first_name = formData.personal.first_name;
+        if (formData.personal.last_name) residentUpdates.last_name = formData.personal.last_name;
+        if (formData.personal.preferred_name) residentUpdates.preferred_name = formData.personal.preferred_name;
         if (formData.personal.pronouns) residentUpdates.pronouns = formData.personal.pronouns;
         if (formData.personal.pronouns_other) residentUpdates.pronouns = formData.personal.pronouns_other;
         if (formData.personal.gender_identity) residentUpdates.gender = formData.personal.gender_identity;

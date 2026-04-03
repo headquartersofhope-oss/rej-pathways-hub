@@ -241,6 +241,7 @@ export default function ResidentProfile() {
               barriers={barriers}
               residentId={residentId}
               canEdit={perms.canEditProfile}
+              userRole={user?.role || 'admin'}
             />
           </TabsContent>
         )}

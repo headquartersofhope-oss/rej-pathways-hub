@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Mail, Phone } from 'lucide-react';
+import { canViewField } from '@/lib/fieldVisibility';
 
 /**
  * Reusable resident card component showing:
@@ -37,7 +38,9 @@ export default function ResidentCard({
   barrierCount = null,
   statusColors = {},
   onClick = null,
-  className = ''
+  className = '',
+  userRole = 'admin',
+  showContact = true
 }) {
   if (!resident) return null;
 
@@ -79,16 +82,16 @@ export default function ResidentCard({
         </div>
       </div>
 
-      {/* Contact Info - Always show if present (detailed and compact) */}
-      {(resident.email || resident.phone) && (
+      {/* Contact Info - Show only if showContact=true and user has permission */}
+      {showContact && (resident.email || resident.phone) && (
         <div className={`border-t border-border/40 space-y-1 mb-2 ${isCompact ? '' : 'py-2'}`}>
-          {resident.email && (
+          {canViewField(userRole, 'email', 'contact') && resident.email && (
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground truncate">
               <Mail className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{resident.email}</span>
             </div>
           )}
-          {resident.phone && (
+          {canViewField(userRole, 'phone', 'contact') && resident.phone && (
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground truncate">
               <Phone className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{resident.phone}</span>
