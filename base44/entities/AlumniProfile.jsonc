@@ -1,0 +1,103 @@
+{
+  "name": "AlumniProfile",
+  "type": "object",
+  "description": "Alumni profile for a resident who has completed the program. Separate from the intake/case layer but linked via global_resident_id. Controls opt-in sharing and mentorship availability.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "REQUIRED IDENTITY LINK. References Resident.global_resident_id."
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Database object ID of the Resident record (internal FK)."
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "pending_review"
+      ],
+      "default": "pending_review",
+      "description": "Staff-controlled status. Only 'active' alumni appear in the mentor directory."
+    },
+    "graduation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the resident completed the program."
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "preferred_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Current industry or work field (e.g. Construction, Healthcare, Warehouse)."
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "employer_name": {
+      "type": "string"
+    },
+    "willing_to_mentor": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this alumnus is willing to mentor current residents."
+    },
+    "mentor_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Topics or areas the alumnus is willing to mentor on."
+    },
+    "short_story": {
+      "type": "string",
+      "description": "Optional brief bio or success story. May be displayed in the mentor directory."
+    },
+    "opt_in_contact_sharing": {
+      "type": "boolean",
+      "default": false,
+      "description": "Explicit opt-in by the alumnus to share their contact info with current residents."
+    },
+    "opt_in_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the alumni opted in to contact sharing."
+    },
+    "population": {
+      "type": "string",
+      "enum": [
+        "justice_impacted",
+        "homeless_veteran",
+        "foster_youth",
+        "other"
+      ]
+    },
+    "staff_notes": {
+      "type": "string",
+      "description": "Internal staff notes about this alumni record. Not visible to residents."
+    },
+    "created_by": {
+      "type": "string",
+      "description": "User.id of staff who created this record."
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "full_name"
+  ]
+}

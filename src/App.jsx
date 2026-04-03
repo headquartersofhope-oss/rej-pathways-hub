@@ -26,6 +26,7 @@ import CaseManagement from '@/pages/CaseManagement';
 import Learning from '@/pages/Learning';
 import JobReadiness from '@/pages/JobReadiness';
 import OutcomesReport from '@/pages/OutcomesReport';
+import Alumni from '@/pages/Alumni';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -75,6 +76,7 @@ const AuthenticatedApp = () => {
         <Route path="/learning" element={<Learning />} />
         <Route path="/job-readiness" element={<JobReadiness />} />
         <Route path="/outcomes" element={<OutcomesReport />} />
+        <Route path="/alumni" element={<Alumni />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
