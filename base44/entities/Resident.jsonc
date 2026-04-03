@@ -42,6 +42,30 @@
         "other"
       ]
     },
+    "pronouns": {
+      "type": "string",
+      "enum": [
+        "he_him",
+        "she_her",
+        "they_them",
+        "other",
+        "prefer_not_to_say"
+      ]
+    },
+    "primary_language": {
+      "type": "string",
+      "enum": [
+        "english",
+        "spanish",
+        "french",
+        "mandarin",
+        "cantonese",
+        "vietnamese",
+        "tagalog",
+        "arabic",
+        "other"
+      ]
+    },
     "phone": {
       "type": "string"
     },
