@@ -96,6 +96,8 @@ Deno.serve(async (req) => {
         }
 
         const updateData = {};
+        if (data.full_name !== undefined) updateData.full_name = data.full_name;
+        if (data.email !== undefined) updateData.email = data.email.toLowerCase();
         if (data.phone_number !== undefined) updateData.phone_number = data.phone_number;
         if (data.app_role !== undefined) updateData.app_role = data.app_role;
         if (data.organization_id !== undefined) updateData.organization_id = data.organization_id || null;
@@ -105,8 +107,8 @@ Deno.serve(async (req) => {
 
         await base44.entities.UserProfile.update(profiles[0].id, updateData);
 
-        console.log('UserProfile updated:', email);
-        return Response.json({ success: true, email });
+        console.log('UserProfile updated:', email, 'with data:', updateData);
+        return Response.json({ success: true, email: data.email || email });
       } catch (updateError) {
         console.error('User update failed:', updateError.message);
         return Response.json({ error: 'Update failed: ' + updateError.message }, { status: 500 });

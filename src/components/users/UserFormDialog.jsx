@@ -90,16 +90,14 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
 
   const validate = () => {
     const errs = {};
-    // Only validate full_name and email on create, not edit
-    if (!isEditing) {
-      if (!form.full_name.trim()) errs.full_name = 'Full name is required.';
-      if (!form.email.trim()) errs.email = 'Email is required.';
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (form.email && !emailRegex.test(form.email)) {
-        errs.email = 'Please enter a valid email address.';
-      }
-    }
+    if (!form.full_name.trim()) errs.full_name = 'Full name is required.';
+    if (!form.email.trim()) errs.email = 'Email is required.';
     if (!form.app_role) errs.app_role = 'Role is required.';
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (form.email && !emailRegex.test(form.email)) {
+      errs.email = 'Please enter a valid email address.';
+    }
 
     return errs;
   };
@@ -123,6 +121,8 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
           action: 'update',
           email: user.email,
           data: {
+            full_name: form.full_name,
+            email: form.email,
             phone_number: form.phone_number,
             app_role: form.app_role,
             organization_id: form.organization_id || undefined,
@@ -270,9 +270,8 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
             <Label className="text-xs">Full Name <span className="text-destructive">*</span></Label>
             <Input
               value={form.full_name}
-              onChange={e => !isEditing && set('full_name', e.target.value)}
+              onChange={e => set('full_name', e.target.value)}
               placeholder="e.g. John Smith"
-              disabled={isEditing}
               className={errors.full_name ? 'border-destructive mt-1' : 'mt-1'}
             />
             {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name}</p>}
@@ -283,9 +282,8 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
             <Input
               type="email"
               value={form.email}
-              onChange={e => !isEditing && set('email', e.target.value)}
+              onChange={e => set('email', e.target.value)}
               placeholder="user@example.com"
-              disabled={isEditing}
               className={errors.email ? 'border-destructive mt-1' : 'mt-1'}
             />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
