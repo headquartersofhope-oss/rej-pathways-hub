@@ -57,7 +57,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
   };
 
   const handleSave = async () => {
-    if (!residentId) return;
+    if (!residentId) { console.warn('WorkPreferencesPanel: residentId is missing'); return; }
     setSaving(true);
     const data = {
       preferred_job_types: form.preferred_job_types.split(',').map(s => s.trim()).filter(Boolean),
@@ -83,7 +83,7 @@ export default function WorkPreferencesPanel({ resident, profile, staff, residen
         is_job_ready: false,
       });
     }
-    onRefresh();
+    await onRefresh();
     setSaving(false);
     setEditing(false);
   };

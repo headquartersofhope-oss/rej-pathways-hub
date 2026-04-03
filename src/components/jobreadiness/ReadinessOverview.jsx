@@ -47,12 +47,12 @@ export default function ReadinessOverview({
     await base44.entities.EmployabilityProfile.create({
       global_resident_id: globalId || residentId,
       resident_id: residentId,
-      organization_id: resident.organization_id,
-      job_readiness_score: resident.job_readiness_score || 0,
+      organization_id: resident?.organization_id || '',
+      job_readiness_score: resident?.job_readiness_score || 0,
       resume_status: 'none',
       is_job_ready: false,
     });
-    onRefresh();
+    await onRefresh();
     setCreating(false);
   };
 

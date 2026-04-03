@@ -162,7 +162,7 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
   };
 
   const handleSave = async () => {
-    if (!residentId) return;
+    if (!residentId) { console.warn('ResumeBuilder: residentId is missing'); return; }
     setSaving(true);
     const data = {
       global_resident_id: globalId || residentId,
@@ -187,7 +187,7 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
     } else {
       await base44.entities.ResumeRecord.create(data);
     }
-    onRefresh();
+    await onRefresh();
     setSaving(false);
     setShowForm(false);
   };
@@ -195,7 +195,7 @@ export default function ResumeBuilder({ resident, profile, staff, residentId, gl
   const handleDelete = async (id) => {
     if (!confirm('Delete this resume?')) return;
     await base44.entities.ResumeRecord.delete(id);
-    onRefresh();
+    await onRefresh();
   };
 
   return (

@@ -22,45 +22,53 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
       return list[0] || null;
     },
     enabled: !!residentId,
+    staleTime: 0,
   });
 
   const { data: resumes = [] } = useQuery({
     queryKey: ['resumes', residentId],
     queryFn: () => base44.entities.ResumeRecord.filter({ resident_id: residentId }),
     enabled: !!residentId,
+    staleTime: 0,
   });
 
   const { data: mockInterviews = [] } = useQuery({
     queryKey: ['mock-interviews', residentId],
     queryFn: () => base44.entities.MockInterview.filter({ resident_id: residentId }),
     enabled: !!residentId,
+    staleTime: 0,
   });
 
   const { data: references = [] } = useQuery({
     queryKey: ['references', residentId],
     queryFn: () => base44.entities.ReferenceContact.filter({ resident_id: residentId }),
     enabled: !!residentId,
+    staleTime: 0,
   });
 
   const { data: coverLetters = [] } = useQuery({
     queryKey: ['cover-letters', residentId],
     queryFn: () => base44.entities.CoverLetterRecord.filter({ resident_id: residentId }),
     enabled: !!residentId,
+    staleTime: 0,
   });
 
   const { data: certificates = [] } = useQuery({
     queryKey: ['certificates-jr', residentId],
     queryFn: () => base44.entities.Certificate.filter({ resident_id: residentId }),
     enabled: !!residentId,
+    staleTime: 0,
   });
 
-  const refreshProfile = () => {
-    queryClient.invalidateQueries({ queryKey: ['employability-profile', residentId] });
-    queryClient.invalidateQueries({ queryKey: ['resumes', residentId] });
-    queryClient.invalidateQueries({ queryKey: ['mock-interviews', residentId] });
-    queryClient.invalidateQueries({ queryKey: ['references', residentId] });
-    queryClient.invalidateQueries({ queryKey: ['cover-letters', residentId] });
-    queryClient.invalidateQueries({ queryKey: ['certificates-jr', residentId] });
+  const refreshProfile = async () => {
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: ['employability-profile', residentId] }),
+      queryClient.refetchQueries({ queryKey: ['resumes', residentId] }),
+      queryClient.refetchQueries({ queryKey: ['mock-interviews', residentId] }),
+      queryClient.refetchQueries({ queryKey: ['references', residentId] }),
+      queryClient.refetchQueries({ queryKey: ['cover-letters', residentId] }),
+      queryClient.refetchQueries({ queryKey: ['certificates-jr', residentId] }),
+    ]);
   };
 
   // Probation officers and auditors are read-only — no create/edit actions

@@ -36,9 +36,9 @@ export default function CoverLetterPanel({ resident, staff, residentId, globalId
   const handleSave = async () => {
     setSaving(true);
     const data = {
-      global_resident_id: globalId,
+      global_resident_id: globalId || residentId,
       resident_id: residentId,
-      organization_id: resident.organization_id,
+      organization_id: resident?.organization_id || '',
       ...form,
     };
     if (editing) {
@@ -46,14 +46,14 @@ export default function CoverLetterPanel({ resident, staff, residentId, globalId
     } else {
       await base44.entities.CoverLetterRecord.create(data);
     }
-    onRefresh();
+    await onRefresh();
     setSaving(false);
     setShowForm(false);
   };
 
   const handleDelete = async (id) => {
     await base44.entities.CoverLetterRecord.delete(id);
-    onRefresh();
+    await onRefresh();
   };
 
   return (

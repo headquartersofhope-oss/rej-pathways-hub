@@ -32,7 +32,7 @@ export default function MockInterviewPanel({ resident, profile, staff, residentI
   };
 
   const handleSave = async () => {
-    if (!residentId) return;
+    if (!residentId) { console.warn('MockInterviewPanel: residentId is missing'); return; }
     setSaving(true);
     const data = {
       global_resident_id: globalId || residentId,
@@ -56,7 +56,7 @@ export default function MockInterviewPanel({ resident, profile, staff, residentI
         interview_readiness_score: data.overall_score,
       });
     }
-    onRefresh();
+    await onRefresh();
     setSaving(false);
     setShowForm(false);
   };
@@ -64,7 +64,7 @@ export default function MockInterviewPanel({ resident, profile, staff, residentI
   const handleDelete = async (id) => {
     if (!confirm('Delete this interview record?')) return;
     await base44.entities.MockInterview.delete(id);
-    onRefresh();
+    await onRefresh();
   };
 
   const scoreColor = (s) => s >= 80 ? 'text-emerald-600' : s >= 60 ? 'text-amber-600' : 'text-red-600';

@@ -21,12 +21,12 @@ export default function ReferencesPanel({ resident, staff, residentId, globalId,
   const handleSave = async () => {
     setSaving(true);
     await base44.entities.ReferenceContact.create({
-      global_resident_id: globalId,
+      global_resident_id: globalId || residentId,
       resident_id: residentId,
-      organization_id: resident.organization_id,
+      organization_id: resident?.organization_id || '',
       ...form,
     });
-    onRefresh();
+    await onRefresh();
     setSaving(false);
     setShowForm(false);
     setForm({ name: '', relationship: '', company: '', phone: '', email: '', status: 'pending', notes: '' });
@@ -34,12 +34,12 @@ export default function ReferencesPanel({ resident, staff, residentId, globalId,
 
   const handleDelete = async (id) => {
     await base44.entities.ReferenceContact.delete(id);
-    onRefresh();
+    await onRefresh();
   };
 
   const updateStatus = async (ref, status) => {
     await base44.entities.ReferenceContact.update(ref.id, { status });
-    onRefresh();
+    await onRefresh();
   };
 
   return (
