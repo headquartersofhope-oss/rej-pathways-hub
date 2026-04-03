@@ -75,9 +75,10 @@ export default function UserManagement() {
                 <thead className="bg-muted/50 border-b">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">User</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Role</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Status</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Email</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Phone</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Role</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Status</th>
                     <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
@@ -92,17 +93,18 @@ export default function UserManagement() {
                           <span className="font-medium">{u.full_name || 'Unnamed'}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-muted-foreground text-sm">{u.email}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-sm hidden sm:table-cell">{u.phone || '—'}</td>
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <Badge variant="outline" className="text-xs">
                           {ROLE_LABELS[u.role] || u.role || 'User'}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
+                      <td className="px-4 py-3 hidden lg:table-cell">
                         <Badge variant={u.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                           {u.status || 'active'}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{u.email}</td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => handleEditUser(u)}
