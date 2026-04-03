@@ -1,0 +1,54 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "description": "Custom user profile data extending the platform User entity",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "User email - links to platform User entity"
+    },
+    "app_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "case_manager",
+        "staff",
+        "probation_officer",
+        "supervisor",
+        "viewer"
+      ],
+      "default": "staff",
+      "description": "Application-specific role"
+    },
+    "phone_number": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "site_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "onboarding_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "invited",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}

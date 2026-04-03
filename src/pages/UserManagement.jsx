@@ -26,7 +26,8 @@ export default function UserManagement() {
     queryKey: ['users'],
     queryFn: async () => {
       try {
-        return await base44.asServiceRole.entities.User.list('-created_date', 100);
+        const result = await base44.functions.invoke('listUsersWithProfiles', {});
+        return result.users || [];
       } catch (err) {
         console.error('Failed to list users:', err);
         return [];
@@ -51,13 +52,13 @@ export default function UserManagement() {
     setSelectedUser(null);
   };
 
-  const handleToggleStatus = async (userId, currentStatus) => {
-    setTogglingStatus(userId);
+  const handleToggleStatus = async (userEmail, currentStatus) => {
+    setTogglingStatus(userEmail);
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
       const result = await base44.functions.invoke('manageUser', {
         action: newStatus === 'active' ? 'activate' : 'deactivate',
-        user_id: userId,
+        email: userEmail,
       });
 
       if (result.success) {
@@ -170,12 +171,12 @@ export default function UserManagement() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                              onClick={() => handleToggleStatus(u.id, u.status)}
-                              disabled={togglingStatus === u.id}
+                              onClick={() => handleToggleStatus(u.email, u.status)}
+                              disabled={togglingStatus === u.email}
                               className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
                               title={u.status === 'active' ? 'Deactivate user' : 'Activate user'}
                             >
-                              {togglingStatus === u.id ? (
+                              {togglingStatus === u.email ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               ) : (
                                 <Power className="w-3.5 h-3.5" />

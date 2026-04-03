@@ -112,10 +112,8 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
         // Update existing user
         const result = await base44.functions.invoke('manageUser', {
           action: 'update',
-          user_id: user.id,
+          email: user.email,
           data: {
-            full_name: form.full_name,
-            email: form.email,
             phone_number: form.phone_number,
             app_role: form.app_role,
             organization_id: form.organization_id || undefined,
@@ -135,9 +133,9 @@ export default function UserFormDialog({ open, onOpenChange, user, onSaved }) {
         // Create new user
         const result = await base44.functions.invoke('manageUser', {
           action: 'create',
+          email: form.email,
           data: {
             full_name: form.full_name,
-            email: form.email,
             phone_number: form.phone_number,
             app_role: form.app_role,
             organization_id: form.organization_id || undefined,
