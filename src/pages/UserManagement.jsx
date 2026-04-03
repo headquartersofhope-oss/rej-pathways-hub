@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/card';
@@ -7,20 +7,38 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { UserCircle, Plus, Search, Shield } from 'lucide-react';
+import { UserCircle, Plus, Search, Shield, Edit2 } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/roles';
 import { useOutletContext } from 'react-router-dom';
 import OnboardingManager from '@/components/onboarding/OnboardingManager';
 import NotificationDispatcher from '@/components/notifications/NotificationDispatcher';
+import UserFormDialog from '@/components/users/UserFormDialog';
 
 export default function UserManagement() {
   const { user } = useOutletContext();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
   });
+
+  const handleAddUser = () => {
+    setSelectedUser(null);
+    setFormOpen(true);
+  };
+
+  const handleEditUser = (u) => {
+    setSelectedUser(u);
+    setFormOpen(true);
+  };
+
+  const handleSaved = () => {
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+  };
 
   const filtered = users.filter(u =>
     !search || (u.full_name || u.email || '').toLowerCase().includes(search.toLowerCase())
@@ -28,12 +46,14 @@ export default function UserManagement() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
+      <UserFormDialog open={formOpen} onOpenChange={setFormOpen} user={selectedUser} onSaved={handleSaved} />
+
       <PageHeader
         title="User Management"
         subtitle={`${users.length} users`}
         icon={UserCircle}
         actions={
-          <Button className="gap-2"><Plus className="w-4 h-4" /> Invite User</Button>
+          <Button className="gap-2" onClick={handleAddUser}><Plus className="w-4 h-4" /> Add User</Button>
         }
       />
 
@@ -58,11 +78,12 @@ export default function UserManagement() {
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Role</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Status</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Email</th>
+                    <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filtered.map((u) => (
-                    <tr key={u.id} className="hover:bg-muted/30 transition-colors">
+                    <tr key={u.id} className="hover:bg-muted/30 transition-colors group">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
@@ -82,6 +103,15 @@ export default function UserManagement() {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{u.email}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleEditUser(u)}
+                          className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+                          title="Edit user"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
