@@ -15,60 +15,107 @@ export default function JobReadinessTab({ resident, user, barriers = [], tasks =
   const residentId = resident?.id;
   const globalId = resident?.global_resident_id;
 
+  // Use global_resident_id as primary key for all queries — it's the stable master identity.
+  // Fall back to resident DB id if global_resident_id not yet assigned.
+  const queryId = globalId || residentId;
+
   const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: ['employability-profile', residentId],
+    queryKey: ['employability-profile', queryId],
     queryFn: async () => {
-      const list = await base44.entities.EmployabilityProfile.filter({ resident_id: residentId });
+      // Try global_resident_id first (master identity), fall back to resident_id
+      let list = globalId
+        ? await base44.entities.EmployabilityProfile.filter({ global_resident_id: globalId })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.EmployabilityProfile.filter({ resident_id: residentId });
+      }
       return list[0] || null;
     },
     enabled: !!residentId,
     staleTime: 0,
+    gcTime: 0,
   });
 
   const { data: resumes = [] } = useQuery({
-    queryKey: ['resumes', residentId],
-    queryFn: () => base44.entities.ResumeRecord.filter({ resident_id: residentId }),
+    queryKey: ['resumes', queryId],
+    queryFn: async () => {
+      let list = globalId
+        ? await base44.entities.ResumeRecord.filter({ global_resident_id: globalId })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.ResumeRecord.filter({ resident_id: residentId });
+      }
+      return list;
+    },
     enabled: !!residentId,
     staleTime: 0,
     gcTime: 0,
   });
 
   const { data: mockInterviews = [] } = useQuery({
-    queryKey: ['mock-interviews', residentId],
-    queryFn: () => base44.entities.MockInterview.filter({ resident_id: residentId }),
+    queryKey: ['mock-interviews', queryId],
+    queryFn: async () => {
+      let list = globalId
+        ? await base44.entities.MockInterview.filter({ global_resident_id: globalId })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.MockInterview.filter({ resident_id: residentId });
+      }
+      return list;
+    },
     enabled: !!residentId,
     staleTime: 0,
+    gcTime: 0,
   });
 
   const { data: references = [] } = useQuery({
-    queryKey: ['references', residentId],
-    queryFn: () => base44.entities.ReferenceContact.filter({ resident_id: residentId }),
+    queryKey: ['references', queryId],
+    queryFn: async () => {
+      let list = globalId
+        ? await base44.entities.ReferenceContact.filter({ global_resident_id: globalId })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.ReferenceContact.filter({ resident_id: residentId });
+      }
+      return list;
+    },
     enabled: !!residentId,
     staleTime: 0,
+    gcTime: 0,
   });
 
   const { data: coverLetters = [] } = useQuery({
-    queryKey: ['cover-letters', residentId],
-    queryFn: () => base44.entities.CoverLetterRecord.filter({ resident_id: residentId }),
+    queryKey: ['cover-letters', queryId],
+    queryFn: async () => {
+      let list = globalId
+        ? await base44.entities.CoverLetterRecord.filter({ global_resident_id: globalId })
+        : [];
+      if (!list.length) {
+        list = await base44.entities.CoverLetterRecord.filter({ resident_id: residentId });
+      }
+      return list;
+    },
     enabled: !!residentId,
     staleTime: 0,
+    gcTime: 0,
   });
 
   const { data: certificates = [] } = useQuery({
-    queryKey: ['certificates-jr', residentId],
+    queryKey: ['certificates-jr', queryId],
     queryFn: () => base44.entities.Certificate.filter({ resident_id: residentId }),
     enabled: !!residentId,
     staleTime: 0,
+    gcTime: 0,
   });
 
   const refreshProfile = async () => {
     await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['employability-profile', residentId] }),
-      queryClient.refetchQueries({ queryKey: ['resumes', residentId] }),
-      queryClient.refetchQueries({ queryKey: ['mock-interviews', residentId] }),
-      queryClient.refetchQueries({ queryKey: ['references', residentId] }),
-      queryClient.refetchQueries({ queryKey: ['cover-letters', residentId] }),
-      queryClient.refetchQueries({ queryKey: ['certificates-jr', residentId] }),
+      queryClient.refetchQueries({ queryKey: ['employability-profile', queryId] }),
+      queryClient.refetchQueries({ queryKey: ['resumes', queryId] }),
+      queryClient.refetchQueries({ queryKey: ['mock-interviews', queryId] }),
+      queryClient.refetchQueries({ queryKey: ['references', queryId] }),
+      queryClient.refetchQueries({ queryKey: ['cover-letters', queryId] }),
+      queryClient.refetchQueries({ queryKey: ['certificates-jr', queryId] }),
     ]);
   };
 
