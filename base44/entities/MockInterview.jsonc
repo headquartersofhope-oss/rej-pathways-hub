@@ -19,6 +19,10 @@
     "conducted_by_name": {
       "type": "string"
     },
+    "interviewer_name": {
+      "type": "string",
+      "description": "Name of interviewer if different from logged-in staff"
+    },
     "date": {
       "type": "string",
       "format": "date"
@@ -40,6 +44,9 @@
       "type": "string"
     },
     "areas_to_improve": {
+      "type": "string"
+    },
+    "recommended_next_steps": {
       "type": "string"
     },
     "notes": {

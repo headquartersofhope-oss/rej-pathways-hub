@@ -28,7 +28,10 @@ export default function ReadinessOverview({
   const [creating, setCreating] = useState(false);
 
   const score = profile?.job_readiness_score ?? resident?.job_readiness_score ?? 0;
-  const interviewScore = profile?.interview_readiness_score ?? null;
+  // Pull latest interview score from actual records (sorted newest first), fall back to profile cache
+  const sortedInterviews = [...mockInterviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const latestInterview = sortedInterviews[0];
+  const interviewScore = latestInterview?.overall_score ?? profile?.interview_readiness_score ?? null;
   const hasResume = resumes.some(r => r.status !== 'draft') || resumes.length > 0;
   const hasInterview = mockInterviews.length > 0;
   const hasReferences = references.filter(r => r.status === 'confirmed').length > 0;
