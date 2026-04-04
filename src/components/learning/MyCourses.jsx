@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import LearningOnboarding from './LearningOnboarding';
+import ClassDetailView from './ClassDetailView.jsx';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GraduationCap, Award, Calendar, CheckCircle2, Clock, BookOpen, Search, Star } from 'lucide-react';
+import { GraduationCap, Award, Calendar, CheckCircle2, Clock, BookOpen, Search, Star, ChevronRight } from 'lucide-react';
 import LearningPathways from './LearningPathways';
 import { format, parseISO, isAfter } from 'date-fns';
 
@@ -43,12 +45,12 @@ const statusConfig = {
   no_show: { color: 'bg-red-50 text-red-700', label: 'No Show' },
 };
 
-function AvailableClassCard({ cls }) {
+function AvailableClassCard({ cls, onClick }) {
   const catColor = categoryColors[cls.category] || 'bg-muted text-muted-foreground';
   const catLabel = CATEGORIES.find(c => c.value === cls.category)?.label || cls.category;
 
   return (
-    <Card className="p-4 flex flex-col gap-2 hover:shadow-sm transition-shadow">
+    <Card className="p-4 flex flex-col gap-2 hover:shadow-sm transition-shadow cursor-pointer" onClick={onClick}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-sm leading-tight">{cls.title}</h4>
@@ -80,8 +82,10 @@ function AvailableClassCard({ cls }) {
 }
 
 export default function MyCourses({ user }) {
+  const queryClient = useQueryClient();
   const [catalogSearch, setCatalogSearch] = useState('');
   const [catalogCat, setCatalogCat] = useState('all');
+  const [openClass, setOpenClass] = useState(null); // { cls, enrollment }
 
   const { data: myResident } = useQuery({
     queryKey: ['my-resident', user?.id],
@@ -158,7 +162,19 @@ export default function MyCourses({ user }) {
           category={catalogCat}
           onCategory={setCatalogCat}
           totalAvailable={availableClasses.length}
+          onClassClick={(cls) => setOpenClass({ cls, enrollment: null })}
         />
+        {openClass && (
+          <ClassDetailView
+            open={!!openClass}
+            onOpenChange={(v) => !v && setOpenClass(null)}
+            cls={openClass.cls}
+            enrollment={null}
+            resident={null}
+            allEnrollments={[]}
+            allClasses={classes}
+          />
+        )}
       </div>
     );
   }
@@ -238,7 +254,11 @@ export default function MyCourses({ user }) {
               if (!cls) return null;
               const conf = statusConfig[enr.status] || statusConfig.enrolled;
               return (
-                <Card key={enr.id} className="p-4 flex items-center gap-4">
+                <Card
+                  key={enr.id}
+                  className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow"
+                  onClick={() => setOpenClass({ cls, enrollment: enr })}
+                >
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
                     {enr.status === 'completed'
                       ? <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -254,7 +274,10 @@ export default function MyCourses({ user }) {
                       <p className="text-xs text-emerald-600 mt-0.5">Completed {enr.completion_date}</p>
                     )}
                   </div>
-                  <Badge className={`text-[10px] border-0 flex-shrink-0 ${conf.color}`}>{conf.label}</Badge>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge className={`text-[10px] border-0 ${conf.color}`}>{conf.label}</Badge>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </Card>
               );
             })}
@@ -294,12 +317,26 @@ export default function MyCourses({ user }) {
         category={catalogCat}
         onCategory={setCatalogCat}
         totalAvailable={availableClasses.length}
+        onClassClick={(cls) => setOpenClass({ cls, enrollment: null })}
       />
+
+      {/* Class Detail Modal */}
+      {openClass && (
+        <ClassDetailView
+          open={!!openClass}
+          onOpenChange={(v) => !v && setOpenClass(null)}
+          cls={openClass.cls}
+          enrollment={openClass.enrollment}
+          resident={myResident}
+          allEnrollments={enrollments}
+          allClasses={classes}
+        />
+      )}
     </div>
   );
 }
 
-function AvailableCatalogSection({ classes, loading, search, onSearch, category, onCategory, totalAvailable }) {
+function AvailableCatalogSection({ classes, loading, search, onSearch, category, onCategory, totalAvailable, onClassClick }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
@@ -341,7 +378,7 @@ function AvailableCatalogSection({ classes, loading, search, onSearch, category,
         </Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {classes.map(cls => <AvailableClassCard key={cls.id} cls={cls} />)}
+          {classes.map(cls => <AvailableClassCard key={cls.id} cls={cls} onClick={() => onClassClick && onClassClick(cls)} />)}
         </div>
       )}
     </div>

@@ -16,14 +16,13 @@ export default function QuizComponent({ classId, assignmentId, className, passin
   const [error, setError] = useState('');
   const [quizData, setQuizData] = useState(null);
 
-  // Fetch class quiz data — use filter by id for efficiency and correctness
+  // Fetch class quiz data
   useEffect(() => {
     if (!classId) return;
     const fetchQuiz = async () => {
       try {
-        const all = await base44.entities.LearningClass.list();
-        const cls = all.find(c => c.id === classId);
-        if (cls) setQuizData(cls);
+        const results = await base44.entities.LearningClass.filter({ id: classId });
+        if (results[0]) setQuizData(results[0]);
       } catch (e) {
         setError('Could not load quiz');
       }
