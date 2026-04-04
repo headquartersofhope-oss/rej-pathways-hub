@@ -7,7 +7,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 
-export default function QuizComponent({ classId, assignmentId, className, passingScore = 70, onComplete }) {
+export default function QuizComponent({ classId, enrollmentId, assignmentId, className, passingScore = 70, readOnly = false, onComplete }) {
+  // Support both prop names for backwards compatibility
+  const effectiveEnrollmentId = enrollmentId || assignmentId;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -64,9 +66,9 @@ export default function QuizComponent({ classId, assignmentId, className, passin
       setScore(percentage);
       setSubmitted(true);
 
-      // Save to ClassEnrollment (the primary tracking record used across the app)
-      if (assignmentId) {
-        await base44.entities.ClassEnrollment.update(assignmentId, {
+      // Save to ClassEnrollment unless staff preview/readOnly
+      if (effectiveEnrollmentId && !readOnly) {
+        await base44.entities.ClassEnrollment.update(effectiveEnrollmentId, {
           quiz_score: percentage,
           quiz_passed: percentage >= passingScore,
           status: percentage >= passingScore ? 'completed' : 'in_progress',
@@ -74,8 +76,9 @@ export default function QuizComponent({ classId, assignmentId, className, passin
         });
       }
 
-      if (onComplete && percentage >= passingScore) {
-        onComplete();
+      // Always call onComplete so parent can refresh (pass 'passed' flag)
+      if (onComplete) {
+        onComplete(percentage >= passingScore);
       }
     } catch (e) {
       setError('Failed to submit quiz: ' + e.message);

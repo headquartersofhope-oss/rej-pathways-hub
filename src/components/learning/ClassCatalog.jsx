@@ -323,7 +323,7 @@ export default function ClassCatalog({ user }) {
         </div>
       )}
 
-      {/* Open Class Detail (read-only staff preview) */}
+      {/* Open Class Detail (staff preview with quiz access) */}
       {viewingClass && (
         <ClassDetailView
           open={!!viewingClass}
@@ -333,6 +333,7 @@ export default function ClassCatalog({ user }) {
           resident={null}
           allEnrollments={[]}
           allClasses={[]}
+          isStaffPreview={true}
         />
       )}
 

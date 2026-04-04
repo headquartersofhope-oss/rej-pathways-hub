@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -40,13 +40,21 @@ function getYouTubeEmbedUrl(url) {
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
-export default function ClassDetailView({ open, onOpenChange, cls, enrollment, resident, allEnrollments, allClasses }) {
+export default function ClassDetailView({ open, onOpenChange, cls, enrollment, resident, allEnrollments, allClasses, isStaffPreview }) {
   const queryClient = useQueryClient();
   const [showQuiz, setShowQuiz] = useState(false);
   const [markingProgress, setMarkingProgress] = useState(false);
   const [reflectionText, setReflectionText] = useState(enrollment?.reflection_notes || '');
   const [savingReflection, setSavingReflection] = useState(false);
   const [reflectionSaved, setReflectionSaved] = useState(false);
+
+  // Reset state when class changes
+  React.useEffect(() => {
+    setShowQuiz(false);
+    setMarkingProgress(false);
+    setReflectionText(enrollment?.reflection_notes || '');
+    setReflectionSaved(false);
+  }, [cls?.id, enrollment?.id]);
 
   if (!cls) return null;
 
@@ -57,9 +65,12 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
   const catColor = categoryColors[cls.category] || 'bg-muted text-muted-foreground';
   const catLabel = CATEGORY_LABELS[cls.category] || cls.category;
 
-  const handleQuizComplete = async () => {
-    // Auto-issue certificates if eligible
-    if (resident && allEnrollments && allClasses) {
+  const handleQuizComplete = async (passed) => {
+    // Always refresh enrollment data regardless of pass/fail
+    queryClient.invalidateQueries({ queryKey: ['my-enrollments', resident?.id] });
+    queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+    // Auto-issue certificates if eligible and passed
+    if (passed && resident && allEnrollments && allClasses) {
       await checkAndAutoIssueCertificate({
         residentId: resident.id,
         globalResidentId: resident.global_resident_id,
@@ -67,9 +78,8 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
         allEnrollments,
         allClasses,
       });
+      queryClient.invalidateQueries({ queryKey: ['my-certificates', resident?.id] });
     }
-    queryClient.invalidateQueries({ queryKey: ['my-enrollments', resident?.id] });
-    queryClient.invalidateQueries({ queryKey: ['my-certificates', resident?.id] });
     setShowQuiz(false);
   };
 
@@ -172,20 +182,26 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
           ) : null}
 
           {/* Enrollment Status / Actions */}
-          {isEnrolled && !isCompleted && (
-            <Card className="p-4 bg-muted/30">
-              {enrollment.quiz_score != null && (
+          {isEnrolled && (
+            <Card className={`p-4 ${isCompleted ? 'border-emerald-200 bg-emerald-50' : 'bg-muted/30'}`}>
+              {isCompleted ? (
+                <p className="text-sm text-emerald-700 font-medium flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Completed{enrollment.completion_date ? ` on ${enrollment.completion_date}` : ''}.
+                  {enrollment.quiz_score != null && ` Score: ${enrollment.quiz_score}%`}
+                </p>
+              ) : enrollment.quiz_score != null ? (
                 <p className="text-sm mb-2">
                   Last quiz score: <span className="font-bold">{enrollment.quiz_score}%</span>
                   {enrollment.quiz_passed ? (
                     <span className="ml-2 text-emerald-600">✓ Passed</span>
                   ) : (
-                    <span className="ml-2 text-red-600">✗ Not passed yet</span>
+                    <span className="ml-2 text-red-600">✗ Not passed yet — try again</span>
                   )}
                 </p>
-              )}
+              ) : null}
               <div className="flex gap-2 flex-wrap">
-                {enrollment.status === 'enrolled' && !hasQuiz && (
+                {!hasQuiz && !isCompleted && (
                   <Button size="sm" onClick={handleMarkInProgress} disabled={markingProgress}>
                     {markingProgress ? 'Saving...' : 'Mark as In Progress'}
                   </Button>
@@ -193,34 +209,50 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
                 {hasQuiz && !showQuiz && (
                   <Button size="sm" onClick={() => setShowQuiz(true)}>
                     <GraduationCap className="w-4 h-4 mr-1" />
-                    {enrollment.quiz_score != null ? 'Retake Quiz' : 'Take Quiz'}
+                    {isCompleted ? 'Retake Quiz' : enrollment.quiz_score != null ? 'Retake Quiz' : 'Start Quiz'}
+                  </Button>
+                )}
+                {showQuiz && (
+                  <Button size="sm" variant="outline" onClick={() => setShowQuiz(false)}>
+                    Hide Quiz
                   </Button>
                 )}
               </div>
             </Card>
           )}
 
-          {isCompleted && (
-            <Card className="p-4 border-emerald-200 bg-emerald-50">
-              <p className="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                You completed this class{enrollment?.completion_date ? ` on ${enrollment.completion_date}` : ''}.
-                {enrollment?.quiz_score != null && ` Score: ${enrollment.quiz_score}%`}
-              </p>
+          {/* Staff preview: show quiz entry even without enrollment */}
+          {!isEnrolled && hasQuiz && isStaffPreview && (
+            <Card className="p-4 bg-muted/30 border-dashed">
+              <p className="text-xs text-muted-foreground mb-2">Staff preview — quiz not scored</p>
+              <div className="flex gap-2">
+                {!showQuiz ? (
+                  <Button size="sm" variant="outline" onClick={() => setShowQuiz(true)}>
+                    <GraduationCap className="w-4 h-4 mr-1" />
+                    Preview Quiz
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={() => setShowQuiz(false)}>
+                    Hide Quiz
+                  </Button>
+                )}
+              </div>
             </Card>
           )}
 
-          {/* Quiz */}
-          {showQuiz && isEnrolled && !isCompleted && (
+          {/* Quiz inline */}
+          {showQuiz && hasQuiz && (isEnrolled || isStaffPreview) && (
             <div>
               <h4 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-primary" /> Quiz
               </h4>
               <QuizComponent
+                key={`${cls.id}-${enrollment?.id}`}
                 classId={cls.id}
-                assignmentId={enrollment.id}
+                enrollmentId={enrollment?.id}
                 className={cls.title}
                 passingScore={cls.passing_score ?? 70}
+                readOnly={isStaffPreview && !isEnrolled}
                 onComplete={handleQuizComplete}
               />
             </div>
