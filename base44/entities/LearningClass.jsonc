@@ -39,11 +39,26 @@
     },
     "youtube_url": {
       "type": "string",
-      "description": "Optional: Direct YouTube video URL"
+      "description": "Primary YouTube video URL"
     },
     "youtube_search_phrase": {
       "type": "string",
       "description": "Search phrase to find related YouTube videos if direct link not available"
+    },
+    "additional_videos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Optional additional video resources (title + URL each)"
     },
     "difficulty_level": {
       "type": "string",
@@ -61,7 +76,7 @@
         "low",
         "standard"
       ],
-      "description": "Designed for low-literacy or standard literacy. Low = extra support, short sentences, visual aids."
+      "description": "Designed for low-literacy or standard literacy."
     },
     "passing_score": {
       "type": "number",
@@ -139,7 +154,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Search tags (e.g., 'job_search', 'resume', 'interview')"
+      "description": "Search tags"
     },
     "created_by": {
       "type": "string"

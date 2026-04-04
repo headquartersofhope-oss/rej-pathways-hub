@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 
 const CATEGORIES = [
@@ -29,6 +28,7 @@ const emptyForm = {
   literacy_level_support: 'standard',
   youtube_url: '',
   youtube_search_phrase: '',
+  additional_videos: [],
   passing_score: 70,
   is_required: false,
   is_active: true,
@@ -53,6 +53,7 @@ export default function ClassFormDialog({ open, onOpenChange, editingClass, onSa
           estimated_minutes: editingClass.estimated_minutes || '',
           passing_score: editingClass.passing_score ?? 70,
           learning_objectives: editingClass.learning_objectives || [],
+          additional_videos: editingClass.additional_videos || [],
           reflection_prompt: editingClass.reflection_prompt || '',
         });
       } else {
@@ -204,7 +205,7 @@ export default function ClassFormDialog({ open, onOpenChange, editingClass, onSa
 
           {/* YouTube URL */}
           <div>
-            <Label className="text-xs font-medium">YouTube URL (optional)</Label>
+            <Label className="text-xs font-medium">Primary Video URL (YouTube)</Label>
             <Input
               value={form.youtube_url}
               onChange={e => setForm(f => ({ ...f, youtube_url: e.target.value }))}
@@ -222,6 +223,58 @@ export default function ClassFormDialog({ open, onOpenChange, editingClass, onSa
               placeholder="e.g. resume writing for beginners"
               className="mt-1"
             />
+          </div>
+
+          {/* Additional Videos */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs font-medium">Additional Videos (optional)</Label>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, additional_videos: [...(f.additional_videos || []), { title: '', url: '' }] }))}
+                className="text-xs text-primary flex items-center gap-0.5 hover:underline"
+              >
+                <Plus className="w-3 h-3" /> Add Video
+              </button>
+            </div>
+            {(form.additional_videos || []).length === 0 && (
+              <p className="text-xs text-muted-foreground">No additional videos yet.</p>
+            )}
+            <div className="space-y-2 mt-1">
+              {(form.additional_videos || []).map((vid, i) => (
+                <div key={i} className="flex gap-2 items-start bg-muted/30 rounded p-2">
+                  <div className="flex-1 space-y-1.5">
+                    <Input
+                      value={vid.title}
+                      onChange={e => setForm(f => {
+                        const av = [...f.additional_videos];
+                        av[i] = { ...av[i], title: e.target.value };
+                        return { ...f, additional_videos: av };
+                      })}
+                      placeholder="Video title (optional)"
+                      className="h-7 text-xs"
+                    />
+                    <Input
+                      value={vid.url}
+                      onChange={e => setForm(f => {
+                        const av = [...f.additional_videos];
+                        av[i] = { ...av[i], url: e.target.value };
+                        return { ...f, additional_videos: av };
+                      })}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, additional_videos: f.additional_videos.filter((_, idx) => idx !== i) }))}
+                    className="text-muted-foreground hover:text-destructive mt-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Reflection Prompt */}

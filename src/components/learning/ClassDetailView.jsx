@@ -188,6 +188,41 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
             </div>
           )}
 
+          {/* Additional Videos */}
+          {cls.additional_videos?.filter(v => v.url).length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+                <PlayCircle className="w-4 h-4 text-primary" /> Additional Videos
+              </h4>
+              <div className="space-y-4">
+                {cls.additional_videos.filter(v => v.url).map((vid, i) => {
+                  const embedUrl2 = getYouTubeEmbedUrl(vid.url);
+                  return (
+                    <div key={i}>
+                      {vid.title && <p className="text-xs font-medium text-muted-foreground mb-1.5">{vid.title}</p>}
+                      {embedUrl2 ? (
+                        <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                          <iframe
+                            src={embedUrl2}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            title={vid.title || `Video ${i + 1}`}
+                          />
+                        </div>
+                      ) : (
+                        <a href={vid.url} target="_blank" rel="noopener noreferrer"
+                           className="flex items-center gap-2 text-sm text-primary hover:underline">
+                          <ExternalLink className="w-4 h-4" /> {vid.title || vid.url}
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Enrollment Status / Actions */}
           {isEnrolled && (
             <Card className={`p-4 ${isCompleted ? 'border-emerald-200 bg-emerald-50' : 'bg-muted/30'}`}>
