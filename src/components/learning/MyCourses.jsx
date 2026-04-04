@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GraduationCap, Award, Calendar, CheckCircle2, Clock, BookOpen, Search, Star } from 'lucide-react';
+import LearningPathways from './LearningPathways';
 import { format, parseISO, isAfter } from 'date-fns';
 
 const CATEGORIES = [
@@ -213,6 +214,13 @@ export default function MyCourses({ user }) {
           </div>
         </Card>
       )}
+
+      {/* Learning Pathways */}
+      <LearningPathways
+        classes={classes}
+        enrollments={enrollments}
+        certificates={certificates}
+      />
 
       {/* My Enrollments */}
       <div>

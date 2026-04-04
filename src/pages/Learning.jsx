@@ -12,6 +12,7 @@ import EnrollmentManager from '@/components/learning/EnrollmentManager';
 import MyCourses from '@/components/learning/MyCourses';
 import AttendanceSheet from '@/components/learning/AttendanceSheet';
 import StaffRecommendationsDashboard from '@/components/learning/StaffRecommendationsDashboard';
+import LearningPathways from '@/components/learning/LearningPathways';
 
 export default function Learning() {
   const { user } = useOutletContext();
@@ -48,6 +49,7 @@ export default function Learning() {
         <Tabs value={defaultTab} onValueChange={setDefaultTab}>
           <TabsList className="mb-5 flex-wrap h-auto gap-1">
             <TabsTrigger value="catalog">Class Catalog</TabsTrigger>
+            <TabsTrigger value="pathways">Pathways</TabsTrigger>
             <TabsTrigger value="recommendations">AI Recommendations</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="enrollments">Enrollments</TabsTrigger>
@@ -55,6 +57,9 @@ export default function Learning() {
           </TabsList>
           <TabsContent value="catalog">
             <ClassCatalog user={user} />
+          </TabsContent>
+          <TabsContent value="pathways">
+            <LearningPathways classes={classes} enrollments={[]} certificates={[]} />
           </TabsContent>
           <TabsContent value="recommendations">
             <StaffRecommendationsDashboard user={user} />
