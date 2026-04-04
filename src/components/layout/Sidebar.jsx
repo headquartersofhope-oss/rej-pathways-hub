@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -29,12 +29,23 @@ const navSections = (role) => {
         { label: 'Intake & Barriers', path: '/intake', icon: ClipboardList },
         { label: 'Case Management', path: '/case-management', icon: FolderOpen },
         { label: 'Job Readiness', path: '/job-readiness', icon: Star },
-        { label: 'Outcomes & Reporting', path: '/outcomes', icon: BarChart2 },
         { label: 'Alumni', path: '/alumni', icon: Award },
         { label: 'Resource Inventory', path: '/resources', icon: Package },
         { label: 'Job Matching', path: '/job-matching', icon: Zap },
         { label: 'Employers', path: '/employers', icon: Briefcase },
         { label: 'Partner Agencies', path: '/partners', icon: Handshake },
+      ],
+    });
+  }
+
+  // Reporting & Outcomes (all staff)
+  if (isStaff(role)) {
+    sections.push({
+      label: 'Reporting',
+      items: [
+        { label: 'Core Metrics', path: '/reporting', icon: BarChart2 },
+        { label: 'Resident Outcomes', path: '/resident-outcomes', icon: Users },
+        { label: 'Employer Outcomes', path: '/employer-outcomes', icon: Briefcase },
       ],
     });
   }

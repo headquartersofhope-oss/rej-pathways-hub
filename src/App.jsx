@@ -29,6 +29,9 @@ import OutcomesReport from '@/pages/OutcomesReport';
 import Alumni from '@/pages/Alumni';
 import ResourceInventory from '@/pages/ResourceInventory';
 import JobMatching from '@/pages/JobMatching';
+import Reporting from '@/pages/Reporting';
+import ResidentOutcomes from '@/pages/ResidentOutcomes';
+import EmployerOutcomes from '@/pages/EmployerOutcomes';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -81,6 +84,9 @@ const AuthenticatedApp = () => {
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/resources" element={<ResourceInventory />} />
         <Route path="/job-matching" element={<JobMatching />} />
+        <Route path="/reporting" element={<Reporting />} />
+        <Route path="/resident-outcomes" element={<ResidentOutcomes />} />
+        <Route path="/employer-outcomes" element={<EmployerOutcomes />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
