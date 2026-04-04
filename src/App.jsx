@@ -32,6 +32,7 @@ import JobMatching from '@/pages/JobMatching';
 import Reporting from '@/pages/Reporting';
 import ResidentOutcomes from '@/pages/ResidentOutcomes';
 import EmployerOutcomes from '@/pages/EmployerOutcomes';
+import EmployerPortal from '@/pages/EmployerPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -87,6 +88,7 @@ const AuthenticatedApp = () => {
         <Route path="/reporting" element={<Reporting />} />
         <Route path="/resident-outcomes" element={<ResidentOutcomes />} />
         <Route path="/employer-outcomes" element={<EmployerOutcomes />} />
+        <Route path="/employer-portal" element={<EmployerPortal />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
