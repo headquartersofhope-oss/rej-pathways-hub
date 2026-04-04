@@ -16,8 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Search, GraduationCap, Edit2, Clock, Star, Archive, Trash2, ArchiveRestore } from 'lucide-react';
+import { Plus, Search, GraduationCap, Edit2, Clock, Star, Archive, Trash2, ArchiveRestore, Eye, UserPlus } from 'lucide-react';
 import ClassFormDialog, { CATEGORIES } from './ClassFormDialog';
+import ClassDetailView from './ClassDetailView';
+import EnrollResidentDialog from './EnrollResidentDialog';
 
 const categoryColors = {
   orientation: 'bg-blue-50 text-blue-700',
@@ -42,6 +44,8 @@ export default function ClassCatalog({ user }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [viewingClass, setViewingClass] = useState(null);
+  const [enrollingClass, setEnrollingClass] = useState(null);
 
   // Archive / Delete confirmation state
   const [confirmArchive, setConfirmArchive] = useState(null); // class object
@@ -293,9 +297,57 @@ export default function ClassCatalog({ user }) {
                   <span className="text-amber-600">○ No video yet</span>
                 ) : null}
               </div>
+
+              {/* Action buttons */}
+              {!isArchived(cls) && (
+                <div className="flex gap-2 pt-1 border-t border-border">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 h-7 text-xs gap-1"
+                    onClick={() => setViewingClass(cls)}
+                  >
+                    <Eye className="w-3 h-3" /> Open Class
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 h-7 text-xs gap-1"
+                    onClick={() => setEnrollingClass(cls)}
+                  >
+                    <UserPlus className="w-3 h-3" /> Assign
+                  </Button>
+                </div>
+              )}
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Open Class Detail (read-only staff preview) */}
+      {viewingClass && (
+        <ClassDetailView
+          open={!!viewingClass}
+          onOpenChange={(v) => !v && setViewingClass(null)}
+          cls={viewingClass}
+          enrollment={null}
+          resident={null}
+          allEnrollments={[]}
+          allClasses={[]}
+        />
+      )}
+
+      {/* Assign to Resident */}
+      {enrollingClass && (
+        <EnrollResidentDialog
+          open={!!enrollingClass}
+          onOpenChange={(v) => !v && setEnrollingClass(null)}
+          cls={enrollingClass}
+          user={user}
+          onSuccess={() => {
+            setEnrollingClass(null);
+            queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+          }}
+        />
       )}
 
       {/* Class Form Dialog */}

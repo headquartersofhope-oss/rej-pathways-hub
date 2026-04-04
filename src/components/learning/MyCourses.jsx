@@ -238,31 +238,31 @@ export default function MyCourses({ user }) {
         certificates={certificates}
       />
 
-      {/* My Enrollments */}
+      {/* My Enrollments — split into active and completed */}
       <div>
-        <h3 className="font-heading font-semibold text-sm mb-3">My Courses</h3>
+        <h3 className="font-heading font-semibold text-sm mb-3">My Assigned Classes</h3>
         {enrollments.length === 0 ? (
           <Card className="p-6 text-center text-muted-foreground bg-muted/20">
             <GraduationCap className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No courses enrolled yet.</p>
+            <p className="text-sm">No classes assigned yet.</p>
             <p className="text-xs mt-1">Browse available classes below or ask staff to enroll you.</p>
           </Card>
         ) : (
           <div className="space-y-2">
-            {enrollments.map(enr => {
+            {/* Active / In Progress / Not Started */}
+            {enrollments.filter(e => e.status !== 'completed' && e.status !== 'dropped').map(enr => {
               const cls = classMap[enr.class_id];
               if (!cls) return null;
               const conf = statusConfig[enr.status] || statusConfig.enrolled;
+              const isInProgress = enr.status === 'in_progress';
               return (
                 <Card
                   key={enr.id}
-                  className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow"
+                  className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow border-l-4 border-l-primary/40"
                   onClick={() => setOpenClass({ cls, enrollment: enr })}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                    {enr.status === 'completed'
-                      ? <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      : <GraduationCap className="w-5 h-5 text-accent" />}
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{cls.title}</p>
@@ -270,17 +270,51 @@ export default function MyCourses({ user }) {
                       {CATEGORIES.find(c => c.value === cls.category)?.label || cls.category}
                       {cls.estimated_minutes && ` · ${cls.estimated_minutes < 60 ? cls.estimated_minutes + 'm' : Math.round(cls.estimated_minutes / 60) + 'h'}`}
                     </p>
-                    {enr.completion_date && (
-                      <p className="text-xs text-emerald-600 mt-0.5">Completed {enr.completion_date}</p>
+                    {enr.quiz_score != null && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Last score: {enr.quiz_score}%</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Badge className={`text-[10px] border-0 ${conf.color}`}>{conf.label}</Badge>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <Button size="sm" variant={isInProgress ? 'default' : 'outline'} className="h-7 text-xs gap-1 pointer-events-none">
+                      {isInProgress ? 'Continue' : 'Start'}
+                      <ChevronRight className="w-3 h-3" />
+                    </Button>
                   </div>
                 </Card>
               );
             })}
+
+            {/* Completed */}
+            {enrollments.filter(e => e.status === 'completed').length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Completed</h4>
+                {enrollments.filter(e => e.status === 'completed').map(enr => {
+                  const cls = classMap[enr.class_id];
+                  if (!cls) return null;
+                  return (
+                    <Card
+                      key={enr.id}
+                      className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow border-l-4 border-l-emerald-400 mb-2"
+                      onClick={() => setOpenClass({ cls, enrollment: enr })}
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm">{cls.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {CATEGORIES.find(c => c.value === cls.category)?.label || cls.category}
+                          {enr.completion_date && ` · Completed ${enr.completion_date}`}
+                          {enr.quiz_score != null && ` · Score: ${enr.quiz_score}%`}
+                        </p>
+                      </div>
+                      <Badge className="text-[10px] border-0 bg-emerald-50 text-emerald-700">Completed ✓</Badge>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, Clock, ExternalLink, PlayCircle, BookOpen, GraduationCap, MessageSquare } from 'lucide-react';
 import QuizComponent from './QuizComponent';
 import { checkAndAutoIssueCertificate } from '@/lib/autoIssueCertificate';
@@ -43,6 +44,9 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
   const queryClient = useQueryClient();
   const [showQuiz, setShowQuiz] = useState(false);
   const [markingProgress, setMarkingProgress] = useState(false);
+  const [reflectionText, setReflectionText] = useState(enrollment?.reflection_notes || '');
+  const [savingReflection, setSavingReflection] = useState(false);
+  const [reflectionSaved, setReflectionSaved] = useState(false);
 
   if (!cls) return null;
 
@@ -228,12 +232,36 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
           )}
 
           {/* Reflection Prompt */}
-          {cls.reflection_prompt && (isCompleted || !hasQuiz) && (
+          {cls.reflection_prompt && enrollment && (isCompleted || !hasQuiz) && (
             <Card className="p-4 border-blue-200 bg-blue-50/40">
               <h4 className="text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-blue-800">
                 <MessageSquare className="w-4 h-4" /> Reflection
               </h4>
-              <p className="text-sm text-blue-900">{cls.reflection_prompt}</p>
+              <p className="text-sm text-blue-900 mb-3">{cls.reflection_prompt}</p>
+              <Textarea
+                rows={3}
+                placeholder="Write your reflection here..."
+                value={reflectionText}
+                onChange={e => { setReflectionText(e.target.value); setReflectionSaved(false); }}
+                className="bg-white text-sm"
+              />
+              <div className="flex items-center justify-between mt-2">
+                {reflectionSaved && <span className="text-xs text-emerald-600">Saved ✓</span>}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto h-7 text-xs"
+                  disabled={savingReflection || !reflectionText.trim()}
+                  onClick={async () => {
+                    setSavingReflection(true);
+                    await base44.entities.ClassEnrollment.update(enrollment.id, { reflection_notes: reflectionText });
+                    setSavingReflection(false);
+                    setReflectionSaved(true);
+                  }}
+                >
+                  {savingReflection ? 'Saving…' : 'Save Reflection'}
+                </Button>
+              </div>
             </Card>
           )}
         </div>

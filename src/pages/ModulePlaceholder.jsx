@@ -13,7 +13,15 @@ export default function ModulePlaceholder() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (slug === 'intake_barriers') navigate('/intake', { replace: true });
+    const redirectMap = {
+      intake_barriers: '/intake',
+      learning: '/learning',
+      case_management: '/case-management',
+      job_readiness: '/job-readiness',
+      job_matching: '/job-matching',
+      outcomes_reporting: '/outcomes',
+    };
+    if (redirectMap[slug]) navigate(redirectMap[slug], { replace: true });
   }, [slug]);
   const mod = getModule(slug);
 
