@@ -13,6 +13,7 @@ import MyCourses from '@/components/learning/MyCourses';
 import AttendanceSheet from '@/components/learning/AttendanceSheet';
 import StaffRecommendationsDashboard from '@/components/learning/StaffRecommendationsDashboard';
 import LearningPathways from '@/components/learning/LearningPathways';
+import StaffPathwaysDashboard from '@/components/learning/StaffPathwaysDashboard';
 
 export default function Learning() {
   const { user } = useOutletContext();
@@ -59,7 +60,7 @@ export default function Learning() {
             <ClassCatalog user={user} />
           </TabsContent>
           <TabsContent value="pathways">
-            <LearningPathways classes={classes} enrollments={[]} certificates={[]} />
+            <StaffPathwaysDashboard user={user} classes={classes} />
           </TabsContent>
           <TabsContent value="recommendations">
             <StaffRecommendationsDashboard user={user} />

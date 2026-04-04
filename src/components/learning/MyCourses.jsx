@@ -242,6 +242,8 @@ export default function MyCourses({ user }) {
         classes={classes}
         enrollments={enrollments}
         certificates={certificates}
+        isStaff={false}
+        onClassClick={(cls) => setOpenClassId(cls.id)}
       />
 
       {/* My Enrollments — split into active and completed */}

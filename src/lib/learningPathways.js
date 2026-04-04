@@ -12,48 +12,13 @@ export const LEARNING_PATHWAYS = [
     iconText: 'text-blue-700',
     progressColor: 'bg-blue-500',
     certificate_category: 'job_ready',
+    certificateName: 'Job Ready Certificate',
     classTitles: [
       'How This Program Works',
       'Resume Basics',
       'Interview Basics',
       'Workplace Communication',
       'How to Keep a Job',
-    ],
-  },
-  {
-    id: 'stability',
-    label: 'Stability Path',
-    description: 'Learn what you need to stay housed, get around, manage money, and handle the stress of daily life.',
-    icon: '🏠',
-    color: 'bg-green-50 border-green-200',
-    iconBg: 'bg-green-100',
-    iconText: 'text-green-700',
-    progressColor: 'bg-green-500',
-    certificate_category: 'stability',
-    classTitles: [
-      'Why ID and Documents Matter',
-      'What You Need to Rent a Place',
-      'Transportation Planning',
-      'Budgeting Basics',
-      'Managing Stress and Triggers',
-    ],
-  },
-  {
-    id: 'digital_readiness',
-    label: 'Digital Basics Path',
-    description: 'Get comfortable with computers, email, and the internet so you can apply for jobs and manage documents online.',
-    icon: '💻',
-    color: 'bg-cyan-50 border-cyan-200',
-    iconBg: 'bg-cyan-100',
-    iconText: 'text-cyan-700',
-    progressColor: 'bg-cyan-500',
-    certificate_category: 'digital_readiness',
-    classTitles: [
-      'Basic Computer Skills',
-      'How to Create and Use an Email Address',
-      'How to Send an Email',
-      'How to Upload Documents',
-      'How to Search for Jobs Online',
     ],
   },
   {
@@ -66,30 +31,60 @@ export const LEARNING_PATHWAYS = [
     iconText: 'text-yellow-700',
     progressColor: 'bg-yellow-500',
     certificate_category: 'financial_basics',
+    certificateName: 'Financial Basics Certificate',
     classTitles: [
       'How Money Works',
       'Budgeting Basics',
       'How Credit Works',
-      'How to Build Credit Safely',
-      'First Paycheck Planning',
     ],
   },
   {
-    id: 'life_skills',
-    label: 'Life Skills Path',
-    description: 'Practical everyday skills — managing your time, communicating clearly, resolving conflict, cooking, and keeping a clean space.',
-    icon: '🌱',
-    color: 'bg-rose-50 border-rose-200',
-    iconBg: 'bg-rose-100',
-    iconText: 'text-rose-700',
-    progressColor: 'bg-rose-500',
-    certificate_category: 'life_skills',
+    id: 'digital_readiness',
+    label: 'Digital Basics Path',
+    description: 'Get comfortable with computers and email so you can apply for jobs and manage documents online.',
+    icon: '💻',
+    color: 'bg-cyan-50 border-cyan-200',
+    iconBg: 'bg-cyan-100',
+    iconText: 'text-cyan-700',
+    progressColor: 'bg-cyan-500',
+    certificate_category: 'digital_readiness',
+    certificateName: 'Digital Readiness Certificate',
     classTitles: [
-      'Time Management Basics',
-      'Communication Skills',
-      'Conflict Resolution',
-      'Cooking for Beginners',
-      'Basic Household Cleaning',
+      'Basic Computer Skills',
+      'How to Use an Email Address',
     ],
   },
 ];
+
+/**
+ * Resolves which LearningClass records correspond to each pathway's class titles.
+ * Matches case-insensitively by title.
+ */
+export function resolvePathwayClasses(pathway, classes) {
+  return pathway.classTitles.map(title => {
+    const found = classes.find(c => c.title?.toLowerCase().trim() === title.toLowerCase().trim());
+    return { title, class: found || null };
+  });
+}
+
+/**
+ * Calculates pathway progress stats for a given set of enrollments.
+ */
+export function getPathwayProgress(pathway, classes, enrollments) {
+  const resolved = resolvePathwayClasses(pathway, classes);
+  const completedClassIds = new Set(
+    enrollments.filter(e => e.status === 'completed').map(e => e.class_id)
+  );
+  const enrolledClassIds = new Set(enrollments.map(e => e.class_id));
+
+  const knownClasses = resolved.filter(r => r.class !== null);
+  const completedCount = knownClasses.filter(r => completedClassIds.has(r.class.id)).length;
+  const totalCount = resolved.length;
+  const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isComplete = knownClasses.length > 0 && completedCount >= knownClasses.length;
+
+  // Next class = first class in pathway that exists but is not yet completed
+  const nextClass = knownClasses.find(r => !completedClassIds.has(r.class.id))?.class || null;
+
+  return { resolved, completedCount, totalCount, pct, isComplete, completedClassIds, enrolledClassIds, nextClass };
+}

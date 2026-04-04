@@ -10,8 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { GraduationCap, Award, Plus, MessageSquare, CheckCircle2, ClipboardList, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { GraduationCap, Award, Plus, MessageSquare, CheckCircle2, ClipboardList, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react';
 import ResidentAIRecommendations from './ResidentAIRecommendations';
+import LearningPathways from './LearningPathways';
+import AssignPathwayDialog from './AssignPathwayDialog';
 
 const statusConfig = {
   enrolled: { color: 'bg-blue-50 text-blue-700', label: 'Enrolled' },
@@ -37,6 +39,7 @@ export default function ResidentLearningTab({ resident, user }) {
   const [showEnroll, setShowEnroll] = useState(false);
   const [showNote, setShowNote] = useState(false);
   const [showIssueCert, setShowIssueCert] = useState(false);
+  const [assignPathway, setAssignPathway] = useState(null); // pathway object to assign
   const [certEnrollment, setCertEnrollment] = useState(null); // the enrollment being certificated
   const [certForm, setCertForm] = useState({ certificate_name: '', expiry_date: '', notes: '' });
   const [enrollForm, setEnrollForm] = useState({ class_id: '', notes: '' });
@@ -233,6 +236,18 @@ export default function ResidentLearningTab({ resident, user }) {
           </Button>
         </div>
       )}
+
+      {/* Pathway Progress */}
+      <div>
+        <h4 className="font-heading font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-2">Learning Pathways</h4>
+        <LearningPathways
+          classes={classes}
+          enrollments={enrollments}
+          certificates={certificates}
+          isStaff={isStaffUser}
+          onAssignPathway={isStaffUser ? (pathway) => setAssignPathway(pathway) : undefined}
+        />
+      </div>
 
       {/* AI Recommendations inline panel for staff */}
       {isStaffUser && (
@@ -445,6 +460,21 @@ export default function ResidentLearningTab({ resident, user }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Assign Pathway dialog */}
+      <AssignPathwayDialog
+        open={!!assignPathway}
+        onOpenChange={(v) => !v && setAssignPathway(null)}
+        pathway={assignPathway}
+        classes={classes}
+        enrollments={enrollments}
+        resident={resident}
+        user={user}
+        onAssigned={() => {
+          queryClient.invalidateQueries({ queryKey: ['resident-enrollments', resident.id] });
+          setAssignPathway(null);
+        }}
+      />
 
       {/* Instructor note dialog */}
       <Dialog open={showNote} onOpenChange={setShowNote}>
