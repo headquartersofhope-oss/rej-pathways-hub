@@ -153,7 +153,7 @@ export default function EnrollmentManager({ user }) {
                                 ))}
                               </SelectContent>
                             </Select>
-                            {enr.status === 'completed' && cls.completion_grants_certificate && !certIssued && (
+                            {enr.status === 'completed' && !certIssued && (
                               <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setIssuingCert(enr)}>
                                 <Award className="w-3 h-3" /> Issue Cert
                               </Button>

@@ -169,6 +169,9 @@ export default function ResidentLearningTab({ resident, user }) {
     });
     await queryClient.invalidateQueries({ queryKey: ['resident-certificates', resident.id] });
 
+    // BUG FIX: invalidate by the same queryId used to fetch
+    queryClient.invalidateQueries({ queryKey: ['resident-certificates', queryId] });
+
     // Sync readiness score with updated certs list
     const updatedCerts = [...certificates, newCert];
     const profiles = await base44.entities.EmployabilityProfile.filter({ resident_id: resident.id });

@@ -17,33 +17,29 @@ Deno.serve(async (req) => {
 
     console.log(`[Learning Recommendations] Starting AI recommendation engine for ${resident_id}`);
 
-    // Fetch resident profile
-    const residents = await base44.entities.Resident.list();
-    const resident = residents.find(r => r.id === resident_id);
+    // BUG FIX: filter server-side to avoid full table scans and cross-resident data
+    const residents = await base44.asServiceRole.entities.Resident.filter({ id: resident_id });
+    const resident = residents[0];
 
     if (!resident) {
       return Response.json({ error: 'Resident not found' }, { status: 404 });
     }
 
-    // Fetch intake assessment
-    const intakes = await base44.entities.IntakeAssessment.list();
-    const intake = intakes.find(i => i.resident_id === resident_id);
+    // Fetch intake assessment — filter server-side
+    const intakes = await base44.asServiceRole.entities.IntakeAssessment.filter({ resident_id: resident_id });
+    const intake = intakes[0] || null;
 
-    // Fetch employability profile
-    const profiles = await base44.entities.EmployabilityProfile.list();
-    const profile = profiles.find(p => p.resident_id === resident_id);
+    // Fetch employability profile — filter server-side
+    const profiles = await base44.asServiceRole.entities.EmployabilityProfile.filter({ resident_id: resident_id });
+    const profile = profiles[0] || null;
 
-    // Fetch existing assignments
-    const assignments = await base44.entities.LearningAssignment.list();
-    const existingClasses = new Set(
-      assignments
-        .filter(a => a.resident_id === resident_id)
-        .map(a => a.class_id)
-    );
+    // BUG FIX: fetch existing ENROLLMENTS (the actual tracking system) not LearningAssignments
+    const enrollments = await base44.asServiceRole.entities.ClassEnrollment.filter({ resident_id: resident_id });
+    const existingClasses = new Set(enrollments.map(e => e.class_id));
 
-    // Fetch all active classes
-    const allClasses = await base44.entities.LearningClass.list();
-    const activeClasses = allClasses.filter(c => c.is_active && c.status === 'published');
+    // Fetch all active published classes
+    const allClasses = await base44.asServiceRole.entities.LearningClass.list();
+    const activeClasses = allClasses.filter(c => c.is_active !== false && c.status === 'published');
 
     const recommendations = [];
 

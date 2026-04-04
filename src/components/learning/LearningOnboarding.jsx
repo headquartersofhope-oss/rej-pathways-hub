@@ -72,14 +72,16 @@ export default function LearningOnboarding({ residentId, residentName, enrollmen
         global_resident_id: residentId,
         class_id: rec.class_id,
         status: 'enrolled',
+        assignment_type: rec.assignment_type || 'ai_suggested',
         notes: `AI recommended: ${rec.reason}`,
       });
       queryClient.invalidateQueries({ queryKey: ['my-enrollments', residentId] });
+      queryClient.invalidateQueries({ queryKey: ['learning-classes'] });
       if (onEnroll) onEnroll();
-      // Refresh recs
-      await loadRecommendations();
+      // Refresh recs after a short delay to pick up new enrollment
+      setTimeout(() => loadRecommendations(), 500);
     } catch (e) {
-      // silent
+      setError('Could not assign class. Please try again.');
     } finally {
       setAssigning(null);
     }

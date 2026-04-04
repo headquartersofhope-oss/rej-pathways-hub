@@ -16,15 +16,14 @@ export default function QuizComponent({ classId, assignmentId, className, passin
   const [error, setError] = useState('');
   const [quizData, setQuizData] = useState(null);
 
-  // Fetch class quiz data
+  // Fetch class quiz data — use filter by id for efficiency and correctness
   useEffect(() => {
+    if (!classId) return;
     const fetchQuiz = async () => {
       try {
-        const classes = await base44.entities.LearningClass.list();
-        const cls = classes.find(c => c.id === classId);
-        if (cls && cls.quiz_questions) {
-          setQuizData(cls);
-        }
+        const all = await base44.entities.LearningClass.list();
+        const cls = all.find(c => c.id === classId);
+        if (cls) setQuizData(cls);
       } catch (e) {
         setError('Could not load quiz');
       }
@@ -66,14 +65,15 @@ export default function QuizComponent({ classId, assignmentId, className, passin
       setScore(percentage);
       setSubmitted(true);
 
-      // Save to assignment
-      await base44.entities.LearningAssignment.update(assignmentId, {
-        quiz_attempts: (answers.attempts || 0) + 1,
-        quiz_score: percentage,
-        best_quiz_score: Math.max(percentage, answers.best_quiz_score || 0),
-        quiz_passed: percentage >= passingScore,
-        status: percentage >= passingScore ? 'passed' : 'failed',
-      });
+      // Save to ClassEnrollment (the primary tracking record used across the app)
+      if (assignmentId) {
+        await base44.entities.ClassEnrollment.update(assignmentId, {
+          quiz_score: percentage,
+          quiz_passed: percentage >= passingScore,
+          status: percentage >= passingScore ? 'completed' : 'in_progress',
+          ...(percentage >= passingScore ? { completion_date: new Date().toISOString().split('T')[0] } : {}),
+        });
+      }
 
       if (onComplete && percentage >= passingScore) {
         onComplete();

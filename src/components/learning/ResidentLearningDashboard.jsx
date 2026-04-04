@@ -23,17 +23,17 @@ const CATEGORIES = {
 export default function ResidentLearningDashboard({ residentId }) {
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  const { data: assignments = [] } = useQuery({
+  // BUG FIX: filter server-side to prevent cross-resident data leakage
+  const { data: residentAssignments = [] } = useQuery({
     queryKey: ['resident-assignments', residentId],
-    queryFn: () => base44.entities.LearningAssignment.list(),
+    queryFn: () => base44.entities.LearningAssignment.filter({ resident_id: residentId }),
+    enabled: !!residentId,
   });
 
   const { data: allClasses = [] } = useQuery({
     queryKey: ['learning-classes'],
-    queryFn: () => base44.entities.LearningClass.list(),
+    queryFn: () => base44.entities.LearningClass.list('-created_date', 300),
   });
-
-  const residentAssignments = assignments.filter(a => a.resident_id === residentId);
   
   // Stats
   const stats = {

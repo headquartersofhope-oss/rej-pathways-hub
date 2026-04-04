@@ -37,9 +37,10 @@ export default function AttendanceSheet({ user, classes, residents, preselectedS
     }
   }, [preselectedSession]);
 
+  // BUG FIX: ClassSession uses 'session_date' field, not 'date'
   const { data: sessions = [] } = useQuery({
     queryKey: ['class-sessions'],
-    queryFn: () => base44.entities.ClassSession.list('-date', 200),
+    queryFn: () => base44.entities.ClassSession.list('-session_date', 200),
   });
 
   const { data: enrollments = [] } = useQuery({
@@ -47,33 +48,43 @@ export default function AttendanceSheet({ user, classes, residents, preselectedS
     queryFn: () => base44.entities.ClassEnrollment.list('-created_date', 300),
   });
 
+  // BUG FIX: AttendanceRecord uses 'class_session_id' not 'session_id'
   const { data: attendance = [] } = useQuery({
     queryKey: ['attendance', selectedSessionId],
-    queryFn: () => selectedSessionId
-      ? base44.entities.AttendanceRecord.filter({ session_id: selectedSessionId })
-      : [],
+    queryFn: () => base44.entities.AttendanceRecord.filter({ class_session_id: selectedSessionId }),
     enabled: !!selectedSessionId,
   });
 
   const classSessions = sessions.filter(s => s.class_id === selectedClassId);
   const classEnrollments = enrollments.filter(e => e.class_id === selectedClassId);
   const residentMap = Object.fromEntries(residents.map(r => [r.id, r]));
+  // BUG FIX: key by resident_id for O(1) lookup
   const attendanceMap = Object.fromEntries(attendance.map(a => [a.resident_id, a]));
+
 
   const markAttendance = async (resident, status) => {
     setSaving(s => ({ ...s, [resident.id]: true }));
     const existing = attendanceMap[resident.id];
     if (existing) {
-      await base44.entities.AttendanceRecord.update(existing.id, { status, recorded_by: user?.id });
+      await base44.entities.AttendanceRecord.update(existing.id, {
+        status,
+        marked_by: user?.id,
+        marked_by_name: user?.full_name,
+        marked_date: new Date().toISOString(),
+      });
     } else {
+      // BUG FIX: use correct field names from AttendanceRecord schema
       await base44.entities.AttendanceRecord.create({
         global_resident_id: resident.global_resident_id || resident.id,
         resident_id: resident.id,
         class_id: selectedClassId,
-        session_id: selectedSessionId,
-        organization_id: user?.organization_id,
+        class_session_id: selectedSessionId,
+        session_date: sessions.find(s => s.id === selectedSessionId)?.session_date || new Date().toISOString().split('T')[0],
+        organization_id: resident.organization_id || user?.organization_id,
         status,
-        recorded_by: user?.id,
+        marked_by: user?.id,
+        marked_by_name: user?.full_name,
+        marked_date: new Date().toISOString(),
       });
     }
     queryClient.invalidateQueries({ queryKey: ['attendance', selectedSessionId] });
@@ -101,7 +112,7 @@ export default function AttendanceSheet({ user, classes, residents, preselectedS
                 ) : (
                   classSessions.map(s => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.date ? format(parseISO(s.date), 'MMM d, yyyy') : 'Unknown date'} {s.start_time || ''}
+                      {s.session_date ? format(parseISO(s.session_date), 'MMM d, yyyy') : 'Unknown date'} {s.start_time || ''}
                     </SelectItem>
                   ))
                 )}
