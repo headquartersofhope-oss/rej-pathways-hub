@@ -1,132 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Briefcase, Users, Target } from 'lucide-react';
+import { Plus, Briefcase, Target, Users, Mail, Phone, MapPin, Eye, Pencil } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import StatCard from '@/components/shared/StatCard';
-import JobListingDialog from '@/components/jobmatching/JobListingDialog';
-import EmployerProfileEditor from '@/components/employers/EmployerProfileEditor';
-import CandidateMatchPanel from '@/components/employers/CandidateMatchPanel';
-import CandidateDetailView from '@/components/employers/CandidateDetailView';
 
 export default function EmployerPortal() {
-  const [user, setUser] = useState(null);
-  const [employer, setEmployer] = useState(null);
-  const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showProfileEditor, setShowProfileEditor] = useState(false);
 
-  // Get current user
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const me = await base44.auth.me();
-        setUser(me);
-      } catch (err) {
-        console.error('Auth error:', err);
-      }
-    };
-    fetch();
-  }, []);
+  // Mock data
+  const employer = {
+    id: '1',
+    company_name: 'Tech Solutions Inc',
+    industry: 'Technology',
+    contact_name: 'John Smith',
+    contact_title: 'HR Manager',
+    contact_email: 'john@techsolutions.com',
+    contact_phone: '555-0123',
+    city: 'San Francisco',
+    state: 'CA',
+    website: 'www.techsolutions.com'
+  };
 
-  // Fetch employer profile linked to current user
-  const { data: employers = [] } = useQuery({
-    queryKey: ['employer-by-user', user?.id],
-    queryFn: async () => {
-      const all = await base44.entities.Employer.list();
-      return all.filter(e => e.user_id === user?.id);
+  const listings = [
+    {
+      id: '1',
+      title: 'Senior Software Engineer',
+      location: 'San Francisco, CA',
+      status: 'active',
+      wage_min: 120000,
+      wage_max: 180000,
+      wage_type: 'salary',
+      schedule_type: 'full_time'
     },
-    enabled: !!user?.id,
-  });
-
-  useEffect(() => {
-    if (employers.length > 0) {
-      setEmployer(employers[0]);
+    {
+      id: '2',
+      title: 'Product Manager',
+      location: 'San Francisco, CA',
+      status: 'active',
+      wage_min: 130000,
+      wage_max: 190000,
+      wage_type: 'salary',
+      schedule_type: 'full_time'
     }
-  }, [employers]);
+  ];
 
-  // Fetch job listings for this employer
-  const { data: listings = [], refetch: refetchListings } = useQuery({
-    queryKey: ['employer-listings', employer?.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobListing.list('-created_date');
-      return all.filter(j => j.employer_id === employer?.id || j.employer_name === employer?.company_name);
-    },
-    enabled: !!employer?.id,
-  });
+  const candidates = [
+    { id: '1', job_id: '1', name: 'Alice Johnson', status: 'recommended', match_score: 92 },
+    { id: '2', job_id: '1', name: 'Bob Williams', status: 'interview_scheduled', match_score: 85 },
+    { id: '3', job_id: '1', name: 'Carol Davis', status: 'hired', match_score: 88 },
+  ];
 
-  // Fetch all job matches to filter for this employer's jobs
-  const { data: allMatches = [] } = useQuery({
-    queryKey: ['employer-all-matches', employer?.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobMatch.list();
-      const listingIds = new Set(listings.map(l => l.id));
-      return all.filter(m => listingIds.has(m.job_listing_id));
-    },
-    enabled: !!employer?.id && listings.length > 0,
-  });
-
-  // Fetch resident data for candidates
-  const { data: residents = [] } = useQuery({
-    queryKey: ['residents-for-candidates'],
-    queryFn: () => base44.entities.Resident.list(),
-  });
-
-  // Fetch learning assignments to show completed classes
-  const { data: allAssignments = [] } = useQuery({
-    queryKey: ['all-learning-assignments'],
-    queryFn: () => base44.entities.LearningAssignment.list(),
-  });
-
-  if (!employer) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-muted-foreground">Loading employer profile...</p>
-      </div>
-    );
-  }
-
-  // Calculate dashboard stats
   const activeListings = listings.filter(l => l.status === 'active').length;
-  const totalMatches = allMatches.length;
-  const totalHired = allMatches.filter(m => m.status === 'hired').length;
-
-  // Get candidates for selected job
-  const selectedJobMatches = selectedJob
-    ? allMatches.filter(m => m.job_listing_id === selectedJob.id)
-    : [];
-
-  // Enrich matches with resident data
-  const enrichedMatches = selectedJobMatches.map(match => {
-    const resident = residents.find(r => r.id === match.resident_id);
-    const assignments = allAssignments.filter(a => a.resident_id === match.resident_id && (a.status === 'completed' || a.status === 'passed'));
-    return {
-      ...match,
-      resident,
-      completedClasses: assignments.length,
-    };
-  });
-
-  // Group candidates by status
+  const selectedJobMatches = selectedJob ? candidates.filter(c => c.job_id === selectedJob.id) : [];
+  
   const candidatesByStatus = {
-    recommended: enrichedMatches.filter(m => m.status === 'recommended'),
-    applied: enrichedMatches.filter(m => m.status === 'applied'),
-    interview_requested: enrichedMatches.filter(m => m.status === 'interview_requested'),
-    interview_scheduled: enrichedMatches.filter(m => m.status === 'interview_scheduled'),
-    hired: enrichedMatches.filter(m => m.status === 'hired'),
-    not_selected: enrichedMatches.filter(m => m.status === 'not_selected'),
+    recommended: selectedJobMatches.filter(m => m.status === 'recommended'),
+    interview_requested: selectedJobMatches.filter(m => m.status === 'interview_requested'),
+    interview_scheduled: selectedJobMatches.filter(m => m.status === 'interview_scheduled'),
+    hired: selectedJobMatches.filter(m => m.status === 'hired'),
+    not_selected: selectedJobMatches.filter(m => m.status === 'not_selected'),
   };
 
   return (
     <div className="space-y-6">
       <PageHeader title="Employer Portal" description={`Welcome, ${employer.company_name}`} />
 
-      {/* Tabs */}
       <Tabs defaultValue="dashboard" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -136,31 +78,13 @@ export default function EmployerPortal() {
 
         {/* Dashboard Tab */}
         <TabsContent value="dashboard" className="space-y-6">
-          {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <StatCard
-              title="Total Jobs Posted"
-              value={listings.length}
-              icon={Briefcase}
-            />
-            <StatCard
-              title="Active Jobs"
-              value={activeListings}
-              icon={Target}
-            />
-            <StatCard
-              title="Candidates Matched"
-              value={totalMatches}
-              icon={Users}
-            />
-            <StatCard
-              title="Hires"
-              value={totalHired}
-              icon={Users}
-            />
+            <StatCard title="Total Jobs Posted" value={listings.length} icon={Briefcase} />
+            <StatCard title="Active Jobs" value={activeListings} icon={Target} />
+            <StatCard title="Candidates Matched" value={candidates.length} icon={Users} />
+            <StatCard title="Hires" value={candidates.filter(c => c.status === 'hired').length} icon={Users} />
           </div>
 
-          {/* Job Selection */}
           {listings.length > 0 ? (
             <Card>
               <CardHeader>
@@ -171,12 +95,9 @@ export default function EmployerPortal() {
                   {listings.map(job => (
                     <button
                       key={job.id}
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setSelectedCandidate(null);
-                      }}
+                      onClick={() => setSelectedJob(job.id)}
                       className={`p-4 rounded-lg border text-left transition-colors ${
-                        selectedJob?.id === job.id
+                        selectedJob === job.id
                           ? 'bg-primary/10 border-primary'
                           : 'bg-card border-border hover:bg-muted'
                       }`}
@@ -187,7 +108,7 @@ export default function EmployerPortal() {
                         {job.status}
                       </Badge>
                       <p className="text-xs mt-2 text-muted-foreground">
-                        {allMatches.filter(m => m.job_listing_id === job.id).length} candidates
+                        {candidates.filter(c => c.job_id === job.id).length} candidates
                       </p>
                     </button>
                   ))}
@@ -196,63 +117,77 @@ export default function EmployerPortal() {
             </Card>
           ) : null}
 
-          {/* Candidate Pipeline for Selected Job */}
           {selectedJob && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Candidates for {selectedJob.title}</h3>
-                <Button onClick={() => setSelectedCandidate(null)} variant="outline" size="sm">
+                <h3 className="text-lg font-bold">Candidate Pipeline</h3>
+                <Button onClick={() => setSelectedJob(null)} variant="outline" size="sm">
                   Close
                 </Button>
               </div>
 
-              {/* Pipeline View */}
               <div className="grid grid-cols-3 gap-4">
-                <CandidateMatchPanel
-                  title="Recommended"
-                  candidates={candidatesByStatus.recommended}
-                  onSelectCandidate={setSelectedCandidate}
-                  selectedCandidateId={selectedCandidate?.id}
-                />
-                <CandidateMatchPanel
-                  title="Interviews"
-                  candidates={[
-                    ...candidatesByStatus.applied,
-                    ...candidatesByStatus.interview_requested,
-                    ...candidatesByStatus.interview_scheduled,
-                  ]}
-                  onSelectCandidate={setSelectedCandidate}
-                  selectedCandidateId={selectedCandidate?.id}
-                />
-                <CandidateMatchPanel
-                  title="Outcomes"
-                  candidates={[
-                    ...candidatesByStatus.hired,
-                    ...candidatesByStatus.not_selected,
-                  ]}
-                  onSelectCandidate={setSelectedCandidate}
-                  selectedCandidateId={selectedCandidate?.id}
-                />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Recommended ({candidatesByStatus.recommended.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {candidatesByStatus.recommended.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">No candidates</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {candidatesByStatus.recommended.map(m => (
+                          <div key={m.id} className="p-2 bg-emerald-50 rounded text-xs font-medium">
+                            <p className="truncate">{m.name}</p>
+                            <p className="text-emerald-700">Score: {m.match_score}%</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">In Interview ({candidatesByStatus.interview_scheduled.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {candidatesByStatus.interview_scheduled.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">No candidates</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {candidatesByStatus.interview_scheduled.map(m => (
+                          <div key={m.id} className="p-2 bg-blue-50 rounded text-xs font-medium">
+                            <p className="truncate">{m.name}</p>
+                            <p className="text-blue-700">Scheduled</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Hired ({candidatesByStatus.hired.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {candidatesByStatus.hired.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">No candidates</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {candidatesByStatus.hired.map(m => (
+                          <div key={m.id} className="p-2 bg-green-50 rounded text-xs font-medium">
+                            <p className="truncate">{m.name}</p>
+                            <p className="text-green-700">✓ Hired</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
-
-              {/* Candidate Details */}
-              {selectedCandidate && (
-                <CandidateDetailView
-                  candidate={selectedCandidate}
-                  onStatusChange={refetchListings}
-                  onClose={() => setSelectedCandidate(null)}
-                />
-              )}
             </div>
-          )}
-
-          {listings.length === 0 && (
-            <Card className="bg-muted/30">
-              <CardContent className="p-12 text-center text-muted-foreground">
-                <p>No jobs posted yet.</p>
-                <p className="text-sm mt-1">Go to Job Listings to create your first job.</p>
-              </CardContent>
-            </Card>
           )}
         </TabsContent>
 
@@ -260,115 +195,112 @@ export default function EmployerPortal() {
         <TabsContent value="jobs" className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold">Your Job Listings</h3>
-            <Button onClick={() => setJobDialogOpen(true)} className="gap-2">
+            <Button className="gap-2">
               <Plus className="w-4 h-4" />
               Create Job
             </Button>
           </div>
 
           <div className="space-y-3">
-            {listings.length === 0 ? (
-              <Card className="bg-muted/30">
-                <CardContent className="p-8 text-center text-muted-foreground">
-                  No jobs posted yet.
-                </CardContent>
-              </Card>
-            ) : (
-              listings.map(job => {
-                const matchCount = allMatches.filter(m => m.job_listing_id === job.id).length;
-                return (
-                  <Card key={job.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{job.title}</h4>
-                          <p className="text-xs text-muted-foreground">{job.location}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant={job.status === 'active' ? 'default' : 'secondary'}>
-                              {job.status}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {matchCount} candidates matched
-                            </span>
-                          </div>
+            {listings.map(job => {
+              const matchCount = candidates.filter(c => c.job_id === job.id).length;
+              return (
+                <Card key={job.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{job.title}</h4>
+                        <p className="text-xs text-muted-foreground">{job.location}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ${job.wage_min?.toLocaleString()} - ${job.wage_max?.toLocaleString()} {job.wage_type}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant={job.status === 'active' ? 'default' : 'secondary'}>
+                            {job.status}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {matchCount} candidates matched
+                          </span>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedJob(job);
-                            document.querySelector('[value="dashboard"]').click();
-                          }}
-                        >
-                          View Candidates
-                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedJob(job.id)}
+                        className="gap-1.5"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-
-          {/* Job Dialog */}
-          <JobListingDialog
-            open={jobDialogOpen}
-            onClose={() => setJobDialogOpen(false)}
-            onSaved={() => {
-              setJobDialogOpen(false);
-              refetchListings();
-            }}
-            user={user}
-            defaultEmployerId={employer.id}
-            defaultEmployerName={employer.company_name}
-          />
         </TabsContent>
 
         {/* Profile Tab */}
         <TabsContent value="profile">
           {showProfileEditor ? (
-            <EmployerProfileEditor
-              employer={employer}
-              onSaved={() => {
-                setShowProfileEditor(false);
-              }}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Edit Company Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Profile editing would be implemented here.</p>
+                <Button onClick={() => setShowProfileEditor(false)} variant="outline">
+                  Cancel
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Company Profile</CardTitle>
-                <Button onClick={() => setShowProfileEditor(true)} variant="outline" size="sm">
-                  Edit
+                <Button onClick={() => setShowProfileEditor(true)} variant="outline" size="sm" className="gap-1.5">
+                  <Pencil className="w-3.5 h-3.5" /> Edit
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-xs text-muted-foreground">Company Name</p>
-                    <p className="text-sm font-medium">{employer.company_name || 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Company Name</p>
+                    <p className="font-medium">{employer.company_name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Industry</p>
-                    <p className="text-sm font-medium">{employer.industry || 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Industry</p>
+                    <p className="font-medium">{employer.industry}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Contact Name</p>
-                    <p className="text-sm font-medium">{employer.contact_name || 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Contact Name</p>
+                    <p className="font-medium">{employer.contact_name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium">{employer.contact_email || 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Title</p>
+                    <p className="font-medium">{employer.contact_title}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium">{employer.contact_phone || 'N/A'}</p>
+                </div>
+
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <span>{employer.contact_email}</span>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Location</p>
-                    <p className="text-sm font-medium">
-                      {employer.city && employer.state ? `${employer.city}, ${employer.state}` : 'N/A'}
-                    </p>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <span>{employer.contact_phone}</span>
                   </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <span>{employer.city}, {employer.state}</span>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <p className="text-xs text-muted-foreground mb-1">Website</p>
+                  <a href={`https://${employer.website}`} target="_blank" rel="noopener noreferrer" className="text-primary text-sm font-medium hover:underline">
+                    {employer.website}
+                  </a>
                 </div>
               </CardContent>
             </Card>
