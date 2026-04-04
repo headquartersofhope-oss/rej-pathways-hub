@@ -73,11 +73,18 @@ export default function EmployerDashboard({ user }) {
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">Employer Dashboard</p>
         </div>
-        <Link to="/employers">
-          <Button size="sm" className="gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> Post a Job
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/employer-portal">
+            <Button size="sm" variant="outline" className="gap-1.5">
+              <Eye className="w-3.5 h-3.5" /> Full Portal
+            </Button>
+          </Link>
+          <Link to="/employers">
+            <Button size="sm" className="gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Post a Job
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

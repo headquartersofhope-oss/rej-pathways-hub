@@ -72,6 +72,16 @@ const navSections = (role) => {
     ],
   });
 
+  // Employer Portal (for employers)
+  if (role === 'employer' || role === 'employer_user') {
+    sections.push({
+      label: 'Employer Portal',
+      items: [
+        { label: 'Portal Dashboard', path: '/employer-portal', icon: Briefcase },
+      ],
+    });
+  }
+
   // Shared
   sections.push({
     label: 'Communication',

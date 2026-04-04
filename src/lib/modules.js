@@ -40,13 +40,6 @@ export const MODULES = [
     color: 'text-indigo-600 bg-indigo-50',
   },
   {
-    slug: 'employer_portal',
-    name: 'Employer Portal',
-    description: 'Employer dashboard, candidate review, and communication',
-    icon: Building2,
-    color: 'text-rose-600 bg-rose-50',
-  },
-  {
     slug: 'compliance_gps',
     name: 'Compliance / GPS',
     description: 'Probation check-ins, GPS monitoring, and compliance tracking',
