@@ -30,7 +30,7 @@ const SOURCES = [
   { value: 'external_board', label: 'External Job Board' },
 ];
 
-export default function JobListingDialog({ open, onClose, onSaved, editJob, user }) {
+export default function JobListingDialog({ open, onClose, onSaved, editJob, user, defaultEmployerId, defaultEmployerName }) {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [certInput, setCertInput] = useState('');
@@ -40,9 +40,14 @@ export default function JobListingDialog({ open, onClose, onSaved, editJob, user
     if (editJob) {
       setForm({ ...EMPTY, ...editJob, shifts: editJob.shifts || [], certifications_required: editJob.certifications_required || [], skills_required: editJob.skills_required || [] });
     } else {
-      setForm(EMPTY);
+      setForm({
+        ...EMPTY,
+        employer_name: defaultEmployerName || '',
+        employer_id: defaultEmployerId || '',
+        source: defaultEmployerId ? 'employer_direct' : 'internal',
+      });
     }
-  }, [editJob, open]);
+  }, [editJob, open, defaultEmployerId, defaultEmployerName]);
 
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const toggleShift = (s) => f('shifts', form.shifts.includes(s) ? form.shifts.filter(x => x !== s) : [...form.shifts, s]);
@@ -60,6 +65,7 @@ export default function JobListingDialog({ open, onClose, onSaved, editJob, user
       wage_max: form.wage_max !== '' ? Number(form.wage_max) : null,
       max_commute_miles: form.max_commute_miles !== '' ? Number(form.max_commute_miles) : null,
       created_by: form.created_by || user?.id,
+      employer_id: form.employer_id || defaultEmployerId || null,
     };
     if (editJob) {
       await base44.entities.JobListing.update(editJob.id, payload);
