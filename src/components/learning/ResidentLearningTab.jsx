@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { GraduationCap, Award, Plus, MessageSquare, CheckCircle2, ClipboardList, CheckCircle, XCircle, Clock } from 'lucide-react';
+import ResidentAIRecommendations from './ResidentAIRecommendations';
 
 const statusConfig = {
   enrolled: { color: 'bg-blue-50 text-blue-700', label: 'Enrolled' },
@@ -230,22 +231,16 @@ export default function ResidentLearningTab({ resident, user }) {
         </div>
       )}
 
-      {/* Smart suggestions */}
-      {isStaffUser && suggestedClasses.length > 0 && (
-        <Card className="p-4 border-primary/20 bg-primary/5">
-          <p className="text-xs font-semibold text-primary mb-2">Suggested Based on Barriers</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedClasses.slice(0, 4).map(cls => (
-              <button
-                key={cls.id}
-                onClick={() => { setEnrollForm(f => ({ ...f, class_id: cls.id })); setShowEnroll(true); }}
-                className="text-xs px-2.5 py-1 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors"
-              >
-                + {cls.title}
-              </button>
-            ))}
-          </div>
-        </Card>
+      {/* AI Recommendations inline panel for staff */}
+      {isStaffUser && (
+        <ResidentAIRecommendations
+          resident={resident}
+          user={user}
+          classes={classes}
+          enrollments={enrollments}
+          enrolledClassIds={enrolledClassIds}
+          onAssigned={() => queryClient.invalidateQueries({ queryKey: ['resident-enrollments', resident.id] })}
+        />
       )}
 
       {/* Enrollments */}

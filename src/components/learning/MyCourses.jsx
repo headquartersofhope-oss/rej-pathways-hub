@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import LearningOnboarding from './LearningOnboarding';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -163,6 +164,13 @@ export default function MyCourses({ user }) {
 
   return (
     <div className="space-y-6">
+      {/* AI-Guided Onboarding */}
+      <LearningOnboarding
+        residentId={myResident.id}
+        residentName={`${myResident.first_name} ${myResident.last_name}`}
+        enrollments={enrollments}
+      />
+
       {/* Progress Summary */}
       {enrollments.length > 0 && (
         <Card className="p-5">
