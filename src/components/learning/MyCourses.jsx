@@ -85,7 +85,7 @@ export default function MyCourses({ user }) {
   const queryClient = useQueryClient();
   const [catalogSearch, setCatalogSearch] = useState('');
   const [catalogCat, setCatalogCat] = useState('all');
-  const [openClass, setOpenClass] = useState(null); // { cls, enrollment }
+  const [openClassId, setOpenClassId] = useState(null); // track by class id only
 
   const { data: myResident } = useQuery({
     queryKey: ['my-resident', user?.id],
@@ -119,7 +119,13 @@ export default function MyCourses({ user }) {
   });
 
   const classMap = Object.fromEntries(classes.map(c => [c.id, c]));
+  const enrollmentMap = Object.fromEntries(enrollments.map(e => [e.class_id, e]));
   const enrolledClassIds = new Set(enrollments.map(e => e.class_id));
+
+  // Derive openClass from live data so it auto-updates after quiz completion
+  const openClass = openClassId
+    ? { cls: classMap[openClassId], enrollment: enrollmentMap[openClassId] || null }
+    : null;
 
   const completedCount = enrollments.filter(e => e.status === 'completed').length;
   const inProgressCount = enrollments.filter(e => e.status === 'in_progress' || e.status === 'enrolled').length;
@@ -162,12 +168,12 @@ export default function MyCourses({ user }) {
           category={catalogCat}
           onCategory={setCatalogCat}
           totalAvailable={availableClasses.length}
-          onClassClick={(cls) => setOpenClass({ cls, enrollment: null })}
+          onClassClick={(cls) => setOpenClassId(cls.id)}
         />
-        {openClass && (
+        {openClass?.cls && (
           <ClassDetailView
             open={!!openClass}
-            onOpenChange={(v) => !v && setOpenClass(null)}
+            onOpenChange={(v) => !v && setOpenClassId(null)}
             cls={openClass.cls}
             enrollment={null}
             resident={null}
@@ -259,7 +265,7 @@ export default function MyCourses({ user }) {
                 <Card
                   key={enr.id}
                   className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow border-l-4 border-l-primary/40"
-                  onClick={() => setOpenClass({ cls, enrollment: enr })}
+                  onClick={() => setOpenClassId(cls.id)}
                 >
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <GraduationCap className="w-5 h-5 text-primary" />
@@ -296,7 +302,7 @@ export default function MyCourses({ user }) {
                     <Card
                       key={enr.id}
                       className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow border-l-4 border-l-emerald-400 mb-2"
-                      onClick={() => setOpenClass({ cls, enrollment: enr })}
+                      onClick={() => setOpenClassId(cls.id)}
                     >
                       <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
                         <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -351,14 +357,14 @@ export default function MyCourses({ user }) {
         category={catalogCat}
         onCategory={setCatalogCat}
         totalAvailable={availableClasses.length}
-        onClassClick={(cls) => setOpenClass({ cls, enrollment: null })}
+        onClassClick={(cls) => setOpenClassId(cls.id)}
       />
 
-      {/* Class Detail Modal */}
-      {openClass && (
+      {/* Class Detail Modal — enrollment derived from live query so it auto-refreshes after quiz */}
+      {openClass?.cls && (
         <ClassDetailView
           open={!!openClass}
-          onOpenChange={(v) => !v && setOpenClass(null)}
+          onOpenChange={(v) => !v && setOpenClassId(null)}
           cls={openClass.cls}
           enrollment={openClass.enrollment}
           resident={myResident}

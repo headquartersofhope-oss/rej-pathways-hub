@@ -266,7 +266,12 @@ export default function ResidentLearningTab({ resident, user }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{cls?.title || 'Unknown class'}</p>
-                    {enr.completion_date && <p className="text-xs text-muted-foreground">Completed {enr.completion_date}</p>}
+                    <p className="text-xs text-muted-foreground">
+                      {enr.completion_date ? `Completed ${enr.completion_date}` : enr.status?.replace(/_/g, ' ')}
+                      {enr.quiz_score != null && ` · Quiz: ${enr.quiz_score}%`}
+                      {enr.quiz_passed === true && ' ✓'}
+                      {enr.quiz_passed === false && enr.quiz_score != null && ' ✗'}
+                    </p>
                   </div>
                   {isStaffUser ? (
                     <div className="flex items-center gap-2 flex-shrink-0">

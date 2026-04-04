@@ -195,8 +195,8 @@ export default function QuizComponent({ classId, enrollmentId, assignmentId, cla
             </Button>
           )}
           {passed && (
-            <Button onClick={onComplete} className="flex-1">
-              Continue to Next Class
+            <Button onClick={() => onComplete && onComplete(true)} className="flex-1">
+              Continue
             </Button>
           )}
         </div>

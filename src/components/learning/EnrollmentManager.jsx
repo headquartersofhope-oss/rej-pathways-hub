@@ -140,7 +140,12 @@ export default function EnrollmentManager({ user }) {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">{resident?.preferred_name || resident?.first_name} {resident?.last_name}</p>
-                            {enr.completion_date && <p className="text-xs text-muted-foreground">Completed {enr.completion_date}</p>}
+                            <p className="text-xs text-muted-foreground">
+                              {enr.completion_date ? `Completed ${enr.completion_date}` : enr.status?.replace(/_/g, ' ')}
+                              {enr.quiz_score != null && ` · Quiz: ${enr.quiz_score}%`}
+                              {enr.quiz_passed === true && ' ✓'}
+                              {enr.quiz_passed === false && enr.quiz_score != null && ' ✗'}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2">
                             <Select value={enr.status} onValueChange={v => updateStatus(enr.id, v)}>
