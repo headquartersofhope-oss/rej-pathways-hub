@@ -272,7 +272,7 @@ export default function ClassCatalog({ user }) {
                 )}
               </div>
 
-              <div className="flex gap-3 text-[10px] text-muted-foreground">
+              <div className="flex gap-3 text-[10px] text-muted-foreground flex-wrap">
                 {cls.estimated_minutes && (
                   <span className="flex items-center gap-0.5">
                     <Clock className="w-3 h-3" />
@@ -284,6 +284,14 @@ export default function ClassCatalog({ user }) {
                 {cls.passing_score != null && (
                   <span>Pass: {cls.passing_score}%</span>
                 )}
+                {cls.quiz_questions?.length > 0 && (
+                  <span>{cls.quiz_questions.length} quiz Q</span>
+                )}
+                {cls.youtube_url ? (
+                  <span className="text-emerald-600">● Video linked</span>
+                ) : cls.youtube_search_phrase ? (
+                  <span className="text-amber-600">○ No video yet</span>
+                ) : null}
               </div>
             </Card>
           ))}

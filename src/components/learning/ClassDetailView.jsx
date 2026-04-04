@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Clock, ExternalLink, PlayCircle, BookOpen, GraduationCap } from 'lucide-react';
+import { CheckCircle2, Clock, ExternalLink, PlayCircle, BookOpen, GraduationCap, MessageSquare } from 'lucide-react';
 import QuizComponent from './QuizComponent';
 import { checkAndAutoIssueCertificate } from '@/lib/autoIssueCertificate';
 
@@ -225,6 +225,16 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
           {/* Passing score info */}
           {hasQuiz && cls.passing_score != null && (
             <p className="text-xs text-muted-foreground">Passing score: {cls.passing_score}%</p>
+          )}
+
+          {/* Reflection Prompt */}
+          {cls.reflection_prompt && (isCompleted || !hasQuiz) && (
+            <Card className="p-4 border-blue-200 bg-blue-50/40">
+              <h4 className="text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-blue-800">
+                <MessageSquare className="w-4 h-4" /> Reflection
+              </h4>
+              <p className="text-sm text-blue-900">{cls.reflection_prompt}</p>
+            </Card>
           )}
         </div>
       </DialogContent>

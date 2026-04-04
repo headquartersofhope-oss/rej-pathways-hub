@@ -34,6 +34,7 @@ const emptyForm = {
   is_active: true,
   status: 'published',
   learning_objectives: [],
+  reflection_prompt: '',
 };
 
 export { CATEGORIES, emptyForm };
@@ -52,6 +53,7 @@ export default function ClassFormDialog({ open, onOpenChange, editingClass, onSa
           estimated_minutes: editingClass.estimated_minutes || '',
           passing_score: editingClass.passing_score ?? 70,
           learning_objectives: editingClass.learning_objectives || [],
+          reflection_prompt: editingClass.reflection_prompt || '',
         });
       } else {
         setForm(emptyForm);
@@ -220,6 +222,19 @@ export default function ClassFormDialog({ open, onOpenChange, editingClass, onSa
               placeholder="e.g. resume writing for beginners"
               className="mt-1"
             />
+          </div>
+
+          {/* Reflection Prompt */}
+          <div>
+            <Label className="text-xs font-medium">Reflection Prompt (optional)</Label>
+            <Textarea
+              value={form.reflection_prompt}
+              onChange={e => setForm(f => ({ ...f, reflection_prompt: e.target.value }))}
+              rows={2}
+              placeholder="e.g. What is one goal you want to reach while in this program?"
+              className="mt-1"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Shown to residents after completing the class to encourage reflection.</p>
           </div>
 
           {/* Status */}

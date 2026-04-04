@@ -88,6 +88,10 @@
       "default": "draft",
       "description": "Publication status"
     },
+    "reflection_prompt": {
+      "type": "string",
+      "description": "Optional reflection question shown to resident after completing the class"
+    },
     "content_outline": {
       "type": "array",
       "items": {
