@@ -4,7 +4,16 @@
  * Uses global_resident_id as the master identity link.
  */
 
-export function computeMatchScore({ resident, profile, barriers = [], certificates = [], job }) {
+/**
+ * @param {object} opts
+ * @param {object} opts.resident - Resident entity record
+ * @param {object|null} opts.profile - EmployabilityProfile record
+ * @param {Array} opts.barriers - BarrierItem records
+ * @param {Array} opts.certificates - Certificate entity records (learning certs)
+ * @param {Array} opts.completedEnrollments - ClassEnrollment records with status 'completed' or quiz_passed=true
+ * @param {object} opts.job - JobListing record
+ */
+export function computeMatchScore({ resident, profile, barriers = [], certificates = [], completedEnrollments = [], job }) {
   let score = 50; // baseline
   const reasons = [];
   const blockers = [];
@@ -145,25 +154,36 @@ export function computeMatchScore({ resident, profile, barriers = [], certificat
   }
 
   // --- Certifications match (up to 10 pts) ---
-  // Merge Certificate entity records + profile.certifications (free-text list)
+  // Merge: Certificate entity records + profile.certifications (free-text) + completed learning class names
   const certNamesFromRecords = certificates.map(c => (c.certificate_name || '').toLowerCase());
   const certNamesFromProfile = (profile?.certifications ?? []).map(c => c.toLowerCase());
-  const certNames = [...new Set([...certNamesFromRecords, ...certNamesFromProfile])];
+  // Treat completed class enrollments as evidence of skill/knowledge — titles used for cert fuzzy-match
+  const completedClassTitles = completedEnrollments.map(e => (e.class_title || '').toLowerCase()).filter(Boolean);
+  const certNames = [...new Set([...certNamesFromRecords, ...certNamesFromProfile, ...completedClassTitles])];
   const requiredCerts = (job.certifications_required || []).map(c => c.toLowerCase());
   if (requiredCerts.length) {
     const matched = requiredCerts.filter(rc => certNames.some(cn => cn.includes(rc) || rc.includes(cn)));
     const missing = requiredCerts.filter(rc => !certNames.some(cn => cn.includes(rc) || rc.includes(cn)));
     if (matched.length === requiredCerts.length) {
       score += 10;
-      reasons.push(`All required certifications held: ${matched.join(', ')}`);
+      reasons.push(`All required certifications held: ${matched.map(c => c).join(', ')}`);
     } else if (matched.length > 0) {
       score += 4;
-      reasons.push(`${matched.length} of ${requiredCerts.length} certifications held`);
-      blockers.push(`Missing certifications required for this role: ${missing.join(', ')}`);
+      reasons.push(`${matched.length} of ${requiredCerts.length} required certifications held`);
+      blockers.push(`Missing certifications required for this role: ${missing.join(', ')} — complete relevant learning classes to qualify`);
     } else {
       score -= 5;
-      blockers.push(`Missing all required certifications: ${requiredCerts.join(', ')}`);
+      blockers.push(`Missing required certifications: ${requiredCerts.join(', ')} — complete relevant classes in the Learning Center`);
     }
+  }
+
+  // --- Completed learning classes bonus (up to 5 pts) ---
+  if (completedEnrollments.length >= 5) {
+    score += 5;
+    reasons.push(`${completedEnrollments.length} learning classes completed — demonstrates initiative`);
+  } else if (completedEnrollments.length >= 2) {
+    score += 2;
+    reasons.push(`${completedEnrollments.length} learning classes completed`);
   }
 
   // --- Preferred industries / job types (up to 5 pts) ---

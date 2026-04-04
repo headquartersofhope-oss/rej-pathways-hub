@@ -43,6 +43,19 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     staleTime: 0,
   });
 
+  // Completed learning enrollments — used in scoring (as evidence of skill/knowledge)
+  const { data: completedEnrollments = [] } = useQuery({
+    queryKey: ['completed-enrollments-jr', queryId],
+    queryFn: async () => {
+      const list = globalId
+        ? await base44.entities.ClassEnrollment.filter({ global_resident_id: globalId })
+        : await base44.entities.ClassEnrollment.filter({ resident_id: residentId });
+      return list.filter(e => e.status === 'completed' || e.quiz_passed === true);
+    },
+    enabled: !!residentId,
+    staleTime: 30000,
+  });
+
   // Merge profile with resume_status derived from ResumeRecord if profile doesn't have it
   const enrichedProfile = React.useMemo(() => {
     if (!profile) return null;
@@ -83,13 +96,14 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     if (!residentId) return;
     setGenerating(true);
 
+    // Skip jobs already matched regardless of status (prevent duplicate match records)
     const existingJobIds = new Set(existingMatches.map(m => m.job_listing_id));
 
     const newMatches = [];
     for (const job of activeJobs) {
-      if (existingJobIds.has(job.id)) continue; // skip already matched jobs
+      if (existingJobIds.has(job.id)) continue;
       const { match_score, match_reasons, blockers } = computeMatchScore({
-        resident, profile: enrichedProfile, barriers, certificates, job,
+        resident, profile: enrichedProfile, barriers, certificates, completedEnrollments, job,
       });
       if (match_score >= 40) { // only surface meaningful matches
         newMatches.push({
@@ -117,15 +131,13 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
   };
 
   const handleStatusChange = async (match, newStatus) => {
-    // Prevent duplicate applications: if already applied/further along, require override
-    const appliedStatuses = ['applied', 'interview_requested', 'interview_scheduled', 'hired', 'retained_30', 'retained_60', 'retained_90'];
-    if (newStatus === 'applied' && appliedStatuses.includes(match.status)) {
-      // Already applied or beyond — silently skip (UI will show the warning)
-      return;
-    }
     const update = { status: newStatus };
-    if (newStatus === 'applied') update.applied_date = new Date().toISOString().split('T')[0];
-    if (newStatus === 'hired') update.hired_date = new Date().toISOString().split('T')[0];
+    if (newStatus === 'applied' && !match.applied_date) {
+      update.applied_date = new Date().toISOString().split('T')[0];
+    }
+    if (newStatus === 'hired' && !match.hired_date) {
+      update.hired_date = new Date().toISOString().split('T')[0];
+    }
     await base44.entities.JobMatch.update(match.id, update);
     await refresh();
   };
@@ -143,7 +155,7 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
   const jobByIdAll = {};
   allJobsForRescore.forEach(j => { jobByIdAll[j.id] = j; });
 
-  // Re-score all existing matches with latest profile/barrier/cert data
+  // Re-score all existing matches with latest profile/barrier/cert/enrollment data
   const handleRescore = async () => {
     if (!residentId || existingMatches.length === 0) return;
     setRescoring(true);
@@ -151,7 +163,7 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
       const job = jobByIdAll[match.job_listing_id];
       if (!job) continue;
       const { match_score, match_reasons, blockers } = computeMatchScore({
-        resident, profile: enrichedProfile, barriers, certificates, job,
+        resident, profile: enrichedProfile, barriers, certificates, completedEnrollments, job,
       });
       await base44.entities.JobMatch.update(match.id, { match_score, match_reasons, blockers });
     }

@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  Briefcase, Plus, Search, MapPin, DollarSign, Clock, Building2,
-  Users, Zap, CheckCircle2, ChevronRight, Pencil, Eye, EyeOff
+  Briefcase, Plus, Search, MapPin, DollarSign, Clock,
+  Users, Zap, ChevronRight, Pencil
 } from 'lucide-react';
 import JobListingDialog from '@/components/jobmatching/JobListingDialog';
 import { computeMatchScore, JOB_STATUSES, matchLabel } from '@/lib/jobMatchScoring';
@@ -103,16 +103,24 @@ export default function JobMatching() {
       if (!certsByResident[c.resident_id]) certsByResident[c.resident_id] = [];
       certsByResident[c.resident_id].push(c);
     });
-    // Also pull resume_status from ResumeRecord if profile doesn't have it
+    // Also pull resume_status from ResumeRecord and completed enrollments
     const allResumes = await base44.entities.ResumeRecord.list();
     const resumeByResident = {};
     allResumes.forEach(r => { resumeByResident[r.resident_id] = r; });
+
+    const allEnrollments = await base44.entities.ClassEnrollment.list('-created_date', 2000);
+    const completedEnrollmentsByResident = {};
+    allEnrollments.forEach(e => {
+      if (e.status !== 'completed' && !e.quiz_passed) return;
+      const key = e.resident_id;
+      if (!completedEnrollmentsByResident[key]) completedEnrollmentsByResident[key] = [];
+      completedEnrollmentsByResident[key].push(e);
+    });
 
     const newMatches = [];
     for (const resident of activeResidents) {
       const baseProfile = profileByGlobal[resident.global_resident_id] || profileByGlobal[resident.id];
       const resumeRecord = resumeByResident[resident.id];
-      // Enrich profile with resume_status from ResumeRecord if missing
       const profile = baseProfile
         ? (baseProfile.resume_status && baseProfile.resume_status !== 'none')
           ? baseProfile
@@ -120,10 +128,11 @@ export default function JobMatching() {
         : null;
       const barriers = barriersByGlobal[resident.global_resident_id] || barriersByGlobal[resident.id] || [];
       const certificates = certsByResident[resident.id] || [];
+      const completedEnrollments = completedEnrollmentsByResident[resident.id] || [];
       for (const job of activeJobs) {
         const key = `${resident.id}__${job.id}`;
         if (existingMatchKeys.has(key)) continue;
-        const { match_score, match_reasons, blockers } = computeMatchScore({ resident, profile, barriers, certificates, job });
+        const { match_score, match_reasons, blockers } = computeMatchScore({ resident, profile, barriers, certificates, completedEnrollments, job });
         if (match_score >= 40) {
           newMatches.push({
             global_resident_id: resident.global_resident_id || resident.id,
@@ -228,25 +237,37 @@ export default function JobMatching() {
     );
   };
 
+  // Advance a match status directly from pipeline view
+  const handlePipelineStatusChange = async (match, newStatus) => {
+    const update = { status: newStatus };
+    if (newStatus === 'applied' && !match.applied_date) update.applied_date = new Date().toISOString().split('T')[0];
+    if (newStatus === 'hired' && !match.hired_date) update.hired_date = new Date().toISOString().split('T')[0];
+    await base44.entities.JobMatch.update(match.id, update);
+    await queryClient.refetchQueries({ queryKey: ['all-job-matches'] });
+  };
+
   // Pipeline view
   const PipelineView = () => {
-    const recentMatches = [...allMatches]
-      .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))
-      .slice(0, 50);
-
     const residentById = {};
     residents.forEach(r => { residentById[r.id] = r; });
 
+    const stages = ['recommended', 'applied', 'interview_requested', 'interview_scheduled', 'hired', 'not_selected'];
     const grouped = {};
-    Object.keys(JOB_STATUSES).forEach(k => { grouped[k] = recentMatches.filter(m => m.status === k); });
+    stages.forEach(k => { grouped[k] = allMatches.filter(m => m.status === k); });
 
-    const stages = ['recommended', 'applied', 'interview_requested', 'interview_scheduled', 'hired'];
+    const NEXT_STAGE = {
+      recommended: 'applied',
+      applied: 'interview_requested',
+      interview_requested: 'interview_scheduled',
+      interview_scheduled: 'hired',
+    };
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-5">
         {stages.map(stage => {
-          const items = grouped[stage] || [];
+          const items = [...(grouped[stage] || [])].sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0));
           const info = JOB_STATUSES[stage];
+          const nextStage = NEXT_STAGE[stage];
           return (
             <div key={stage}>
               <div className="flex items-center gap-2 mb-2">
@@ -259,23 +280,50 @@ export default function JobMatching() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {items.map(m => {
                     const r = residentById[m.resident_id];
-                    const { bg, color, label: mlabel } = matchLabel(m.match_score ?? 0);
+                    const { bg, color: scoreColor } = matchLabel(m.match_score ?? 0);
+                    const residentName = r ? `${r.preferred_name || r.first_name} ${r.last_name}` : 'Unknown Resident';
                     return (
-                      <Link key={m.id} to={`/residents/${m.resident_id}?tab=job-matching`}>
-                        <Card className="p-3 hover:shadow-md transition-shadow cursor-pointer">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
-                              <span className={`font-bold text-sm ${color}`}>{m.match_score ?? '?'}</span>
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-semibold truncate">{r ? `${r.preferred_name || r.first_name} ${r.last_name}` : m.resident_id}</p>
-                              <p className="text-[11px] text-muted-foreground truncate">{m.job_title}</p>
-                              <p className="text-[10px] text-muted-foreground">{m.employer_name}</p>
-                            </div>
-                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 ml-auto" />
+                      <Card key={m.id} className="p-3 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-2.5">
+                          <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center flex-shrink-0 flex-shrink-0`}>
+                            <span className={`font-bold text-sm ${scoreColor}`}>{m.match_score ?? '?'}</span>
                           </div>
-                        </Card>
-                      </Link>
+                          <div className="min-w-0 flex-1">
+                            <Link to={`/residents/${m.resident_id}?tab=job-matching`} className="hover:underline">
+                              <p className="text-xs font-semibold truncate">{residentName}</p>
+                            </Link>
+                            <p className="text-[11px] text-muted-foreground truncate">{m.job_title}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{m.employer_name}</p>
+                            {m.applied_date && stage !== 'recommended' && (
+                              <p className="text-[10px] text-muted-foreground">Applied {m.applied_date}</p>
+                            )}
+                          </div>
+                        </div>
+                        {staff && (
+                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                            {nextStage && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 text-[10px] px-2"
+                                onClick={() => handlePipelineStatusChange(m, nextStage)}
+                              >
+                                → {JOB_STATUSES[nextStage]?.label}
+                              </Button>
+                            )}
+                            <Select value={m.status} onValueChange={v => handlePipelineStatusChange(m, v)}>
+                              <SelectTrigger className="h-6 text-[10px] w-32 flex-shrink-0">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(JOB_STATUSES).map(([k, v]) => (
+                                  <SelectItem key={k} value={k} className="text-xs">{v.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </Card>
                     );
                   })}
                 </div>
