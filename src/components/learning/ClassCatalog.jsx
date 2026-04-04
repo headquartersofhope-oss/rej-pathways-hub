@@ -6,22 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, GraduationCap, Edit2, Clock, Star } from 'lucide-react';
-
-const CATEGORIES = [
-  { value: 'orientation', label: 'Orientation' },
-  { value: 'employment', label: 'Employment' },
-  { value: 'housing', label: 'Housing' },
-  { value: 'financial_literacy', label: 'Financial Literacy' },
-  { value: 'digital_literacy', label: 'Digital Literacy' },
-  { value: 'ai_literacy', label: 'AI Literacy' },
-  { value: 'life_skills', label: 'Life Skills' },
-  { value: 'wellness', label: 'Wellness' },
-  { value: 'documentation', label: 'Documentation' },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Plus, Search, GraduationCap, Edit2, Clock, Star, Archive, Trash2, ArchiveRestore } from 'lucide-react';
+import ClassFormDialog, { CATEGORIES } from './ClassFormDialog';
 
 const categoryColors = {
   orientation: 'bg-blue-50 text-blue-700',
@@ -35,13 +31,6 @@ const categoryColors = {
   documentation: 'bg-orange-50 text-orange-700',
 };
 
-const emptyForm = {
-  title: '', description: '', category: '', estimated_minutes: '',
-  difficulty_level: 'beginner', literacy_level_support: 'standard',
-  is_required: false, is_active: true, status: 'published',
-  youtube_url: '', tags: [],
-};
-
 export default function ClassCatalog({ user }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -49,10 +38,17 @@ export default function ClassCatalog({ user }) {
   const [filterRequired, setFilterRequired] = useState('all');
   const [filterDifficulty, setFilterDifficulty] = useState('all');
   const [filterActive, setFilterActive] = useState('active');
+
   const [showForm, setShowForm] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
-  const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  // Archive / Delete confirmation state
+  const [confirmArchive, setConfirmArchive] = useState(null); // class object
+  const [confirmDelete, setConfirmDelete] = useState(null);   // class object
+  const [deleteBlocked, setDeleteBlocked] = useState(null);   // { cls, reason }
+  const [archiving, setArchiving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: classes = [], isLoading } = useQuery({
     queryKey: ['learning-classes'],
@@ -64,38 +60,84 @@ export default function ClassCatalog({ user }) {
     const matchCat = filterCat === 'all' || c.category === filterCat;
     const matchRequired = filterRequired === 'all' || (filterRequired === 'required' ? c.is_required : !c.is_required);
     const matchDiff = filterDifficulty === 'all' || c.difficulty_level === filterDifficulty;
-    const matchActive = filterActive === 'all' || (filterActive === 'active' ? c.is_active !== false : c.is_active === false);
+    const matchActive = filterActive === 'all'
+      || (filterActive === 'active' ? (c.is_active !== false && c.status !== 'archived') : (c.is_active === false || c.status === 'archived'));
     return matchSearch && matchCat && matchRequired && matchDiff && matchActive;
   });
 
-  const openCreate = () => { setEditingClass(null); setForm(emptyForm); setShowForm(true); };
-  const openEdit = (cls) => {
-    setEditingClass(cls);
-    setForm({ ...emptyForm, ...cls, estimated_minutes: cls.estimated_minutes || '' });
-    setShowForm(true);
-  };
+  const openCreate = () => { setEditingClass(null); setShowForm(true); };
+  const openEdit = (cls) => { setEditingClass(cls); setShowForm(true); };
 
-  const handleSave = async () => {
+  const handleSave = async (data) => {
     setSaving(true);
-    const data = {
-      ...form,
-      estimated_minutes: form.estimated_minutes ? Number(form.estimated_minutes) : null,
+    const payload = {
+      ...data,
       organization_id: user?.organization_id,
-      created_by: user?.email,
+      created_by: editingClass ? editingClass.created_by : user?.email,
     };
     if (editingClass) {
-      await base44.entities.LearningClass.update(editingClass.id, data);
+      await base44.entities.LearningClass.update(editingClass.id, payload);
     } else {
-      await base44.entities.LearningClass.create(data);
+      await base44.entities.LearningClass.create(payload);
     }
     queryClient.invalidateQueries({ queryKey: ['learning-classes'] });
     setSaving(false);
     setShowForm(false);
   };
 
+  // Archive: mark inactive + archived status
+  const handleArchive = async () => {
+    if (!confirmArchive) return;
+    setArchiving(true);
+    await base44.entities.LearningClass.update(confirmArchive.id, {
+      is_active: false,
+      status: 'archived',
+    });
+    queryClient.invalidateQueries({ queryKey: ['learning-classes'] });
+    setArchiving(false);
+    setConfirmArchive(null);
+  };
+
+  // Unarchive: restore to active + published
+  const handleUnarchive = async (cls) => {
+    await base44.entities.LearningClass.update(cls.id, {
+      is_active: true,
+      status: 'published',
+    });
+    queryClient.invalidateQueries({ queryKey: ['learning-classes'] });
+  };
+
+  // Delete: check for any enrollments or completions first
+  const handleDeleteRequest = async (cls) => {
+    const [enrollments, completions] = await Promise.all([
+      base44.entities.ClassEnrollment.filter({ class_id: cls.id }),
+      base44.entities.Certificate.filter({ certificate_path_id: cls.id }),
+    ]);
+    const hasHistory = enrollments.length > 0 || completions.length > 0;
+    if (hasHistory) {
+      setDeleteBlocked({
+        cls,
+        reason: `This class has ${enrollments.length} enrollment record(s) and ${completions.length} certificate(s). Hard delete is blocked to preserve resident history. Use Archive instead.`,
+      });
+    } else {
+      setConfirmDelete(cls);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    await base44.entities.LearningClass.delete(confirmDelete.id);
+    queryClient.invalidateQueries({ queryKey: ['learning-classes'] });
+    setDeleting(false);
+    setConfirmDelete(null);
+  };
+
+  const isArchived = (cls) => cls.is_active === false || cls.status === 'archived';
+
   return (
     <div>
-      {/* Filters */}
+      {/* Filters + Add button */}
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 mb-5">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -126,10 +168,10 @@ export default function ClassCatalog({ user }) {
           </SelectContent>
         </Select>
         <Select value={filterActive} onValueChange={setFilterActive}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="active">Active Only</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="inactive">Archived / Inactive</SelectItem>
             <SelectItem value="all">All Status</SelectItem>
           </SelectContent>
         </Select>
@@ -146,18 +188,14 @@ export default function ClassCatalog({ user }) {
       {/* Grid */}
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="p-4 h-40 animate-pulse bg-muted/30" />
-          ))}
+          {[...Array(6)].map((_, i) => <Card key={i} className="p-4 h-40 animate-pulse bg-muted/30" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-muted-foreground">
           <GraduationCap className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="font-medium">No classes found</p>
           <p className="text-sm mt-1">
-            {classes.length === 0
-              ? 'Create your first class to get started.'
-              : 'Try adjusting your filters.'}
+            {classes.length === 0 ? 'Create your first class to get started.' : 'Try adjusting your filters.'}
           </p>
           {classes.length === 0 && (
             <Button className="mt-4" onClick={openCreate}>
@@ -168,14 +206,43 @@ export default function ClassCatalog({ user }) {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(cls => (
-            <Card key={cls.id} className={`p-4 flex flex-col gap-3 ${cls.is_active === false ? 'opacity-60' : ''}`}>
+            <Card key={cls.id} className={`p-4 flex flex-col gap-3 ${isArchived(cls) ? 'opacity-60 border-dashed' : ''}`}>
               <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-heading font-semibold text-sm leading-tight">{cls.title}</h3>
+                <h3 className="font-heading font-semibold text-sm leading-tight flex-1 min-w-0">{cls.title}</h3>
+                {/* Admin actions */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => openEdit(cls)}
+                    title="Edit class"
+                    className="text-muted-foreground hover:text-foreground p-0.5 rounded"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  {isArchived(cls) ? (
+                    <button
+                      onClick={() => handleUnarchive(cls)}
+                      title="Restore class"
+                      className="text-muted-foreground hover:text-accent p-0.5 rounded"
+                    >
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmArchive(cls)}
+                      title="Archive class"
+                      className="text-muted-foreground hover:text-amber-600 p-0.5 rounded"
+                    >
+                      <Archive className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteRequest(cls)}
+                    title="Delete class"
+                    className="text-muted-foreground hover:text-destructive p-0.5 rounded"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <button onClick={() => openEdit(cls)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
               </div>
 
               {cls.description && (
@@ -192,15 +259,13 @@ export default function ClassCatalog({ user }) {
                   </Badge>
                 )}
                 {cls.difficulty_level && (
-                  <Badge variant="outline" className="text-[10px]">
-                    {cls.difficulty_level}
-                  </Badge>
+                  <Badge variant="outline" className="text-[10px]">{cls.difficulty_level}</Badge>
                 )}
                 {cls.literacy_level_support === 'low' && (
                   <Badge className="text-[10px] bg-purple-50 text-purple-700 border-0">Low Literacy</Badge>
                 )}
-                {cls.is_active === false && (
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground">Inactive</Badge>
+                {isArchived(cls) && (
+                  <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Archived</Badge>
                 )}
                 {cls.status === 'draft' && (
                   <Badge variant="outline" className="text-[10px] text-amber-600">Draft</Badge>
@@ -213,8 +278,11 @@ export default function ClassCatalog({ user }) {
                     <Clock className="w-3 h-3" />
                     {cls.estimated_minutes < 60
                       ? `${cls.estimated_minutes}m`
-                      : `${Math.round(cls.estimated_minutes / 60)}h`}
+                      : `${Math.round(cls.estimated_minutes / 60 * 10) / 10}h`}
                   </span>
+                )}
+                {cls.passing_score != null && (
+                  <span>Pass: {cls.passing_score}%</span>
                 )}
               </div>
             </Card>
@@ -222,91 +290,79 @@ export default function ClassCatalog({ user }) {
         </div>
       )}
 
-      {/* Form Dialog */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingClass ? 'Edit Class' : 'Create Class'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 mt-2">
-            <div>
-              <Label>Title *</Label>
-              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Resume Writing Workshop" />
-            </div>
-            <div>
-              <Label>Category *</Label>
-              <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Difficulty Level</Label>
-                <Select value={form.difficulty_level} onValueChange={v => setForm(f => ({ ...f, difficulty_level: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="basic">Basic</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Est. Minutes</Label>
-                <Input type="number" value={form.estimated_minutes} onChange={e => setForm(f => ({ ...f, estimated_minutes: e.target.value }))} placeholder="60" />
-              </div>
-            </div>
-            <div>
-              <Label>Literacy Support</Label>
-              <Select value={form.literacy_level_support} onValueChange={v => setForm(f => ({ ...f, literacy_level_support: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="low">Low Literacy Support</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>YouTube URL (optional)</Label>
-              <Input value={form.youtube_url} onChange={e => setForm(f => ({ ...f, youtube_url: e.target.value }))} placeholder="https://youtube.com/..." />
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="req" checked={form.is_required} onChange={e => setForm(f => ({ ...f, is_required: e.target.checked }))} />
-                <Label htmlFor="req">Required</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="active" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} />
-                <Label htmlFor="active">Active (visible)</Label>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button onClick={handleSave} disabled={saving || !form.title || !form.category}>
-                {saving ? 'Saving…' : editingClass ? 'Save Changes' : 'Create Class'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Class Form Dialog */}
+      <ClassFormDialog
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingClass={editingClass}
+        onSave={handleSave}
+        saving={saving}
+      />
+
+      {/* Archive Confirmation */}
+      <AlertDialog open={!!confirmArchive} onOpenChange={v => !v && setConfirmArchive(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive "{confirmArchive?.title}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This class will be marked inactive and hidden from residents. It will no longer appear in Available Classes for new enrollments.
+              Existing enrollment and completion records for residents will be fully preserved.
+              You can restore it at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchive}
+              disabled={archiving}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              {archiving ? 'Archiving…' : 'Archive Class'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Blocked */}
+      <AlertDialog open={!!deleteBlocked} onOpenChange={v => !v && setDeleteBlocked(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cannot Delete "{deleteBlocked?.cls?.title}"</AlertDialogTitle>
+            <AlertDialogDescription>{deleteBlocked?.reason}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>OK</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setDeleteBlocked(null); setConfirmArchive(deleteBlocked?.cls); }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Archive Instead
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Hard Delete Confirmation */}
+      <AlertDialog open={!!confirmDelete} onOpenChange={v => !v && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently Delete "{confirmDelete?.title}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This class has no enrollment or completion history. It will be permanently removed and cannot be recovered.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting…' : 'Delete Permanently'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
