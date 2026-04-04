@@ -179,7 +179,14 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
                 Search YouTube: "{cls.youtube_search_phrase}"
               </a>
             </div>
-          ) : null}
+          ) : (
+            <div>
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                <PlayCircle className="w-4 h-4 text-muted-foreground" /> Video
+              </h4>
+              <p className="text-sm text-muted-foreground italic">Video will be added soon.</p>
+            </div>
+          )}
 
           {/* Enrollment Status / Actions */}
           {isEnrolled && (
