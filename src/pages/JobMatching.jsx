@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Briefcase, Plus, Search, MapPin, DollarSign, Clock,
-  Users, Zap, ChevronRight, Pencil
+  Users, Zap, Pencil
 } from 'lucide-react';
 import JobListingDialog from '@/components/jobmatching/JobListingDialog';
 import { computeMatchScore, JOB_STATUSES, matchLabel } from '@/lib/jobMatchScoring';
