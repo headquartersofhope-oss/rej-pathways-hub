@@ -145,7 +145,10 @@ export function computeMatchScore({ resident, profile, barriers = [], certificat
   }
 
   // --- Certifications match (up to 10 pts) ---
-  const certNames = certificates.map(c => (c.certificate_name || '').toLowerCase());
+  // Merge Certificate entity records + profile.certifications (free-text list)
+  const certNamesFromRecords = certificates.map(c => (c.certificate_name || '').toLowerCase());
+  const certNamesFromProfile = (profile?.certifications ?? []).map(c => c.toLowerCase());
+  const certNames = [...new Set([...certNamesFromRecords, ...certNamesFromProfile])];
   const requiredCerts = (job.certifications_required || []).map(c => c.toLowerCase());
   if (requiredCerts.length) {
     const matched = requiredCerts.filter(rc => certNames.some(cn => cn.includes(rc) || rc.includes(cn)));
@@ -180,9 +183,14 @@ export function computeMatchScore({ resident, profile, barriers = [], certificat
   }
 
   // --- Accommodations needed check ---
-  if (profile?.accommodations_needed && !job.accommodations_available) {
+  // accommodations_needed is a string field — treat non-empty as needing accommodations
+  const needsAccommodations = profile?.accommodations_needed && profile.accommodations_needed.trim().length > 0;
+  if (needsAccommodations && !job.accommodations_available) {
     score -= 5;
-    blockers.push('Resident needs accommodations but job listing does not indicate they are available');
+    blockers.push(`Resident needs accommodations (${profile.accommodations_needed}) but job listing does not indicate they are available`);
+  } else if (needsAccommodations && job.accommodations_available) {
+    score += 3;
+    reasons.push('Job offers accommodations that match resident needs');
   }
 
   // --- Background check / drug test flags ---

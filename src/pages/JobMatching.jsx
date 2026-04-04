@@ -103,10 +103,21 @@ export default function JobMatching() {
       if (!certsByResident[c.resident_id]) certsByResident[c.resident_id] = [];
       certsByResident[c.resident_id].push(c);
     });
+    // Also pull resume_status from ResumeRecord if profile doesn't have it
+    const allResumes = await base44.entities.ResumeRecord.list();
+    const resumeByResident = {};
+    allResumes.forEach(r => { resumeByResident[r.resident_id] = r; });
 
     const newMatches = [];
     for (const resident of activeResidents) {
-      const profile = profileByGlobal[resident.global_resident_id] || profileByGlobal[resident.id];
+      const baseProfile = profileByGlobal[resident.global_resident_id] || profileByGlobal[resident.id];
+      const resumeRecord = resumeByResident[resident.id];
+      // Enrich profile with resume_status from ResumeRecord if missing
+      const profile = baseProfile
+        ? (baseProfile.resume_status && baseProfile.resume_status !== 'none')
+          ? baseProfile
+          : { ...baseProfile, resume_status: resumeRecord?.status || 'none' }
+        : null;
       const barriers = barriersByGlobal[resident.global_resident_id] || barriersByGlobal[resident.id] || [];
       const certificates = certsByResident[resident.id] || [];
       for (const job of activeJobs) {

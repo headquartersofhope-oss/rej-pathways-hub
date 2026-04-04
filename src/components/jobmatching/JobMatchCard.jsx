@@ -66,12 +66,18 @@ export default function JobMatchCard({ match, job, staff, onStatusChange, onAppr
           )}
 
           {expanded && (
-            <div className="mt-2 space-y-1.5 text-xs">
+            <div className="mt-2 space-y-1 text-xs">
+              {match.match_reasons?.length > 0 && (
+                <p className="font-semibold text-emerald-800 mb-0.5">Why it's a good fit:</p>
+              )}
               {match.match_reasons?.map((r, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-emerald-700">
                   <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />{r}
                 </div>
               ))}
+              {match.blockers?.length > 0 && (
+                <p className="font-semibold text-amber-800 mt-2 mb-0.5">Things to address:</p>
+              )}
               {match.blockers?.map((b, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-amber-700">
                   <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />{b}
@@ -80,11 +86,13 @@ export default function JobMatchCard({ match, job, staff, onStatusChange, onAppr
             </div>
           )}
 
-          {/* Duplicate application warning */}
-          {alreadyApplied && staff && (
+          {/* Duplicate application warning — shown to all roles */}
+          {alreadyApplied && (
             <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded-md px-2.5 py-1.5">
               <Ban className="w-3.5 h-3.5 flex-shrink-0" />
-              Already {match.status === 'applied' ? 'applied' : `in ${statusInfo.label} stage`} — change status to advance, not re-apply
+              {staff
+                ? `Already ${match.status === 'applied' ? 'applied' : `in ${statusInfo.label} stage`} — change status to advance, not re-apply`
+                : `You've already applied to this job. Current status: ${statusInfo.label}`}
             </div>
           )}
 

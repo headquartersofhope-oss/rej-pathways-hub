@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { computeMatchScore } from '@/lib/jobMatchScoring';
@@ -34,6 +34,23 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     enabled: !!residentId,
     staleTime: 0,
   });
+
+  // Check for a ResumeRecord to augment resume_status when profile lacks it
+  const { data: resumeRecords = [] } = useQuery({
+    queryKey: ['resume-records-jr', queryId],
+    queryFn: () => base44.entities.ResumeRecord.filter({ resident_id: residentId }),
+    enabled: !!residentId,
+    staleTime: 0,
+  });
+
+  // Merge profile with resume_status derived from ResumeRecord if profile doesn't have it
+  const enrichedProfile = React.useMemo(() => {
+    if (!profile) return null;
+    if (profile.resume_status && profile.resume_status !== 'none') return profile;
+    const latestResume = resumeRecords[0];
+    if (!latestResume) return profile;
+    return { ...profile, resume_status: latestResume.status }; // 'draft' | 'staff_reviewed' | 'complete'
+  }, [profile, resumeRecords]);
 
   const { data: activeJobs = [] } = useQuery({
     queryKey: ['job-listings-active'],
@@ -72,7 +89,7 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
     for (const job of activeJobs) {
       if (existingJobIds.has(job.id)) continue; // skip already matched jobs
       const { match_score, match_reasons, blockers } = computeMatchScore({
-        resident, profile, barriers, certificates, job,
+        resident, profile: enrichedProfile, barriers, certificates, job,
       });
       if (match_score >= 40) { // only surface meaningful matches
         newMatches.push({
@@ -134,7 +151,7 @@ export default function ResidentJobMatchTab({ resident, user, barriers = [], per
       const job = jobByIdAll[match.job_listing_id];
       if (!job) continue;
       const { match_score, match_reasons, blockers } = computeMatchScore({
-        resident, profile, barriers, certificates, job,
+        resident, profile: enrichedProfile, barriers, certificates, job,
       });
       await base44.entities.JobMatch.update(match.id, { match_score, match_reasons, blockers });
     }
