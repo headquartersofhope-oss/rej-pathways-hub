@@ -25,6 +25,7 @@ const EMPTY_FORM = {
   second_chance_friendly: false,
   veteran_friendly: false,
   open_positions: '',
+  user_id: '',
 };
 
 const INDUSTRIES = [
@@ -96,6 +97,7 @@ export default function EmployerFormDialog({ open, onOpenChange, employer, onSav
         second_chance_friendly: employer.second_chance_friendly || false,
         veteran_friendly: employer.veteran_friendly || false,
         open_positions: employer.open_positions ?? '',
+        user_id: employer.user_id || '',
       });
     } else {
       setForm(EMPTY_FORM);
@@ -125,6 +127,7 @@ export default function EmployerFormDialog({ open, onOpenChange, employer, onSav
     const payload = {
       ...form,
       open_positions: form.open_positions !== '' ? Number(form.open_positions) : 0,
+      user_id: form.user_id?.trim() || null,
     };
 
     if (isEditing) {
@@ -297,6 +300,22 @@ export default function EmployerFormDialog({ open, onOpenChange, employer, onSav
                   <span className="text-sm font-medium">Veteran Friendly</span>
                 </label>
               </div>
+            </div>
+          </div>
+
+          {/* Portal User Link */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Portal Access</p>
+            <div>
+              <Label className="text-xs">Linked User ID (Portal Login)</Label>
+              <Input
+                value={form.user_id}
+                onChange={e => set('user_id', e.target.value)}
+                placeholder="Paste the employer's User ID to link their portal login"
+              />
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                When set, this employer can log in and access their portal at /employer-portal. Find the User ID in User Management.
+              </p>
             </div>
           </div>
 

@@ -9,6 +9,7 @@ export {
   isCaseManager,
   isResident,
   isProbationOfficer,
+  isEmployer,
   canAccessResident,
   getResidentPermissions,
   filterResidentsByAccess,

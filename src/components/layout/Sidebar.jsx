@@ -12,6 +12,20 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 
 const navSections = (role) => {
+  // Employer gets a minimal, focused nav
+  if (role === 'employer') {
+    return [
+      {
+        label: 'Employer',
+        items: [
+          { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+          { label: 'My Jobs & Candidates', path: '/employer-portal', icon: Briefcase },
+          { label: 'Messages', path: '/messages', icon: MessageSquare },
+        ],
+      },
+    ];
+  }
+
   const sections = [];
 
   // Dashboard - everyone gets this
@@ -77,25 +91,17 @@ const navSections = (role) => {
     });
   }
 
-  // Learning (all users)
-  sections.push({
-    label: 'Learning',
-    items: [
-      { label: 'Learning Center', path: '/learning', icon: GraduationCap },
-    ],
-  });
-
-  // Employer Portal (for employers)
-  if (role === 'employer' || role === 'employer_user') {
+  // Learning (staff and residents, not employers)
+  if (role !== 'employer') {
     sections.push({
-      label: 'Employer Portal',
+      label: 'Learning',
       items: [
-        { label: 'Portal Dashboard', path: '/employer-portal', icon: Briefcase },
+        { label: 'Learning Center', path: '/learning', icon: GraduationCap },
       ],
     });
   }
 
-  // Shared
+  // Shared communication (non-employer)
   sections.push({
     label: 'Communication',
     items: [

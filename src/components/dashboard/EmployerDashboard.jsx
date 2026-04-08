@@ -74,12 +74,7 @@ export default function EmployerDashboard({ user }) {
           <p className="text-sm text-muted-foreground mt-0.5">Employer Dashboard</p>
         </div>
         <div className="flex gap-2">
-          <Link to="/employer-portal">
-            <Button size="sm" variant="outline" className="gap-1.5">
-              <Eye className="w-3.5 h-3.5" /> Full Portal
-            </Button>
-          </Link>
-          <Link to="/employers">
+          <Link to="/employer-portal?tab=jobs">
             <Button size="sm" className="gap-1.5">
               <Plus className="w-3.5 h-3.5" /> Post a Job
             </Button>
@@ -99,7 +94,7 @@ export default function EmployerDashboard({ user }) {
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold text-sm">Active Job Listings</h3>
-            <Link to="/employers">
+            <Link to="/employer-portal">
               <Button variant="ghost" size="sm" className="text-xs gap-1 h-7">
                 <Eye className="w-3 h-3" /> View All
               </Button>
@@ -134,7 +129,7 @@ export default function EmployerDashboard({ user }) {
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold text-sm">Top Candidates</h3>
-            <Link to="/job-matching">
+            <Link to="/employer-portal">
               <Button variant="ghost" size="sm" className="text-xs gap-1 h-7">
                 <Eye className="w-3 h-3" /> View Pipeline
               </Button>

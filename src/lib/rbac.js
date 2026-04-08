@@ -43,6 +43,10 @@ export function isProbationOfficer(role) {
   return role === ROLES.PROBATION_OFFICER;
 }
 
+export function isEmployer(role) {
+  return role === 'employer';
+}
+
 /**
  * Determine if a user can access a specific resident record.
  *

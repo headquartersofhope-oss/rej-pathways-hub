@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Search, Plus, Building2, Phone, Mail, MapPin, Pencil, ArrowLeft, Users } from 'lucide-react';
+import { Briefcase, Search, Plus, Building2, Phone, Mail, MapPin, Pencil, ArrowLeft, Users, CheckCircle2, XCircle, UserCheck } from 'lucide-react';
 import EmployerFormDialog from '@/components/employers/EmployerFormDialog';
 import EmployerDetailPanel from '@/components/employers/EmployerDetailPanel';
 
@@ -75,9 +75,23 @@ export default function Employers() {
               <p className="text-xs text-muted-foreground">{emp.industry} · {[emp.city, emp.state].filter(Boolean).join(', ')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
             <Badge className="text-xs border-0 bg-primary/10 text-primary">{empListings.length} listings</Badge>
             <Badge className="text-xs border-0 bg-emerald-50 text-emerald-700">{hiredCount} hired</Badge>
+            <Badge className={`text-xs border-0 ${statusColors[emp.status] || statusColors.pending_review}`}>
+              {(emp.status || 'pending').replace(/_/g, ' ')}
+            </Badge>
+            {emp.status !== 'active' ? (
+              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs text-emerald-600"
+                onClick={async () => { await base44.entities.Employer.update(emp.id, { status: 'active' }); queryClient.invalidateQueries({ queryKey: ['employers'] }); }}>
+                <CheckCircle2 className="w-3 h-3" /> Activate
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs text-muted-foreground"
+                onClick={async () => { await base44.entities.Employer.update(emp.id, { status: 'inactive' }); queryClient.invalidateQueries({ queryKey: ['employers'] }); }}>
+                <XCircle className="w-3 h-3" /> Deactivate
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => handleEdit(emp)}>
               <Pencil className="w-3.5 h-3.5" /> Edit Profile
             </Button>

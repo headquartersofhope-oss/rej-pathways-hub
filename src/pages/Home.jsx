@@ -1,11 +1,12 @@
 import React from 'react';
-import { useOutletContext, Navigate } from 'react-router-dom';
-import { ROLES, isAdmin, isCaseManager, isProbationOfficer, isResident } from '@/lib/roles';
+import { useOutletContext } from 'react-router-dom';
+import { ROLES, isAdmin, isCaseManager, isProbationOfficer, isResident, isEmployer } from '@/lib/roles';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import CaseManagerDashboard from '@/components/dashboard/CaseManagerDashboard';
 import StaffDashboard from '@/components/dashboard/StaffDashboard';
 import ProbationDashboard from '@/components/dashboard/ProbationDashboard';
 import ResidentDashboard from '@/components/dashboard/ResidentDashboard';
+import EmployerDashboard from '@/components/dashboard/EmployerDashboard';
 
 export default function Home() {
   const { user } = useOutletContext();
@@ -24,8 +25,8 @@ export default function Home() {
     // Residents (personal dashboard)
     if (isResident(role)) return <ResidentDashboard user={user} />;
 
-    // Employers - redirect to portal
-    if (role === 'employer' || role === ROLES.EMPLOYER) return <Navigate to="/employer-portal" replace />;
+    // Employers - show employer dashboard
+    if (isEmployer(role)) return <EmployerDashboard user={user} />;
 
     // Auditors (read-only admin view)
     if (role === 'auditor' || role === ROLES.AUDITOR) return <AdminDashboard user={user} />;
