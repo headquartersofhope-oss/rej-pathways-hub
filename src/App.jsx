@@ -33,6 +33,10 @@ import Reporting from '@/pages/Reporting';
 import ResidentOutcomes from '@/pages/ResidentOutcomes';
 import EmployerOutcomes from '@/pages/EmployerOutcomes';
 import EmployerPortal from '@/pages/EmployerPortal';
+import MyJobs from '@/pages/MyJobs';
+import MyAppointments from '@/pages/MyAppointments';
+import MyTasks from '@/pages/MyTasks';
+import MySupports from '@/pages/MySupports';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -89,6 +93,10 @@ const AuthenticatedApp = () => {
         <Route path="/resident-outcomes" element={<ResidentOutcomes />} />
         <Route path="/employer-outcomes" element={<EmployerOutcomes />} />
         <Route path="/employer-portal" element={<EmployerPortal />} />
+        <Route path="/my-jobs" element={<MyJobs />} />
+        <Route path="/my-appointments" element={<MyAppointments />} />
+        <Route path="/my-tasks" element={<MyTasks />} />
+        <Route path="/my-supports" element={<MySupports />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

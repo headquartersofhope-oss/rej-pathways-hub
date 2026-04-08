@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,19 @@ const navSections = (role) => {
         { label: 'User Management', path: '/users', icon: UserCircle },
         { label: 'Module Settings', path: '/modules', icon: Settings },
         { label: 'Audit Logs', path: '/audit-logs', icon: Shield },
+      ],
+    });
+  }
+
+  // Resident self-service nav
+  if (role === 'resident') {
+    sections.push({
+      label: 'My Services',
+      items: [
+        { label: 'My Supports', path: '/my-supports', icon: ShieldCheck },
+        { label: 'My Tasks', path: '/my-tasks', icon: CheckSquare },
+        { label: 'My Appointments', path: '/my-appointments', icon: Calendar },
+        { label: 'My Jobs', path: '/my-jobs', icon: Briefcase },
       ],
     });
   }
