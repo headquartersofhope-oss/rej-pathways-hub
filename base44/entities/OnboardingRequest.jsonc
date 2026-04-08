@@ -1,0 +1,200 @@
+{
+  "name": "OnboardingRequest",
+  "type": "object",
+  "description": "Pending intake/access request from new users awaiting admin approval",
+  "properties": {
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "resident_intake",
+        "case_manager_request",
+        "staff_request",
+        "probation_officer_request",
+        "employer_request",
+        "partner_request"
+      ],
+      "description": "Type of onboarding request"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "needs_info"
+      ],
+      "default": "pending",
+      "description": "Approval status"
+    },
+    "email": {
+      "type": "string",
+      "description": "Applicant email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "preferred_name": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "organization": {
+      "type": "string",
+      "description": "Organization/agency/company name for non-resident roles"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Link to Organization entity"
+    },
+    "requested_role": {
+      "type": "string",
+      "enum": [
+        "resident",
+        "case_manager",
+        "staff",
+        "probation_officer",
+        "employer",
+        "partner"
+      ]
+    },
+    "reason_for_access": {
+      "type": "string",
+      "description": "Why access is needed"
+    },
+    "resident_data": {
+      "type": "object",
+      "description": "Resident-specific intake fields",
+      "properties": {
+        "housing_status": {
+          "type": "string",
+          "enum": [
+            "stable",
+            "transitional",
+            "shelter",
+            "unstable",
+            "none"
+          ]
+        },
+        "employment_status": {
+          "type": "string",
+          "enum": [
+            "unemployed",
+            "part_time",
+            "full_time",
+            "self_employed",
+            "unable"
+          ]
+        },
+        "primary_needs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "literacy_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "standard",
+            "high"
+          ]
+        },
+        "digital_literacy": {
+          "type": "string",
+          "enum": [
+            "none",
+            "basic",
+            "moderate",
+            "proficient"
+          ]
+        },
+        "emergency_contact_name": {
+          "type": "string"
+        },
+        "emergency_contact_phone": {
+          "type": "string"
+        },
+        "population": {
+          "type": "string",
+          "enum": [
+            "justice_impacted",
+            "homeless_veteran",
+            "foster_youth",
+            "other"
+          ]
+        }
+      }
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated summary of request"
+    },
+    "ai_recommended_role": {
+      "type": "string",
+      "description": "AI recommendation for role (not binding)"
+    },
+    "ai_recommended_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AI-recommended services/classes for residents"
+    },
+    "ai_analysis_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "User ID of approving admin"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rejected_by": {
+      "type": "string"
+    },
+    "rejected_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "linked_user_id": {
+      "type": "string",
+      "description": "User account created from this request"
+    },
+    "linked_resident_id": {
+      "type": "string",
+      "description": "Resident record created from this request"
+    },
+    "final_assigned_role": {
+      "type": "string",
+      "description": "Role assigned by admin after approval"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "request_type",
+    "email",
+    "first_name",
+    "last_name"
+  ]
+}

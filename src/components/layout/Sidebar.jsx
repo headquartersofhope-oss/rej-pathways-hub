@@ -69,6 +69,7 @@ const navSections = (role) => {
     sections.push({
       label: 'Administration',
       items: [
+        { label: 'Onboarding Queue', path: '/admin/onboarding', icon: ClipboardList },
         { label: 'Organizations', path: '/organizations', icon: Building2 },
         { label: 'Sites', path: '/sites', icon: MapPin },
         { label: 'User Management', path: '/users', icon: UserCircle },

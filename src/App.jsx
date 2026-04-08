@@ -37,6 +37,9 @@ import MyJobs from '@/pages/MyJobs';
 import MyAppointments from '@/pages/MyAppointments';
 import MyTasks from '@/pages/MyTasks';
 import MySupports from '@/pages/MySupports';
+import PublicLanding from '@/pages/PublicLanding';
+import RequestAccess from '@/pages/RequestAccess';
+import OnboardingQueue from '@/pages/admin/OnboardingQueue';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -58,8 +61,14 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+      // Private app - show public landing page for unauthenticated users
+      return (
+        <Routes>
+          <Route path="/" element={<PublicLanding />} />
+          <Route path="/auth/request-access" element={<RequestAccess />} />
+          <Route path="*" element={<PublicLanding />} />
+        </Routes>
+      );
     }
     // For unknown errors, fall through and render the app anyway
     // (e.g. network blip — don't permanently block rendering)
@@ -67,6 +76,8 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      <Route path="/auth/request-access" element={<RequestAccess />} />
+      <Route path="/admin/onboarding" element={<OnboardingQueue />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/residents" element={<Residents />} />

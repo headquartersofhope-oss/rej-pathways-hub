@@ -1,0 +1,105 @@
+{
+  "name": "UserAccount",
+  "type": "object",
+  "description": "Extended user account management with status tracking, linked records, and activation",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "User email - links to platform User entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Platform User.id"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "invited",
+        "first_login_required",
+        "active",
+        "suspended",
+        "deactivated"
+      ],
+      "default": "pending",
+      "description": "Account status"
+    },
+    "app_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "case_manager",
+        "staff",
+        "probation_officer",
+        "employer",
+        "partner",
+        "resident"
+      ],
+      "description": "Application role"
+    },
+    "onboarding_request_id": {
+      "type": "string",
+      "description": "Link to OnboardingRequest that created this account"
+    },
+    "linked_resident_id": {
+      "type": "string",
+      "description": "Link to Resident record (if resident role)"
+    },
+    "linked_employer_id": {
+      "type": "string",
+      "description": "Link to Employer record (if employer role)"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this user belongs to"
+    },
+    "temporary_login_code": {
+      "type": "string",
+      "description": "One-time code for first login"
+    },
+    "temporary_code_expires": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When temporary code expires"
+    },
+    "login_code_used": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether temporary code has been used"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When admin approved this account"
+    },
+    "activated_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When user first logged in"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "invitation_sent_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "invitation_resent_count": {
+      "type": "number",
+      "default": 0
+    },
+    "created_by": {
+      "type": "string",
+      "description": "admin or 'system' if auto-created"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email",
+    "app_role"
+  ]
+}
