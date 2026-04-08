@@ -1,12 +1,12 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useCurrentUser } from '@/lib/useCurrentUser';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function AppLayout() {
-  const { user, loading } = useCurrentUser();
+  const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
-  if (loading) {
+  if (isLoadingAuth || isLoadingPublicSettings) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">

@@ -7,9 +7,14 @@ export function useCurrentUser() {
 
   useEffect(() => {
     async function load() {
-      const me = await base44.auth.me();
-      setUser(me);
-      setLoading(false);
+      try {
+        const me = await base44.auth.me();
+        setUser(me);
+      } catch (_) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);

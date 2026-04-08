@@ -61,6 +61,8 @@ const AuthenticatedApp = () => {
       navigateToLogin();
       return null;
     }
+    // For unknown errors, fall through and render the app anyway
+    // (e.g. network blip — don't permanently block rendering)
   }
 
   return (
