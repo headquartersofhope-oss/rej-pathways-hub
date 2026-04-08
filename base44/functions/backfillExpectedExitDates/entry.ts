@@ -3,12 +3,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // RULE 1: Authenticate first
     const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!user || user.role !== 'admin') {
+    // RULE 2: Admin-only - backfill is system maintenance
+    if (user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    // RULE 3: Only use asServiceRole after auth + authz verified
     // Get all residents with intake_date but no expected_exit_date
     const allResidents = await base44.asServiceRole.entities.Resident.list();
     const needsBackfill = allResidents.filter(r => r.intake_date && !r.expected_exit_date);

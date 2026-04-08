@@ -1,21 +1,31 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { create } from "https://deno.land/x/djwt@v2.2/mod.ts";
 
-const JWT_SECRET = Deno.env.get('JWT_SECRET');
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required for activation token signing. Set it in the application environment variables.');
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // RULE 1: Authenticate first
     const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Only admin can approve
-    if (user?.role !== 'admin') {
+    // RULE 2: Admin-only authorization check before any sensitive operations
+    if (user.role !== 'admin') {
       return Response.json(
-        { error: 'Only admins can approve requests' },
+        { error: 'Forbidden: Admin access required' },
         { status: 403 }
+      );
+    }
+
+    // RULE 6: Only read JWT_SECRET after auth + authz verified
+    const JWT_SECRET = Deno.env.get('JWT_SECRET');
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is not configured');
+      return Response.json(
+        { error: 'System configuration error' },
+        { status: 500 }
       );
     }
 

@@ -1,16 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { verify } from "https://deno.land/x/djwt@v2.2/mod.ts";
 
-const JWT_SECRET = Deno.env.get('JWT_SECRET');
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required for account activation. Set it in the application environment variables.');
-}
-
 Deno.serve(async (req) => {
     const { token, password } = await req.json();
     const base44 = createClientFromRequest(req);
 
     try {
+        // JWT_SECRET required for account activation (public endpoint)
+        const JWT_SECRET = Deno.env.get('JWT_SECRET');
+        if (!JWT_SECRET) {
+          return Response.json(
+            { error: 'Account activation service temporarily unavailable' },
+            { status: 500 }
+          );
+        }
+
         // Verify JWT and get payload
         const payload = await verify(token, JWT_SECRET);
 

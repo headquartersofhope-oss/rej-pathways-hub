@@ -3,8 +3,21 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // RULE 1: Authenticate first
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // RULE 2: Admin-only - AI analysis is triggered by admin workflows only
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
     const { request_id } = await req.json();
 
+    // RULE 3: Only use asServiceRole after auth + authz verified
     // Fetch the request
     const request = await base44.asServiceRole.entities.OnboardingRequest.get(request_id);
     if (!request) {

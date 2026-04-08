@@ -21,21 +21,22 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify admin access
+    // RULE 1: Authenticate first
     let user;
     try {
       user = await base44.auth.me();
     } catch (authError) {
       console.error('Auth error:', authError);
-      return Response.json({ error: 'Auth check failed: ' + authError.message }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     if (!user) {
-      return Response.json({ error: 'Unauthorized: No user' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    // Platform role must be admin or user (Base44 defaults)
-    if (!['admin', 'user'].includes(user.role)) {
-      return Response.json({ error: `Unauthorized: Role ${user.role} not allowed` }, { status: 403 });
+
+    // RULE 2: Admin-only - user creation is admin function
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     const payload = await req.json();

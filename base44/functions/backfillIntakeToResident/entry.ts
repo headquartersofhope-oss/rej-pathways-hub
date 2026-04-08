@@ -8,10 +8,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // RULE 1: Authenticate first
     const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Admin check
-    if (!user || user.role !== 'admin') {
+    // RULE 2: Admin-only - backfill is system maintenance
+    if (user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -21,7 +26,7 @@ Deno.serve(async (req) => {
 
     let assessments;
     if (targetResidentId) {
-      // Get assessment for specific resident
+      // Get assessment for specific resident - scoped lookup
       assessments = await base44.entities.IntakeAssessment.filter(
         { resident_id: targetResidentId, status: 'completed' },
         '-created_date',

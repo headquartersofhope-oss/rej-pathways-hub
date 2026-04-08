@@ -3,10 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // RULE 1: Authenticate first
     const user = await base44.auth.me();
-
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // RULE 2: Only staff and admins can assign learning classes
+    if (user.role !== 'admin' && user.role !== 'staff') {
+      return Response.json({ error: 'Forbidden: Staff or admin access required' }, { status: 403 });
     }
 
     const { resident_id } = await req.json();
@@ -17,25 +23,20 @@ Deno.serve(async (req) => {
 
     console.log(`[Learning Assignment] Starting AI assignment for resident ${resident_id}`);
 
-    // Fetch resident profile
-    const resident = await base44.entities.Resident.list('id', 1000);
-    const targetResident = resident.find(r => r.id === resident_id);
+    // RULE 4: Scope resident access safely - use get() instead of list() for specific resident
+    const targetResident = await base44.entities.Resident.get(resident_id);
 
     if (!targetResident) {
       return Response.json({ error: 'Resident not found' }, { status: 404 });
     }
 
-    // Fetch intake assessment to understand barriers
-    const intakes = await base44.entities.IntakeAssessment.list();
-    const intake = intakes.find(i => i.resident_id === resident_id);
+    // RULE 4: Scope resident access safely - filter server-side
+    const intakes = await base44.entities.IntakeAssessment.filter({ resident_id });
+    const intake = intakes[0] || null;
 
-    // Fetch existing assignments to avoid duplicates
-    const assignments = await base44.entities.LearningAssignment.list();
-    const existingClasses = new Set(
-      assignments
-        .filter(a => a.resident_id === resident_id)
-        .map(a => a.class_id)
-    );
+    // Fetch existing assignments to avoid duplicates - scoped to this resident
+    const assignments = await base44.entities.LearningAssignment.filter({ resident_id });
+    const existingClasses = new Set(assignments.map(a => a.class_id));
 
     // Fetch all active classes
     const allClasses = await base44.entities.LearningClass.list();

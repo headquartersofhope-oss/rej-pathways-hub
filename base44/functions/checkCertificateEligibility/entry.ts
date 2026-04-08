@@ -3,10 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // RULE 1: Authenticate first
     const user = await base44.auth.me();
-
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // RULE 2: Staff/Admin/CaseManager - staff can check eligibility
+    if (user.role !== 'admin' && user.role !== 'staff' && user.role !== 'case_manager') {
+      return Response.json({ error: 'Forbidden: Staff or admin access required' }, { status: 403 });
     }
 
     const { resident_id } = await req.json();
@@ -17,9 +23,8 @@ Deno.serve(async (req) => {
 
     console.log(`[Certificate Eligibility] Checking eligibility for resident ${resident_id}`);
 
-    // Fetch resident
-    const residents = await base44.entities.Resident.list();
-    const resident = residents.find(r => r.id === resident_id);
+    // RULE 4: Scope resident access safely - use get() instead of list()
+    const resident = await base44.entities.Resident.get(resident_id);
 
     if (!resident) {
       return Response.json({ error: 'Resident not found' }, { status: 404 });
@@ -29,17 +34,13 @@ Deno.serve(async (req) => {
     const paths = await base44.entities.CertificatePath.list();
     const activePaths = paths.filter(p => p.is_active);
 
-    // Fetch resident assignments
-    const assignments = await base44.entities.LearningAssignment.list();
-    const residentAssignments = assignments.filter(a => a.resident_id === resident_id);
+    // RULE 4: Scope resident access safely - filter by resident
+    const assignments = await base44.entities.LearningAssignment.filter({ resident_id });
+    const residentAssignments = assignments;
 
-    // Fetch completed certificates
-    const certificates = await base44.entities.Certificate.list();
-    const earnedCerts = new Set(
-      certificates
-        .filter(c => c.resident_id === resident_id)
-        .map(c => c.certificate_path_id)
-    );
+    // Fetch completed certificates for this resident only
+    const certificates = await base44.entities.Certificate.filter({ resident_id });
+    const earnedCerts = new Set(certificates.map(c => c.certificate_path_id));
 
     // Check eligibility for each certificate
     const eligibility = [];
