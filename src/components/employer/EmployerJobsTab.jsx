@@ -17,25 +17,15 @@ export default function EmployerJobsTab({ employer, user }) {
   const [editJob, setEditJob] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
 
-  const { data: listings = [], refetch } = useQuery({
+  const { data: jobsData, refetch } = useQuery({
     queryKey: ['ep-job-listings', employer.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobListing.list('-created_date');
-      return all.filter(j => j.employer_id === employer.id || j.employer_name === employer.company_name);
-    },
+    queryFn: () => base44.functions.invoke('getEmployerJobs', {}),
     enabled: !!employer?.id,
     staleTime: 0,
   });
 
-  const { data: allMatches = [] } = useQuery({
-    queryKey: ['ep-job-matches', employer.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobMatch.list();
-      const ids = new Set(listings.map(j => j.id));
-      return all.filter(m => ids.has(m.job_listing_id) && m.staff_approved);
-    },
-    enabled: listings.length > 0,
-  });
+  const listings = jobsData?.data?.listings || [];
+  // match counts are embedded in each listing as _match_count / _hired_count
 
   const handleSaved = () => {
     refetch();
@@ -93,8 +83,8 @@ export default function EmployerJobsTab({ employer, user }) {
       ) : (
         <div className="space-y-3">
           {listings.map(job => {
-            const matchCount = allMatches.filter(m => m.job_listing_id === job.id).length;
-            const hiredCount = allMatches.filter(m => m.job_listing_id === job.id && m.status === 'hired').length;
+            const matchCount = job._match_count || 0;
+            const hiredCount = job._hired_count || 0;
             const wageStr = job.wage_min
               ? job.wage_max
                 ? `$${job.wage_min.toLocaleString()}–$${job.wage_max.toLocaleString()}/${job.wage_type === 'hourly' ? 'hr' : 'yr'}`

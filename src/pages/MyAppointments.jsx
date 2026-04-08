@@ -46,6 +46,19 @@ export default function MyAppointments() {
     enabled: !!myResident?.id,
   });
 
+  // Guard: if resident is loaded but not linked, show clear message
+  if (!myResident && !isLoading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-3xl mx-auto">
+        <PageHeader title="My Appointments" icon={Calendar} />
+        <Card className="p-8 text-center text-muted-foreground">
+          <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Your resident profile isn't linked yet. Contact your case manager.</p>
+        </Card>
+      </div>
+    );
+  }
+
   const sorted = [...appointments].sort((a, b) => new Date(b.date) - new Date(a.date));
   const upcoming = sorted.filter(a => ['scheduled', 'confirmed'].includes(a.status));
   const past = sorted.filter(a => !['scheduled', 'confirmed'].includes(a.status));

@@ -13,28 +13,35 @@ export default function EmployerDashboard({ user }) {
   const { data: employer } = useQuery({
     queryKey: ['employer-profile', user?.id],
     queryFn: async () => {
-      const all = await base44.entities.Employer.list();
-      return all.find(e => e.user_id === user?.id) || null;
+      const list = await base44.entities.Employer.filter({ user_id: user?.id });
+      return list[0] || null;
     },
     enabled: !!user?.id,
   });
 
-  const { data: myListings = [] } = useQuery({
+  const { data: jobsData } = useQuery({
     queryKey: ['employer-listings', employer?.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobListing.list('-created_date');
-      return all.filter(j => j.employer_id === employer.id || j.employer_name === employer.company_name);
-    },
+    queryFn: () => base44.functions.invoke('getEmployerJobs', {}),
     enabled: !!employer?.id,
   });
 
+  const myListings = jobsData?.data?.listings || [];
   const listingIds = myListings.map(j => j.id);
 
   const { data: allMatches = [] } = useQuery({
-    queryKey: ['employer-matches', employer?.id],
-    queryFn: () => base44.entities.JobMatch.list(),
-    enabled: !!employer?.id,
-    select: (data) => data.filter(m => listingIds.includes(m.job_listing_id)),
+    queryKey: ['employer-matches-home', employer?.id, listingIds.join(',')],
+    queryFn: async () => {
+      if (listingIds.length === 0) return [];
+      const results = await Promise.all(
+        listingIds.map(id =>
+          base44.functions.invoke('getEmployerCandidates', { job_listing_id: id })
+            .then(r => r.data?.candidates || [])
+            .catch(() => [])
+        )
+      );
+      return results.flat();
+    },
+    enabled: listingIds.length > 0,
   });
 
   const activeListings = myListings.filter(j => j.status === 'active').length;
@@ -105,7 +112,7 @@ export default function EmployerDashboard({ user }) {
           ) : (
             <div className="space-y-2">
               {myListings.filter(j => j.status === 'active').slice(0, 4).map(job => {
-                const matchCount = allMatches.filter(m => m.job_listing_id === job.id).length;
+                const matchCount = job._match_count ?? allMatches.filter(m => m.job_listing_id === job.id).length;
                 return (
                   <div key={job.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/40">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">

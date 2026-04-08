@@ -201,33 +201,14 @@ function CandidateSummaryCard({ match, onStatusChange, onNotesSave }) {
 export default function EmployerCandidatesPanel({ job, employer }) {
   const queryClient = useQueryClient();
 
-  const { data: matches = [], refetch } = useQuery({
+  const { data: candidatesData, refetch } = useQuery({
     queryKey: ['ep-candidates', job.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobMatch.list();
-      const raw = all.filter(m => m.job_listing_id === job.id && m.staff_approved);
-
-      // Load certs + enrollments for learning summary (safe fields only)
-      const certs = await base44.entities.Certificate.list();
-      const enrollments = await base44.entities.ClassEnrollment.list('-created_date', 500);
-
-      return raw.map(m => {
-        const myCerts = certs.filter(c => c.resident_id === m.resident_id);
-        const completedEnrollments = enrollments.filter(
-          e => e.resident_id === m.resident_id && (e.status === 'completed' || e.quiz_passed)
-        );
-        const learning_summary = [
-          ...myCerts.map(c => ({ type: 'cert', label: c.certificate_name })),
-          ...(completedEnrollments.length > 0
-            ? [{ type: 'class', label: `${completedEnrollments.length} class${completedEnrollments.length !== 1 ? 'es' : ''} completed` }]
-            : []),
-        ];
-        return { ...m, learning_summary };
-      });
-    },
+    queryFn: () => base44.functions.invoke('getEmployerCandidates', { job_listing_id: job.id }),
     enabled: !!job?.id,
     staleTime: 0,
   });
+
+  const matches = candidatesData?.data?.candidates || [];
 
   const handleStatusChange = async (matchId, newStatus) => {
     const update = { status: newStatus };

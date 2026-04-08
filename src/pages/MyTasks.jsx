@@ -30,13 +30,22 @@ export default function MyTasks() {
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['my-tasks', myResident?.id],
-    queryFn: async () => {
-      const list = await base44.entities.ServiceTask.filter({ resident_id: myResident.id });
-      // Only show resident-visible tasks
-      return list.filter(t => t.is_resident_visible !== false);
-    },
+    queryFn: () => base44.entities.ServiceTask.filter({ resident_id: myResident.id, is_resident_visible: true }),
     enabled: !!myResident?.id,
   });
+
+  // Guard: if resident is loaded but not linked, show clear message
+  if (!myResident && !isLoading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-3xl mx-auto">
+        <PageHeader title="My Tasks" icon={CheckCircle2} />
+        <Card className="p-8 text-center text-muted-foreground">
+          <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Your resident profile isn't linked yet. Contact your case manager.</p>
+        </Card>
+      </div>
+    );
+  }
 
   const missingDocs = myResident?.missing_documents || [];
 

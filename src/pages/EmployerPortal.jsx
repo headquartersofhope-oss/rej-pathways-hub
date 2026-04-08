@@ -18,8 +18,9 @@ export default function EmployerPortal() {
   const { data: employer, isLoading, refetch: refetchEmployer } = useQuery({
     queryKey: ['my-employer-profile', user?.id],
     queryFn: async () => {
-      const all = await base44.entities.Employer.list();
-      return all.find(e => e.user_id === user?.id) || null;
+      // Scoped: filter by user_id directly — no full table scan
+      const list = await base44.entities.Employer.filter({ user_id: user?.id });
+      return list[0] || null;
     },
     enabled: !!user?.id,
   });

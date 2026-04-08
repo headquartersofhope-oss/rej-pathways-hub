@@ -11,23 +11,31 @@ import { JOB_STATUSES, matchLabel } from '@/lib/jobMatchScoring';
 export default function EmployerPortalDashboard({ employer, user }) {
   const [selectedJobId, setSelectedJobId] = useState(null);
 
-  const { data: listings = [] } = useQuery({
+  const { data: jobsData } = useQuery({
     queryKey: ['ep-listings', employer.id],
-    queryFn: async () => {
-      const all = await base44.entities.JobListing.list('-created_date');
-      return all.filter(j => j.employer_id === employer.id || j.employer_name === employer.company_name);
-    },
+    queryFn: () => base44.functions.invoke('getEmployerJobs', {}),
     enabled: !!employer?.id,
   });
 
+  const listings = jobsData?.data?.listings || [];
+
+  // For dashboard stats, load candidates using the scoped function per listing
+  // We use a combined query keyed by listing ids
   const listingIds = listings.map(j => j.id);
 
   const { data: allMatches = [] } = useQuery({
-    queryKey: ['ep-matches', employer.id, listingIds.join(',')],
+    queryKey: ['ep-matches-dashboard', employer.id, listingIds.join(',')],
     queryFn: async () => {
-      const all = await base44.entities.JobMatch.list();
-      const ids = new Set(listings.map(j => j.id));
-      return all.filter(m => ids.has(m.job_listing_id) && m.staff_approved);
+      if (listingIds.length === 0) return [];
+      // Fetch matches per listing in parallel (scoped via backend function)
+      const results = await Promise.all(
+        listingIds.map(id =>
+          base44.functions.invoke('getEmployerCandidates', { job_listing_id: id })
+            .then(r => r.data?.candidates || [])
+            .catch(() => [])
+        )
+      );
+      return results.flat();
     },
     enabled: listings.length > 0,
   });
@@ -63,7 +71,7 @@ export default function EmployerPortalDashboard({ employer, user }) {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {listings.map(job => {
-              const count = allMatches.filter(m => m.job_listing_id === job.id).length;
+              const count = job._match_count ?? allMatches.filter(m => m.job_listing_id === job.id).length;
               const isSelected = selectedJobId === job.id;
               return (
                 <button
@@ -83,7 +91,7 @@ export default function EmployerPortalDashboard({ employer, user }) {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{job.schedule_type?.replace('_', ' ')} · {job.city || 'Location TBD'}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-primary font-medium">{count} candidate{count !== 1 ? 's' : ''}</span>
+                    <span className="text-xs text-primary font-medium">{job._match_count ?? count} candidate{(job._match_count ?? count) !== 1 ? 's' : ''}</span>
                     <ChevronRight className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isSelected ? 'rotate-90' : ''}`} />
                   </div>
                 </button>
