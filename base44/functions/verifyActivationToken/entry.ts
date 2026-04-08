@@ -1,7 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { verify } from "https://deno.land/x/djwt@v2.2/mod.ts";
 
-const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'dev-secret-key-change-in-production';
+const JWT_SECRET = Deno.env.get('JWT_SECRET');
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required for activation token verification. Set it in the application environment variables.');
+}
 
 Deno.serve(async (req) => {
     const { token } = await req.json();
