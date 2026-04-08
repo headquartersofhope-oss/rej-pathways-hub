@@ -40,6 +40,7 @@ import MySupports from '@/pages/MySupports';
 import PublicLanding from '@/pages/PublicLanding';
 import RequestAccess from '@/pages/RequestAccess';
 import OnboardingQueue from '@/pages/admin/OnboardingQueue';
+import ActivateAccount from '@/pages/auth/ActivateAccount';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/auth/request-access" element={<RequestAccess />} />
+      <Route path="/auth/activate" element={<ActivateAccount />} />
       <Route path="/admin/onboarding" element={<OnboardingQueue />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />

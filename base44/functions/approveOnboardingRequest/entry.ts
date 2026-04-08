@@ -1,4 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { create, verify } from "https://deno.land/x/djwt@v2.2/mod.ts";
+
+const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'dev-secret-key-change-in-production';
 
 Deno.serve(async (req) => {
   try {
@@ -30,9 +33,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Request not found' }, { status: 404 });
     }
 
-    // Generate temporary login code
-    const tempCode = generateTempCode();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    // Generate JWT activation token (valid for 7 days)
+    const expiresAt = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60);
+    const activationToken = await create(
+      { alg: "HS256", typ: "JWT" },
+      {
+        user_account_id: null, // Will be set after creating UserAccount
+        email: request.email,
+        role: final_role,
+        exp: expiresAt,
+      },
+      JWT_SECRET
+    );
 
     // Create user account via base44
     let linkedUser;
@@ -60,8 +72,8 @@ Deno.serve(async (req) => {
       app_role: final_role,
       status: 'invited',
       onboarding_request_id: request_id,
-      temporary_login_code: tempCode,
-      temporary_code_expires: expiresAt.toISOString(),
+      temporary_login_code: activationToken,
+      temporary_code_expires: new Date(expiresAt * 1000).toISOString(),
       approved_date: new Date().toISOString(),
       created_by: user.email,
     });
@@ -128,13 +140,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Build activation link
+    const activationLink = `${Deno.env.get('APP_URL') || 'https://app.example.com'}/auth/activate?token=${encodeURIComponent(activationToken)}`;
+
     // Send activation email
     await base44.integrations.Core.SendEmail({
       to: request.email,
       subject: 'Your Reentry & Jobs Account Has Been Approved',
       body: buildActivationEmail(
         request,
-        tempCode,
+        activationLink,
         final_role
       ),
     });
@@ -152,7 +167,7 @@ Deno.serve(async (req) => {
       user_id: linkedUser?.id,
       resident_id: linkedResidentId,
       employer_id: linkedEmployerId,
-      temp_code: tempCode,
+      activation_token: activationToken,
     });
   } catch (error) {
     console.error('Approval error:', error);
@@ -160,36 +175,28 @@ Deno.serve(async (req) => {
   }
 });
 
-function generateTempCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 12; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
 
-function buildActivationEmail(request, tempCode, role) {
+
+function buildActivationEmail(request, activationLink, role) {
   return `
 <h2>Welcome to Reentry & Jobs!</h2>
 
-<p>Your access request has been approved. Your account is ready to use.</p>
+<p>Your access request has been approved. Your account is ready to activate.</p>
 
-<h3>Your Login Information</h3>
+<h3>Your Account Information</h3>
 <p>
   <strong>Email:</strong> ${request.email}<br>
   <strong>Role:</strong> ${role.replace(/_/g, ' ')}<br>
-  <strong>Temporary Code:</strong> ${tempCode}
 </p>
 
 <h3>Next Steps</h3>
 <ol>
-  <li><a href="">Log in to your account</a></li>
-  <li>Enter your email and temporary code</li>
-  <li>Create a permanent password</li>
+  <li><a href="${activationLink}">Click here to activate your account</a></li>
+  <li>Create a secure password</li>
+  <li>Complete your role-specific onboarding</li>
   <li>Start using the system</li>
 </ol>
 
-<p>This temporary code will expire in 7 days. If you have questions, contact support.</p>
+<p>This activation link will expire in 7 days. If you have questions or the link has expired, contact support and they can resend a new activation link.</p>
   `;
 }
