@@ -73,6 +73,7 @@ const navSections = (role) => {
         { label: 'Organizations', path: '/organizations', icon: Building2 },
         { label: 'Sites', path: '/sites', icon: MapPin },
         { label: 'User Management', path: '/users', icon: UserCircle },
+        { label: 'Employers', path: '/employers', icon: Briefcase },
         { label: 'Module Settings', path: '/modules', icon: Settings },
         { label: 'Audit Logs', path: '/audit-logs', icon: Shield },
       ],
