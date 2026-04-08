@@ -34,8 +34,10 @@ export default function MyTasks() {
     enabled: !!myResident?.id,
   });
 
+  const residentQuerySettled = myResident !== undefined;
+
   // Guard: if resident is loaded but not linked, show clear message
-  if (!myResident && !isLoading) {
+  if (!myResident && residentQuerySettled && !isLoading) {
     return (
       <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-3xl mx-auto">
         <PageHeader title="My Tasks" icon={CheckCircle2} />

@@ -26,14 +26,16 @@ export default function EmployerDashboard({ user }) {
   });
 
   const myListings = jobsData?.data?.listings || [];
-  const listingIds = myListings.map(j => j.id);
+  // Stable string key to avoid unnecessary query re-runs
+  const listingIdsKey = myListings.map(j => j.id).join(',');
 
   const { data: allMatches = [] } = useQuery({
-    queryKey: ['employer-matches-home', employer?.id, listingIds.join(',')],
+    queryKey: ['employer-matches-home', employer?.id, listingIdsKey],
     queryFn: async () => {
-      if (listingIds.length === 0) return [];
+      const ids = myListings.map(j => j.id);
+      if (ids.length === 0) return [];
       const results = await Promise.all(
-        listingIds.map(id =>
+        ids.map(id =>
           base44.functions.invoke('getEmployerCandidates', { job_listing_id: id })
             .then(r => r.data?.candidates || [])
             .catch(() => [])
@@ -41,7 +43,7 @@ export default function EmployerDashboard({ user }) {
       );
       return results.flat();
     },
-    enabled: listingIds.length > 0,
+    enabled: myListings.length > 0,
   });
 
   const activeListings = myListings.filter(j => j.status === 'active').length;

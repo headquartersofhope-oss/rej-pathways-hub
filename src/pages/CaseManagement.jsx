@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { FolderOpen, Search, Clock, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
+import { filterResidentsByAccess } from '@/lib/rbac';
 import { format, isPast, isToday, parseISO } from 'date-fns';
 
 const severityColors = {
@@ -21,7 +22,8 @@ const severityColors = {
 };
 
 export default function CaseManagement() {
-  const { user } = useOutletContext();
+  const outletContext = useOutletContext();
+  const user = outletContext?.user;
   const [search, setSearch] = useState('');
 
   const { data: residents = [] } = useQuery({
@@ -56,11 +58,16 @@ export default function CaseManagement() {
     return r ? `${r.preferred_name || r.first_name} ${r.last_name}` : 'Unknown';
   };
 
-  const overdueTasks = allTasks.filter(t => t.due_date && isPast(parseISO(t.due_date)) && t.status !== 'completed');
-  const todayApts = allAppointments.filter(a => a.date && isToday(parseISO(a.date)));
+  // Apply caseload filter based on role (case managers only see their assigned residents)
+  const accessibleResidents = filterResidentsByAccess(residents, user);
+  const accessibleResidentIds = new Set(accessibleResidents.map(r => r.id));
+
+  // Scope overdue tasks and appointments to accessible residents only
+  const overdueTasks = allTasks.filter(t => t.due_date && isPast(parseISO(t.due_date)) && t.status !== 'completed' && accessibleResidentIds.has(t.resident_id));
+  const todayApts = allAppointments.filter(a => a.date && isToday(parseISO(a.date)) && accessibleResidentIds.has(a.resident_id));
   const openIncidents = allIncidents.filter(i => !i.resolved);
 
-  const filteredResidents = residents.filter(r =>
+  const filteredResidents = accessibleResidents.filter(r =>
     !search || `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase())
   );
 

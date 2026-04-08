@@ -37,8 +37,7 @@ export default function UserManagement() {
         return [];
       }
     },
-    refetchInterval: 3000, // Auto-refetch every 3 seconds to catch updates
-    staleTime: 0, // Always consider data stale
+    staleTime: 10000, // Consider fresh for 10s
   });
 
   const handleAddUser = () => {

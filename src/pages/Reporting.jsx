@@ -57,7 +57,7 @@ export default function Reporting() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Reporting & Outcomes" description="Track resident progress, program success, and outcomes" />
+      <PageHeader title="Reporting & Outcomes" subtitle="Track resident progress, program success, and outcomes" />
 
       {/* Controls */}
       <div className="flex items-center justify-between gap-4">
