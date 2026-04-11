@@ -1,0 +1,133 @@
+{
+  "name": "HousingProvider",
+  "type": "object",
+  "description": "External housing provider summary. Contains only provider-safe availability information \u2014 NOT internal housing operations data. Used by referring nonprofits to make informed referral decisions.",
+  "properties": {
+    "provider_name": {
+      "type": "string"
+    },
+    "site_name": {
+      "type": "string"
+    },
+    "program_type": {
+      "type": "string",
+      "enum": [
+        "transitional_housing",
+        "rapid_rehousing",
+        "permanent_supportive",
+        "sober_living",
+        "shelter",
+        "other"
+      ],
+      "description": "Type of housing program"
+    },
+    "gender_restriction": {
+      "type": "string",
+      "enum": [
+        "male_only",
+        "female_only",
+        "any",
+        "non_binary_inclusive"
+      ],
+      "default": "any"
+    },
+    "population_served": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "e.g. justice_impacted, veteran, foster_youth, etc."
+    },
+    "total_beds": {
+      "type": "number"
+    },
+    "available_beds": {
+      "type": "number",
+      "description": "Approximate available beds \u2014 updated periodically by provider or API"
+    },
+    "waitlist_open": {
+      "type": "boolean",
+      "default": false
+    },
+    "accepting_referrals": {
+      "type": "boolean",
+      "default": true
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "referral_requirements": {
+      "type": "string",
+      "description": "Brief note on what is needed to submit a referral"
+    },
+    "public_notes": {
+      "type": "string",
+      "description": "Notes safe to show referring nonprofits"
+    },
+    "api_endpoint": {
+      "type": "string",
+      "description": "Optional external API endpoint for future live integration"
+    },
+    "last_availability_update": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When availability data was last refreshed"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "provider_name",
+    "program_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

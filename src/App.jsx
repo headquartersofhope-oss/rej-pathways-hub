@@ -41,6 +41,7 @@ import PublicLanding from '@/pages/PublicLanding';
 import RequestAccess from '@/pages/RequestAccess';
 import OnboardingQueue from '@/pages/admin/OnboardingQueue';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
+import HousingReferrals from '@/pages/HousingReferrals';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -112,6 +113,7 @@ const AuthenticatedApp = () => {
         <Route path="/my-appointments" element={<MyAppointments />} />
         <Route path="/my-tasks" element={<MyTasks />} />
         <Route path="/my-supports" element={<MySupports />} />
+        <Route path="/housing-referrals" element={<HousingReferrals />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

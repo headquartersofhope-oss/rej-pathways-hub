@@ -1,0 +1,238 @@
+{
+  "name": "HousingReferral",
+  "type": "object",
+  "description": "Housing referral created by a nonprofit organization for a participant. Tracks referral lifecycle to an external housing provider. Does NOT manage housing operations.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Internal FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Referring nonprofit organization ID"
+    },
+    "referring_staff_id": {
+      "type": "string"
+    },
+    "referring_staff_name": {
+      "type": "string"
+    },
+    "referring_case_manager_id": {
+      "type": "string"
+    },
+    "referring_case_manager_name": {
+      "type": "string"
+    },
+    "referral_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "participant_name": {
+      "type": "string",
+      "description": "Snapshot of participant name at referral time"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date",
+      "description": "Shared only if participant consented"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "housing_need_summary": {
+      "type": "string",
+      "description": "Plain-language summary of housing need"
+    },
+    "priority_level": {
+      "type": "string",
+      "enum": [
+        "urgent",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "current_housing_situation": {
+      "type": "string",
+      "enum": [
+        "stable",
+        "transitional",
+        "shelter",
+        "unstable",
+        "none",
+        "unknown"
+      ]
+    },
+    "employment_status": {
+      "type": "string",
+      "enum": [
+        "unemployed",
+        "part_time",
+        "full_time",
+        "self_employed",
+        "unable",
+        "unknown"
+      ]
+    },
+    "income_benefit_summary": {
+      "type": "string",
+      "description": "Brief income or benefit context if participant consented to share"
+    },
+    "relevant_barriers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Barrier categories relevant to housing (from BarrierItem categories)"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "document_type": {
+            "type": "string"
+          },
+          "uploaded_date": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Referral packet documents attached by referring org"
+    },
+    "consent_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Participant has consented to this referral"
+    },
+    "consent_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categories of information participant has consented to share (e.g. income, justice_history, health)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready_to_submit",
+        "submitted",
+        "received",
+        "under_review",
+        "more_information_requested",
+        "approved",
+        "denied",
+        "waitlisted",
+        "withdrawn",
+        "closed"
+      ],
+      "default": "draft"
+    },
+    "housing_decision_status": {
+      "type": "string",
+      "description": "Final decision from housing provider"
+    },
+    "target_provider_id": {
+      "type": "string",
+      "description": "HousingProvider.id if selected"
+    },
+    "target_provider_name": {
+      "type": "string"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Notes visible only to referring organization"
+    },
+    "provider_notes": {
+      "type": "string",
+      "description": "Notes from housing provider visible to referring org"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "external_referral_id": {
+      "type": "string",
+      "description": "ID assigned by external housing system after submission (for API integration)"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "organization_id",
+    "participant_name",
+    "housing_need_summary"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.resident_id": "{{user.data.resident_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
