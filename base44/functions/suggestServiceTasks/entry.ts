@@ -11,6 +11,10 @@ Deno.serve(async (req) => {
 
     const { residentId, globalResidentId, barriers, residentContext } = await req.json();
 
+    if (user.role !== 'admin' && user.role !== 'staff' && user.role !== 'case_manager') {
+      return Response.json({ error: 'Forbidden: Staff or admin access required' }, { status: 403 });
+    }
+
     if (!residentId || !barriers || barriers.length === 0) {
       return Response.json({ error: 'Missing residentId or barriers' }, { status: 400 });
     }

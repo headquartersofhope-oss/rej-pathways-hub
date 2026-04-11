@@ -13,6 +13,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
     // Fetch both users and profiles
     const [platformUsers, profiles] = await Promise.all([
       base44.asServiceRole.entities.User.list('-created_date', 100),

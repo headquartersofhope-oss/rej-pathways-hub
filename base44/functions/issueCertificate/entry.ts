@@ -9,6 +9,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (user.role !== 'admin' && user.role !== 'staff') {
+      return Response.json({ error: 'Forbidden: Staff or admin access required' }, { status: 403 });
+    }
+
     const { resident_id, certificate_path_id } = await req.json();
 
     if (!resident_id || !certificate_path_id) {
@@ -17,25 +21,20 @@ Deno.serve(async (req) => {
 
     console.log(`[Certificate Issue] Issuing certificate ${certificate_path_id} to resident ${resident_id}`);
 
-    // Fetch resident
-    const residents = await base44.entities.Resident.list();
-    const resident = residents.find(r => r.id === resident_id);
-
+    // Fetch resident directly by ID (safe scoped access)
+    const resident = await base44.entities.Resident.get(resident_id);
     if (!resident) {
       return Response.json({ error: 'Resident not found' }, { status: 404 });
     }
 
-    // Fetch certificate path
-    const paths = await base44.entities.CertificatePath.list();
-    const path = paths.find(p => p.id === certificate_path_id);
-
+    // Fetch certificate path directly by ID (safe scoped access)
+    const path = await base44.entities.CertificatePath.get(certificate_path_id);
     if (!path) {
       return Response.json({ error: 'Certificate path not found' }, { status: 404 });
     }
 
-    // Verify eligibility
-    const assignments = await base44.entities.LearningAssignment.list();
-    const residentAssignments = assignments.filter(a => a.resident_id === resident_id);
+    // Fetch only this resident's assignments (server-side filter)
+    const residentAssignments = await base44.entities.LearningAssignment.filter({ resident_id });
 
     const requiredClasses = path.required_class_ids || [];
     const requiredAssignments = residentAssignments.filter(a =>
@@ -53,17 +52,13 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Check if already issued
-    const certificates = await base44.entities.Certificate.list();
-    const existing = certificates.find(c =>
-      c.resident_id === resident_id && c.certificate_path_id === certificate_path_id
-    );
-
-    if (existing) {
+    // Check if already issued (scoped to this resident + path)
+    const existingCerts = await base44.entities.Certificate.filter({ resident_id, certificate_path_id });
+    if (existingCerts.length > 0) {
       return Response.json({
         success: false,
         message: 'Certificate already issued',
-        certificate_id: existing.id,
+        certificate_id: existingCerts[0].id,
       });
     }
 
