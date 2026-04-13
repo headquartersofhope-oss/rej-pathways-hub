@@ -1,0 +1,93 @@
+{
+  "name": "AuditFinding",
+  "type": "object",
+  "description": "A single finding from an audit run. Admin-only.",
+  "properties": {
+    "audit_run_id": {
+      "type": "string",
+      "description": "AuditRun.id"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "e.g. Residents, Learning, Onboarding, Permissions"
+    },
+    "check_name": {
+      "type": "string",
+      "description": "Short name of the check that ran"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "info"
+      ],
+      "default": "info"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "warning",
+        "failed",
+        "skipped"
+      ],
+      "default": "passed"
+    },
+    "issue_code": {
+      "type": "string",
+      "description": "Short machine-readable code e.g. MISSING_GRI, ORPHANED_ACCOUNT"
+    },
+    "issue_summary": {
+      "type": "string",
+      "description": "Plain-language description of what was found"
+    },
+    "technical_details": {
+      "type": "string",
+      "description": "Technical context (counts, IDs, etc.)"
+    },
+    "recommended_fix": {
+      "type": "string",
+      "description": "Human-readable repair guidance"
+    },
+    "linked_record_id": {
+      "type": "string",
+      "description": "Entity record ID relevant to this finding, if any"
+    },
+    "auto_fixed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the system automatically applied a safe fix"
+    }
+  },
+  "required": [
+    "audit_run_id",
+    "module_name",
+    "check_name",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

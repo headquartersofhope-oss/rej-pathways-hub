@@ -1,0 +1,98 @@
+{
+  "name": "AuditRun",
+  "type": "object",
+  "description": "Records a single audit/diagnostic run. Admin-only.",
+  "properties": {
+    "audit_type": {
+      "type": "string",
+      "enum": [
+        "quick_health",
+        "full_system",
+        "role_permission",
+        "onboarding_activation",
+        "data_integrity",
+        "module_communication",
+        "learning_pathway",
+        "housing_employer",
+        "reporting_consistency"
+      ],
+      "description": "Which audit was run"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_by": {
+      "type": "string",
+      "description": "Email of admin who ran it"
+    },
+    "overall_status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "warning",
+        "failed",
+        "running",
+        "error"
+      ],
+      "default": "running"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable summary of results"
+    },
+    "total_checks": {
+      "type": "number",
+      "default": 0
+    },
+    "passed_checks": {
+      "type": "number",
+      "default": 0
+    },
+    "failed_checks": {
+      "type": "number",
+      "default": 0
+    },
+    "warning_checks": {
+      "type": "number",
+      "default": 0
+    },
+    "skipped_checks": {
+      "type": "number",
+      "default": 0
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated risk and recommendation summary"
+    }
+  },
+  "required": [
+    "audit_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

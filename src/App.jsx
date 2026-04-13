@@ -41,6 +41,7 @@ import PublicLanding from '@/pages/PublicLanding';
 import RequestAccess from '@/pages/RequestAccess';
 import OnboardingQueue from '@/pages/admin/OnboardingQueue';
 import AdminControlCenter from '@/pages/admin/AdminControlCenter';
+import AuditCenter from '@/pages/admin/AuditCenter';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
 import HousingReferrals from '@/pages/HousingReferrals';
 
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
       <Route path="/auth/activate" element={<ActivateAccount />} />
       <Route path="/admin/onboarding" element={<OnboardingQueue />} />
       <Route path="/admin/control-center" element={<AdminControlCenter />} />
+      <Route path="/admin/audit" element={<AuditCenter />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/residents" element={<Residents />} />
