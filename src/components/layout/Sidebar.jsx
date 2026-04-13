@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -70,6 +70,7 @@ const navSections = (role) => {
     sections.push({
       label: 'Administration',
       items: [
+        { label: '⚡ Control Center', path: '/admin/control-center', icon: Terminal },
         { label: 'Onboarding Queue', path: '/admin/onboarding', icon: ClipboardList },
         { label: 'Organizations', path: '/organizations', icon: Building2 },
         { label: 'Sites', path: '/sites', icon: MapPin },

@@ -5,76 +5,36 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // RULE 1: Authenticate first
+    // Auth + admin gate
     const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
 
-    // RULE 2: Admin-only authorization check before any sensitive operations
-    if (user.role !== 'admin') {
-      return Response.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    // RULE 6: Only read JWT_SECRET after auth + authz verified
     const JWT_SECRET = Deno.env.get('JWT_SECRET');
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
-      return Response.json(
-        { error: 'System configuration error' },
-        { status: 500 }
-      );
-    }
+    if (!JWT_SECRET) return Response.json({ error: 'System configuration error: JWT_SECRET not set' }, { status: 500 });
 
     const { request_id, final_role } = await req.json();
+    if (!final_role) return Response.json({ error: 'final_role is required' }, { status: 400 });
 
-    if (!final_role) {
-      return Response.json(
-        { error: 'final_role is required' },
-        { status: 400 }
-      );
-    }
-
-    // Fetch the request
-    const request = await base44.asServiceRole.entities.OnboardingRequest.get(
-      request_id
-    );
-    if (!request) {
-      return Response.json({ error: 'Request not found' }, { status: 404 });
-    }
+    const request = await base44.asServiceRole.entities.OnboardingRequest.get(request_id);
+    if (!request) return Response.json({ error: 'Request not found' }, { status: 404 });
 
     // Generate JWT activation token (valid for 7 days)
     const expiresAt = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60);
     const activationToken = await create(
       { alg: "HS256", typ: "JWT" },
-      {
-        user_account_id: null, // Will be set after creating UserAccount
-        email: request.email,
-        role: final_role,
-        exp: expiresAt,
-      },
+      { email: request.email, role: final_role, exp: expiresAt },
       JWT_SECRET
     );
 
-    // Create user account via base44
+    // Invite user to platform
     let linkedUser;
     try {
-      // Use base44.users.inviteUser to create the account
       await base44.users.inviteUser(request.email, final_role);
-      
-      // Fetch the newly created user
-      const userList = await base44.asServiceRole.entities.User.filter({
-        email: request.email,
-      });
+      const userList = await base44.asServiceRole.entities.User.filter({ email: request.email });
       linkedUser = userList[0];
     } catch (err) {
-      // User might already exist
-      const userList = await base44.asServiceRole.entities.User.filter({
-        email: request.email,
-      });
+      const userList = await base44.asServiceRole.entities.User.filter({ email: request.email });
       linkedUser = userList[0];
     }
 
@@ -91,7 +51,7 @@ Deno.serve(async (req) => {
       created_by: user.email,
     });
 
-    // If resident, create resident record
+    // If resident, create Resident record
     let linkedResidentId;
     if (final_role === 'resident' || request.request_type === 'resident_intake') {
       const resident = await base44.asServiceRole.entities.Resident.create({
@@ -103,16 +63,15 @@ Deno.serve(async (req) => {
         date_of_birth: request.date_of_birth,
         population: request.resident_data?.population,
         user_id: linkedUser?.id,
+        organization_id: request.organization_id || user.data?.organization_id,
         status: 'active',
       });
       linkedResidentId = resident.id;
 
-      // Link in user account
       await base44.asServiceRole.entities.UserAccount.update(userAccount.id, {
         linked_resident_id: resident.id,
       });
 
-      // Create barriers from needs
       if (request.resident_data?.primary_needs?.length > 0) {
         for (const need of request.resident_data.primary_needs) {
           await base44.asServiceRole.entities.BarrierItem.create({
@@ -123,18 +82,15 @@ Deno.serve(async (req) => {
             description: `Identified during intake: ${need}`,
             status: 'new',
             auto_generated: true,
-          });
+          }).catch(() => {});
         }
       }
     }
 
-    // If employer, link to employer record
+    // If employer, create/link employer record
     let linkedEmployerId;
     if (final_role === 'employer' && request.organization) {
-      const employers = await base44.asServiceRole.entities.Employer.filter({
-        company_name: request.organization,
-      });
-
+      const employers = await base44.asServiceRole.entities.Employer.filter({ company_name: request.organization });
       if (employers.length > 0) {
         linkedEmployerId = employers[0].id;
       } else {
@@ -147,32 +103,41 @@ Deno.serve(async (req) => {
         });
         linkedEmployerId = employer.id;
       }
-
-      await base44.asServiceRole.entities.UserAccount.update(userAccount.id, {
-        linked_employer_id: linkedEmployerId,
-      });
+      await base44.asServiceRole.entities.UserAccount.update(userAccount.id, { linked_employer_id: linkedEmployerId });
     }
 
-    // Build activation link
-    const activationLink = `${Deno.env.get('APP_URL') || 'https://app.example.com'}/auth/activate?token=${encodeURIComponent(activationToken)}`;
+    // ---- ACTIVATION LINK: derive app URL from the incoming request origin ----
+    // This is the CRITICAL fix: never rely on APP_URL env var for the frontend path.
+    // The request comes from the frontend, so we can derive the correct origin from the Referer or Origin header.
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || Deno.env.get('APP_URL') || 'https://app.example.com';
+    const appUrl = origin.replace(/\/$/, '');
+    const activationLink = `${appUrl}/auth/activate?token=${encodeURIComponent(activationToken)}`;
 
     // Send activation email
     await base44.integrations.Core.SendEmail({
       to: request.email,
       subject: 'Your Reentry & Jobs Account Has Been Approved',
-      body: buildActivationEmail(
-        request,
-        activationLink,
-        final_role
-      ),
+      body: buildActivationEmail(request, activationLink, final_role),
     });
 
-    // Update the request
+    // Update OnboardingRequest status
     await base44.asServiceRole.entities.OnboardingRequest.update(request_id, {
+      status: 'approved',
+      approved_by: user.id,
+      approved_date: new Date().toISOString(),
       linked_user_id: linkedUser?.id,
       linked_resident_id: linkedResidentId,
       final_assigned_role: final_role,
     });
+
+    // Audit log
+    await base44.asServiceRole.entities.AuditLog.create({
+      action: 'onboarding_approved',
+      entity_type: 'OnboardingRequest',
+      entity_id: request_id,
+      performed_by: user.email,
+      details: `Approved ${request.email} as ${final_role}. Activation link sent.`,
+    }).catch(() => {});
 
     return Response.json({
       success: true,
@@ -180,6 +145,7 @@ Deno.serve(async (req) => {
       user_id: linkedUser?.id,
       resident_id: linkedResidentId,
       employer_id: linkedEmployerId,
+      activation_link: activationLink,
       activation_token: activationToken,
     });
   } catch (error) {
@@ -188,28 +154,18 @@ Deno.serve(async (req) => {
   }
 });
 
-
-
 function buildActivationEmail(request, activationLink, role) {
   return `
-<h2>Welcome to Reentry & Jobs!</h2>
-
+<h2>Welcome to REJ Pathways Hub!</h2>
 <p>Your access request has been approved. Your account is ready to activate.</p>
-
-<h3>Your Account Information</h3>
+<h3>Your Account</h3>
 <p>
   <strong>Email:</strong> ${request.email}<br>
   <strong>Role:</strong> ${role.replace(/_/g, ' ')}<br>
 </p>
-
-<h3>Next Steps</h3>
-<ol>
-  <li><a href="${activationLink}">Click here to activate your account</a></li>
-  <li>Create a secure password</li>
-  <li>Complete your role-specific onboarding</li>
-  <li>Start using the system</li>
-</ol>
-
-<p>This activation link will expire in 7 days. If you have questions or the link has expired, contact support and they can resend a new activation link.</p>
-  `;
+<h3>Activate Your Account</h3>
+<p><a href="${activationLink}" style="background:#1e3a5f;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:10px 0;">Click Here to Activate Your Account</a></p>
+<p>Or copy this link: <code>${activationLink}</code></p>
+<p>This activation link expires in 7 days. If it expires, contact your admin to resend a new one.</p>
+`;
 }

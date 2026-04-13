@@ -40,6 +40,7 @@ import MySupports from '@/pages/MySupports';
 import PublicLanding from '@/pages/PublicLanding';
 import RequestAccess from '@/pages/RequestAccess';
 import OnboardingQueue from '@/pages/admin/OnboardingQueue';
+import AdminControlCenter from '@/pages/admin/AdminControlCenter';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
 import HousingReferrals from '@/pages/HousingReferrals';
 
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
       <Route path="/auth/request-access" element={<RequestAccess />} />
       <Route path="/auth/activate" element={<ActivateAccount />} />
       <Route path="/admin/onboarding" element={<OnboardingQueue />} />
+      <Route path="/admin/control-center" element={<AdminControlCenter />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/residents" element={<Residents />} />

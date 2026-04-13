@@ -119,7 +119,7 @@ export default function EmployerPortalDashboard({ employer, user }) {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {STAGES.filter(s => jobMatches.some(m => m.status === s)).map(stage => {
-                const items = jobMatches.filter(m => m.status === s);
+                const items = jobMatches.filter(m => m.status === stage);
                 const info = JOB_STATUSES[stage] || { label: stage, color: 'bg-muted text-muted-foreground' };
                 return (
                   <Card key={stage} className="p-4">
