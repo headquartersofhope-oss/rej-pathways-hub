@@ -11,6 +11,8 @@ import ReferralStatusBadge from '@/components/housing/ReferralStatusBadge';
 import ReferralForm from '@/components/housing/ReferralForm';
 import ReferralDetail from '@/components/housing/ReferralDetail';
 import AvailabilitySummary from '@/components/housing/AvailabilitySummary';
+import BedSearchPanel from '@/components/housing/BedSearchPanel';
+import HousingAlerts from '@/components/housing/HousingAlerts';
 
 const PRIORITY_COLORS = {
   urgent: 'text-red-600',
@@ -199,8 +201,16 @@ export default function HousingReferrals() {
               </div>
             </TabsContent>
 
-            <TabsContent value="availability" className="flex-1 overflow-y-auto m-0 px-3 py-3">
-              <AvailabilitySummary />
+            <TabsContent value="availability" className="flex-1 overflow-y-auto m-0 px-3 py-3 space-y-3">
+              <HousingAlerts />
+              <div className="mt-4">
+                <h3 className="font-semibold text-sm mb-3">Search & Filter Beds</h3>
+                <BedSearchPanel />
+              </div>
+              <div className="mt-4">
+                <h3 className="font-semibold text-sm mb-3">Provider Availability Summary</h3>
+                <AvailabilitySummary />
+              </div>
             </TabsContent>
           </Tabs>
         </div>
