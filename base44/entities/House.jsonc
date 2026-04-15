@@ -1,0 +1,148 @@
+{
+  "name": "House",
+  "type": "object",
+  "description": "A transitional housing property managed by HOH. Tracks capacity, compliance, occupancy, and operational status.",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "House name (e.g. Hope House East)"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "program_type": {
+      "type": "string",
+      "enum": [
+        "transitional_housing",
+        "rapid_rehousing",
+        "sober_living",
+        "permanent_supportive",
+        "shelter",
+        "other"
+      ],
+      "default": "transitional_housing"
+    },
+    "total_beds": {
+      "type": "number",
+      "default": 0
+    },
+    "occupied_beds": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "under_renovation",
+        "at_capacity"
+      ],
+      "default": "active"
+    },
+    "house_manager_id": {
+      "type": "string",
+      "description": "User.id of assigned house manager"
+    },
+    "house_manager_name": {
+      "type": "string"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "at_risk",
+        "non_compliant",
+        "pending_inspection"
+      ],
+      "default": "compliant"
+    },
+    "last_inspection_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_inspection_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "monthly_fee": {
+      "type": "number",
+      "description": "Resident program fee per month"
+    },
+    "weekly_fee": {
+      "type": "number",
+      "description": "Resident program fee per week"
+    },
+    "rules_document_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "grant_id": {
+      "type": "string",
+      "description": "Primary grant funding this house"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.house_manager_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "name": "Grant",
+  "type": "object",
+  "description": "Grant tracking for HOH. Covers application pipeline, compliance, deadlines, and outcome reporting.",
+  "properties": {
+    "grant_name": {
+      "type": "string"
+    },
+    "funder_name": {
+      "type": "string"
+    },
+    "funder_type": {
+      "type": "string",
+      "enum": [
+        "federal",
+        "state",
+        "county",
+        "city",
+        "foundation",
+        "corporate",
+        "individual",
+        "other"
+      ],
+      "default": "foundation"
+    },
+    "grant_type": {
+      "type": "string",
+      "enum": [
+        "housing",
+        "workforce",
+        "transportation",
+        "services",
+        "operations",
+        "capital",
+        "other"
+      ],
+      "default": "services"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "in_progress",
+        "submitted",
+        "awarded",
+        "active",
+        "reporting_due",
+        "closed",
+        "denied"
+      ],
+      "default": "prospect"
+    },
+    "amount_requested": {
+      "type": "number"
+    },
+    "amount_awarded": {
+      "type": "number"
+    },
+    "application_deadline": {
+      "type": "string",
+      "format": "date"
+    },
+    "award_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "report_due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "grant_manager_id": {
+      "type": "string"
+    },
+    "grant_manager_name": {
+      "type": "string"
+    },
+    "program_link": {
+      "type": "string",
+      "description": "Which program/house this grant funds"
+    },
+    "participant_target": {
+      "type": "number",
+      "description": "Target number of participants this grant serves"
+    },
+    "participants_served": {
+      "type": "number",
+      "default": 0
+    },
+    "outcomes_required": {
+      "type": "string",
+      "description": "Summary of required grant outcomes"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "grant_name",
+    "funder_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

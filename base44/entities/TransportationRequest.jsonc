@@ -1,0 +1,153 @@
+{
+  "name": "TransportationRequest",
+  "type": "object",
+  "description": "Transportation coordination request for a participant. Supports internal coordination and integration with external transportation apps.",
+  "properties": {
+    "resident_id": {
+      "type": "string"
+    },
+    "resident_name": {
+      "type": "string"
+    },
+    "global_resident_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "employment",
+        "medical",
+        "court",
+        "housing_search",
+        "document_retrieval",
+        "program",
+        "other"
+      ],
+      "default": "employment"
+    },
+    "pickup_address": {
+      "type": "string"
+    },
+    "destination_address": {
+      "type": "string"
+    },
+    "requested_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "requested_time": {
+      "type": "string"
+    },
+    "return_trip_needed": {
+      "type": "boolean",
+      "default": false
+    },
+    "return_time": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "scheduled",
+        "completed",
+        "cancelled",
+        "no_show"
+      ],
+      "default": "pending"
+    },
+    "assigned_driver": {
+      "type": "string"
+    },
+    "vehicle": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "confirmed_by": {
+      "type": "string"
+    },
+    "external_trip_id": {
+      "type": "string",
+      "description": "ID from external transportation app if integrated"
+    },
+    "cost": {
+      "type": "number"
+    },
+    "funding_source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "resident_id",
+    "request_type",
+    "requested_date"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.resident_id": "{{user.data.resident_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
