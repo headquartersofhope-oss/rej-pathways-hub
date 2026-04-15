@@ -44,6 +44,9 @@ import AdminControlCenter from '@/pages/admin/AdminControlCenter';
 import AuditCenter from '@/pages/admin/AuditCenter';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
 import HousingReferrals from '@/pages/HousingReferrals';
+import HousingOperations from '@/pages/HousingOperations';
+import GrantTracker from '@/pages/GrantTracker';
+import TransportationHub from '@/pages/TransportationHub';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -53,7 +56,7 @@ const AuthenticatedApp = () => {
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-heading font-bold text-sm">REJ</span>
+            <span className="text-primary-foreground font-heading font-bold text-sm">HOH</span>
           </div>
           <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
@@ -118,6 +121,9 @@ const AuthenticatedApp = () => {
         <Route path="/my-tasks" element={<MyTasks />} />
         <Route path="/my-supports" element={<MySupports />} />
         <Route path="/housing-referrals" element={<HousingReferrals />} />
+        <Route path="/housing" element={<HousingOperations />} />
+        <Route path="/grants" element={<GrantTracker />} />
+        <Route path="/transportation" element={<TransportationHub />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

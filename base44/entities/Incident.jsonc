@@ -1,40 +1,34 @@
 {
   "name": "Incident",
   "type": "object",
-  "description": "Incident report linked to a resident via global_resident_id. Visible to authorized staff only.",
+  "description": "Incident report tied to a house or participant. Tracks safety events, rule violations, and compliance items.",
   "properties": {
-    "global_resident_id": {
-      "type": "string",
-      "description": "Master identity link to Resident.global_resident_id"
+    "house_id": {
+      "type": "string"
+    },
+    "house_name": {
+      "type": "string"
     },
     "resident_id": {
-      "type": "string",
-      "description": "Internal DB FK to Resident.id"
-    },
-    "organization_id": {
       "type": "string"
     },
-    "reported_by_id": {
-      "type": "string"
-    },
-    "reported_by_name": {
+    "resident_name": {
       "type": "string"
     },
     "incident_type": {
       "type": "string",
       "enum": [
-        "missed_appointment",
-        "no_show",
-        "behavioral_issue",
-        "relapse_concern",
-        "documentation_issue",
-        "employment_issue"
+        "rule_violation",
+        "safety_concern",
+        "medical",
+        "conflict",
+        "property_damage",
+        "curfew_violation",
+        "substance_use",
+        "unauthorized_visitor",
+        "other"
       ],
-      "default": "missed_appointment"
-    },
-    "date": {
-      "type": "string",
-      "format": "date"
+      "default": "other"
     },
     "severity": {
       "type": "string",
@@ -45,6 +39,13 @@
         "critical"
       ],
       "default": "medium"
+    },
+    "incident_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "incident_time": {
+      "type": "string"
     },
     "description": {
       "type": "string"
@@ -60,16 +61,91 @@
       "type": "string",
       "format": "date"
     },
-    "resolved": {
-      "type": "boolean",
-      "default": false
+    "follow_up_notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "under_review",
+        "resolved",
+        "escalated"
+      ],
+      "default": "open"
+    },
+    "reported_by": {
+      "type": "string"
+    },
+    "reported_by_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
     }
   },
   "required": [
-    "resident_id",
-    "global_resident_id",
     "incident_type",
-    "date",
+    "incident_date",
     "description"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

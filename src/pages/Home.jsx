@@ -2,6 +2,7 @@ import React from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { ROLES, isAdmin, isCaseManager, isProbationOfficer, isResident, isEmployer } from '@/lib/roles';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
+import HOHAdminDashboard from '@/components/dashboard/HOHAdminDashboard';
 import CaseManagerDashboard from '@/components/dashboard/CaseManagerDashboard';
 import StaffDashboard from '@/components/dashboard/StaffDashboard';
 import ProbationDashboard from '@/components/dashboard/ProbationDashboard';
@@ -13,8 +14,8 @@ export default function Home() {
   const role = user?.role;
 
   const renderDashboard = () => {
-    // Admin roles (full access)
-    if (isAdmin(role)) return <AdminDashboard user={user} />;
+    // Admin roles (full access) — HOH Command Center
+    if (isAdmin(role)) return <HOHAdminDashboard user={user} />;
 
     // Case managers (caseload-focused)
     if (isCaseManager(role)) return <CaseManagerDashboard user={user} />;

@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -37,18 +37,27 @@ const navSections = (role) => {
   // Staff sections
   if (isStaff(role)) {
     sections.push({
-      label: 'People',
+      label: 'Participants',
       items: [
-        { label: 'Residents', path: '/residents', icon: Users },
-        { label: 'Intake & Barriers', path: '/intake', icon: ClipboardList },
+        { label: 'All Participants', path: '/residents', icon: Users },
+        { label: 'Intake & Assessment', path: '/intake', icon: ClipboardList },
         { label: 'Case Management', path: '/case-management', icon: FolderOpen },
         { label: 'Job Readiness', path: '/job-readiness', icon: Star },
-        { label: 'Alumni', path: '/alumni', icon: Award },
-        { label: 'Resource Inventory', path: '/resources', icon: Package },
         { label: 'Job Matching', path: '/job-matching', icon: Zap },
-        { label: 'Housing Referrals', path: '/housing-referrals', icon: Home },
-        { label: 'Employers', path: '/employers', icon: Briefcase },
+        { label: 'Alumni', path: '/alumni', icon: Award },
+      ],
+    });
+
+    sections.push({
+      label: 'Operations',
+      items: [
+        { label: 'Housing Operations', path: '/housing', icon: BedDouble },
+        { label: 'Transportation Hub', path: '/transportation', icon: Car },
+        { label: 'Grant Tracker', path: '/grants', icon: DollarSign },
+        { label: 'Resource Inventory', path: '/resources', icon: Package },
         { label: 'Partner Agencies', path: '/partners', icon: Handshake },
+        { label: 'Employers', path: '/employers', icon: Briefcase },
+        { label: 'Housing Referrals', path: '/housing-referrals', icon: Home },
       ],
     });
   }
@@ -59,7 +68,7 @@ const navSections = (role) => {
       label: 'Reporting',
       items: [
         { label: 'Core Metrics', path: '/reporting', icon: BarChart2 },
-        { label: 'Resident Outcomes', path: '/resident-outcomes', icon: Users },
+        { label: 'Participant Outcomes', path: '/resident-outcomes', icon: Users },
         { label: 'Employer Outcomes', path: '/employer-outcomes', icon: Briefcase },
       ],
     });
@@ -76,7 +85,6 @@ const navSections = (role) => {
         { label: 'Organizations', path: '/organizations', icon: Building2 },
         { label: 'Sites', path: '/sites', icon: MapPin },
         { label: 'User Management', path: '/users', icon: UserCircle },
-        { label: 'Employers', path: '/employers', icon: Briefcase },
         { label: 'Module Settings', path: '/modules', icon: Settings },
         { label: 'Audit Logs', path: '/audit-logs', icon: Shield },
       ],
@@ -135,11 +143,11 @@ export default function Sidebar({ user }) {
       <div className="px-5 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
-            <span className="text-secondary-foreground font-heading font-bold text-sm">REJ</span>
+            <span className="text-secondary-foreground font-heading font-bold text-xs">HOH</span>
           </div>
           <div>
             <h1 className="font-heading font-bold text-sm text-sidebar-foreground leading-tight">
-              REJ Pathways Hub
+              HOH OS
             </h1>
             <p className="text-[11px] text-sidebar-foreground/50 leading-tight">
               {ROLE_LABELS[role] || 'User'}

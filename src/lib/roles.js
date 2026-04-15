@@ -17,16 +17,22 @@ export {
 
 export const ROLE_LABELS = {
   super_admin: 'Super Admin',
-  org_admin: 'Organization Admin',
+  org_admin: 'Executive Admin',
   program_manager: 'Program Manager',
   case_manager: 'Case Manager',
+  house_manager: 'House Manager',
+  employment_specialist: 'Employment Specialist',
+  grant_manager: 'Grant Manager',
+  transportation_coordinator: 'Transportation Coordinator',
   instructor: 'Instructor',
   staff: 'Staff',
-  resident: 'Resident',
-  employer: 'Employer',
+  resident: 'Participant',
+  employer: 'Employer Partner',
   probation_officer: 'Probation/Parole Officer',
   referral_partner: 'Referral Partner',
-  auditor: 'Read-Only Auditor',
+  auditor: 'Board Reviewer',
+  admin: 'Administrator',
+  user: 'Administrator',
 };
 
 export const STAFF_ROLES = ['admin', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff'];
