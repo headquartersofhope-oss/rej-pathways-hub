@@ -12,16 +12,16 @@ import ModuleQuickAccess from '@/components/admin/ModuleQuickAccess';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminControlCenter() {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (currentUser && currentUser.role !== 'admin') {
+    if (user && !['admin', 'user', 'super_admin', 'org_admin'].includes(user.role)) {
       navigate('/');
     }
-  }, [currentUser]);
+  }, [user]);
 
-  if (!currentUser || currentUser.role !== 'admin') return null;
+  if (!user) return null;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
