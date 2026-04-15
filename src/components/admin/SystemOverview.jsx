@@ -97,14 +97,16 @@ export default function SystemOverview() {
          <Card>
            <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-sm flex items-center gap-2"><Activity className="w-4 h-4" /> Recent Audit Activity</CardTitle></CardHeader>
            <CardContent className="px-4 pb-4 space-y-2">
-             {data.recentActivity.filter(Boolean).slice(0, 8).map((log, i) => {
+             {(data.recentActivity || []).filter(log => log && typeof log === 'object').slice(0, 8).map((log, i) => {
                const timestamp = log?.created_date || log?.timestamp;
                const dateStr = timestamp ? new Date(timestamp).toLocaleString() : 'N/A';
+               const action = log?.action || log?.event_type || '—';
+               const detail = log?.details || log?.performed_by || '—';
                return (
-                 <div key={i} className="flex items-start gap-3 text-xs border-b last:border-0 pb-2 last:pb-0">
+                 <div key={`log-${i}`} className="flex items-start gap-3 text-xs border-b last:border-0 pb-2 last:pb-0">
                    <span className="text-muted-foreground shrink-0">{dateStr}</span>
-                   <span className="font-medium">{log?.action || log?.event_type || '—'}</span>
-                   <span className="text-muted-foreground truncate">{log?.details || log?.performed_by || '—'}</span>
+                   <span className="font-medium">{action}</span>
+                   <span className="text-muted-foreground truncate">{detail}</span>
                  </div>
                );
              })}
