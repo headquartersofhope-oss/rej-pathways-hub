@@ -1,0 +1,231 @@
+{
+  "name": "HousingPlacement",
+  "type": "object",
+  "description": "Housing placement record synced from Housing App. Tracks where a resident is placed and their occupancy status. Single source of placement truth.",
+  "properties": {
+    "global_resident_id": {
+      "type": "string",
+      "description": "Master identity link to Resident.global_resident_id"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "FK to Resident.id"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "referral_id": {
+      "type": "string",
+      "description": "FK to HousingReferral.id (if created from referral)"
+    },
+    "external_placement_id": {
+      "type": "string",
+      "description": "ID from Housing App (synced source of truth)"
+    },
+    "housing_model": {
+      "type": "string",
+      "enum": [
+        "per_bed",
+        "turnkey"
+      ],
+      "description": "Per-bed allows individual bed selection; turnkey is whole-house placement"
+    },
+    "house_id": {
+      "type": "string",
+      "description": "External Housing App house ID"
+    },
+    "house_name": {
+      "type": "string",
+      "description": "e.g. 'Hope House', 'Spring Manor'"
+    },
+    "house_type": {
+      "type": "string",
+      "enum": [
+        "transitional_housing",
+        "rapid_rehousing",
+        "permanent_supportive",
+        "sober_living",
+        "shelter",
+        "other"
+      ],
+      "description": "Type of housing program"
+    },
+    "city": {
+      "type": "string",
+      "description": "Location of house"
+    },
+    "state": {
+      "type": "string"
+    },
+    "room_id": {
+      "type": "string",
+      "description": "External Housing App room ID (null if turnkey)"
+    },
+    "room_name": {
+      "type": "string",
+      "description": "e.g. 'Bedroom 2', 'Rear Room', 'Master Suite' (null if turnkey)"
+    },
+    "bed_id": {
+      "type": "string",
+      "description": "External Housing App bed ID (null if turnkey)"
+    },
+    "bed_label": {
+      "type": "string",
+      "description": "e.g. 'Bed A', 'Bed 3' (null if turnkey)"
+    },
+    "placement_status": {
+      "type": "string",
+      "enum": [
+        "not_placed",
+        "referred",
+        "approved",
+        "move_in_ready",
+        "placed",
+        "waitlisted",
+        "denied"
+      ],
+      "default": "not_placed",
+      "description": "Lifecycle status of placement"
+    },
+    "occupancy_status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "occupied",
+        "reserved",
+        "maintenance",
+        "offline"
+      ],
+      "default": "available",
+      "description": "Current bed/room occupancy state"
+    },
+    "move_in_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When resident moved in"
+    },
+    "expected_move_out_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Projected exit date"
+    },
+    "actual_move_out_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When resident exited"
+    },
+    "referral_status": {
+      "type": "string",
+      "enum": [
+        "not_referred",
+        "referred",
+        "under_review",
+        "approved",
+        "denied",
+        "waitlisted"
+      ],
+      "default": "not_referred",
+      "description": "Status in housing provider review"
+    },
+    "open_for_referrals": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this house accepts new referrals"
+    },
+    "can_accept_referral": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this specific bed/room can accept resident based on demographics"
+    },
+    "placement_source": {
+      "type": "string",
+      "description": "Organization or staff that referred/placed resident"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last sync timestamp from Housing App"
+    },
+    "sync_source": {
+      "type": "string",
+      "enum": [
+        "referral_submission",
+        "webhook",
+        "manual_sync",
+        "direct_import"
+      ],
+      "description": "How placement was created/updated"
+    },
+    "sync_error": {
+      "type": "string",
+      "description": "If sync failed, error message"
+    },
+    "last_verified": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time sync was verified/checked"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about placement"
+    }
+  },
+  "required": [
+    "global_resident_id",
+    "resident_id",
+    "house_id",
+    "house_name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "data.resident_id": "{{user.data.resident_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
