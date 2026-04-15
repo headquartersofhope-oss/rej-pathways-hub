@@ -39,6 +39,8 @@ const MODULE_HEALTH = [
   { name: 'Job Readiness', icon: TrendingUp, key: 'jobreadiness' },
   { name: 'Employers', icon: Briefcase, key: 'employers' },
   { name: 'Housing Referrals', icon: Home, key: 'housing' },
+  { name: 'Transportation', icon: Server, key: 'transportation' },
+  { name: 'Grants', icon: Database, key: 'grants' },
   { name: 'Reporting', icon: BarChart2, key: 'reporting' },
   { name: 'Security / Permissions', icon: Shield, key: 'security' },
   { name: 'Audit Logs', icon: Activity, key: 'auditlogs' },
@@ -126,8 +128,16 @@ function FindingRow({ f }) {
 
 function ModuleCard({ mod, findings }) {
   const modFindings = findings.filter(f => {
-    const mn = f.module_name?.toLowerCase() || '';
-    return mn.includes(mod.key) || mod.key === 'auth' && mn.includes('auth') || mod.key === 'case' && mn.includes('case') || mod.key === 'security' && (mn.includes('role') || mn.includes('permission') || mn.includes('security')) || mod.key === 'auditlogs' && mn.includes('audit') || mod.key === 'jobreadiness' && mn.includes('job') || mod.key === 'housing' && mn.includes('housing');
+  const mn = f.module_name?.toLowerCase() || '';
+  return mn.includes(mod.key) ||
+    (mod.key === 'auth' && mn.includes('auth')) ||
+    (mod.key === 'case' && (mn.includes('case') || mn.includes('serviceplan'))) ||
+    (mod.key === 'security' && (mn.includes('role') || mn.includes('permission') || mn.includes('security'))) ||
+    (mod.key === 'auditlogs' && mn.includes('audit')) ||
+    (mod.key === 'jobreadiness' && mn.includes('job')) ||
+    (mod.key === 'housing' && mn.includes('housing')) ||
+    (mod.key === 'transportation' && mn.includes('transport')) ||
+    (mod.key === 'grants' && mn.includes('grant'));
   });
   const issues = modFindings.filter(f => f.status !== 'passed');
   const criticals = issues.filter(f => f.severity === 'critical').length;

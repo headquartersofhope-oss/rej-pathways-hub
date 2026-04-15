@@ -1,7 +1,7 @@
 {
   "name": "Grant",
   "type": "object",
-  "description": "Grant tracking for HOH. Covers application pipeline, compliance, deadlines, and outcome reporting.",
+  "description": "Grant tracking for HOH. Covers application pipeline, compliance, deadlines, budget, attachments, and outcome reporting.",
   "properties": {
     "grant_name": {
       "type": "string"
@@ -56,6 +56,11 @@
     "amount_awarded": {
       "type": "number"
     },
+    "amount_spent": {
+      "type": "number",
+      "default": 0,
+      "description": "Cumulative amount spent against award"
+    },
     "application_deadline": {
       "type": "string",
       "format": "date"
@@ -75,6 +80,23 @@
     "report_due_date": {
       "type": "string",
       "format": "date"
+    },
+    "next_report_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next upcoming reporting deadline"
+    },
+    "reporting_frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "semi_annual",
+        "annual",
+        "final_only",
+        "none"
+      ],
+      "description": "How often reports are required"
     },
     "grant_manager_id": {
       "type": "string"
@@ -97,6 +119,69 @@
     "outcomes_required": {
       "type": "string",
       "description": "Summary of required grant outcomes"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "on_track",
+        "at_risk",
+        "non_compliant",
+        "pending_review",
+        "completed"
+      ],
+      "default": "on_track"
+    },
+    "compliance_notes": {
+      "type": "string"
+    },
+    "contract_number": {
+      "type": "string",
+      "description": "Official grant/contract number from funder"
+    },
+    "board_resolution_number": {
+      "type": "string",
+      "description": "Board resolution that authorized acceptance"
+    },
+    "board_resolution_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "application",
+              "award_letter",
+              "contract",
+              "report",
+              "budget",
+              "board_resolution",
+              "other"
+            ]
+          },
+          "uploaded_date": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Grant documents \u2014 applications, award letters, contracts, reports"
+    },
+    "missing_attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Flags for documents that are required but not yet uploaded"
     },
     "notes": {
       "type": "string"

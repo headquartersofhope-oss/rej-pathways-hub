@@ -469,6 +469,249 @@ Deno.serve(async (req) => {
       });
     };
 
+    const runTransportation = async () => {
+      const requests = await safeList('TransportationRequest', null, 500);
+      if (requests === null) {
+        addFinding({ module_name: 'Transportation', check_name: 'TransportationRequest readable', severity: 'critical', status: 'failed', issue_summary: 'Cannot read TransportationRequest entity' });
+        return;
+      }
+
+      // Rides missing required date
+      const noDate = requests.filter(r => !r.requested_date);
+      addFinding({
+        module_name: 'Transportation',
+        check_name: 'Ride Requests Missing Date',
+        severity: noDate.length > 0 ? 'high' : 'info',
+        status: noDate.length > 0 ? 'failed' : 'passed',
+        issue_code: noDate.length > 0 ? 'RIDE_NO_DATE' : null,
+        issue_summary: noDate.length > 0 ? `${noDate.length} ride request(s) missing required_date` : 'All ride requests have a date',
+        recommended_fix: noDate.length > 0 ? 'Edit ride records and add a requested_date' : null,
+      });
+
+      // Scheduled rides without driver
+      const scheduledNoDriver = requests.filter(r => ['scheduled', 'in_progress'].includes(r.status) && !r.assigned_driver_id);
+      addFinding({
+        module_name: 'Transportation',
+        check_name: 'Scheduled Rides Without Driver',
+        severity: scheduledNoDriver.length > 0 ? 'high' : 'info',
+        status: scheduledNoDriver.length > 0 ? 'failed' : 'passed',
+        issue_code: scheduledNoDriver.length > 0 ? 'RIDE_NO_DRIVER' : null,
+        issue_summary: scheduledNoDriver.length > 0 ? `${scheduledNoDriver.length} scheduled/in-progress ride(s) have no assigned driver` : 'All scheduled rides have drivers',
+        technical_details: scheduledNoDriver.map(r => `${r.resident_name} on ${r.requested_date}`).join('; ') || null,
+        recommended_fix: scheduledNoDriver.length > 0 ? 'Assign a driver before marking rides as scheduled. Check Dispatch Board for unassigned rides.' : null,
+      });
+
+      // Scheduled rides without vehicle
+      const scheduledNoVehicle = requests.filter(r => ['scheduled', 'in_progress'].includes(r.status) && !r.assigned_vehicle_id);
+      addFinding({
+        module_name: 'Transportation',
+        check_name: 'Scheduled Rides Without Vehicle',
+        severity: scheduledNoVehicle.length > 0 ? 'medium' : 'info',
+        status: scheduledNoVehicle.length > 0 ? 'warning' : 'passed',
+        issue_summary: scheduledNoVehicle.length > 0 ? `${scheduledNoVehicle.length} scheduled ride(s) have no assigned vehicle` : 'All scheduled rides have vehicles',
+        recommended_fix: scheduledNoVehicle.length > 0 ? 'Assign a vehicle to each scheduled ride in the Dispatch Board' : null,
+      });
+
+      // Incidents not documented
+      const undocumentedIncidents = requests.filter(r => r.incident_noted && !r.incident_description);
+      addFinding({
+        module_name: 'Transportation',
+        check_name: 'Incidents Without Description',
+        severity: undocumentedIncidents.length > 0 ? 'high' : 'info',
+        status: undocumentedIncidents.length > 0 ? 'warning' : 'passed',
+        issue_summary: undocumentedIncidents.length > 0 ? `${undocumentedIncidents.length} incident(s) flagged but no description recorded` : 'All flagged incidents have descriptions',
+        recommended_fix: undocumentedIncidents.length > 0 ? 'Edit each flagged ride and add an incident description' : null,
+      });
+
+      // No-shows without reason
+      const noShowNoReason = requests.filter(r => r.status === 'no_show' && !r.no_show_reason);
+      addFinding({
+        module_name: 'Transportation',
+        check_name: 'No-Shows Without Reason',
+        severity: noShowNoReason.length > 0 ? 'medium' : 'info',
+        status: noShowNoReason.length > 0 ? 'warning' : 'passed',
+        issue_summary: noShowNoReason.length > 0 ? `${noShowNoReason.length} no-show ride(s) missing reason documentation` : 'All no-shows have reasons recorded',
+        recommended_fix: noShowNoReason.length > 0 ? 'Edit each no-show ride and record the reason' : null,
+      });
+
+      // Fleet compliance
+      const vehicles = await safeList('Vehicle', null, 100);
+      if (vehicles !== null) {
+        const today = new Date().toISOString().split('T')[0];
+        const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+        const expiringCompliance = vehicles.filter(v =>
+          (v.insurance_expiry && new Date(v.insurance_expiry) <= in30) ||
+          (v.registration_expiry && new Date(v.registration_expiry) <= in30)
+        );
+        addFinding({
+          module_name: 'Transportation',
+          check_name: 'Vehicle Compliance Expiry',
+          severity: expiringCompliance.length > 0 ? 'high' : 'info',
+          status: expiringCompliance.length > 0 ? 'warning' : 'passed',
+          issue_summary: expiringCompliance.length > 0 ? `${expiringCompliance.length} vehicle(s) have insurance or registration expiring within 30 days` : 'All vehicle compliance dates are current',
+          technical_details: expiringCompliance.map(v => `${v.name}: ins=${v.insurance_expiry}, reg=${v.registration_expiry}`).join('; ') || null,
+          recommended_fix: expiringCompliance.length > 0 ? 'Renew insurance/registration for flagged vehicles in the Fleet tab' : null,
+        });
+
+        // Driver license expiry
+        const drivers = await safeList('Driver', null, 100);
+        if (drivers !== null) {
+          const in60 = new Date(); in60.setDate(in60.getDate() + 60);
+          const expiringLicenses = drivers.filter(d => d.license_expiry && new Date(d.license_expiry) <= in60 && d.status === 'active');
+          addFinding({
+            module_name: 'Transportation',
+            check_name: 'Driver License Expiry',
+            severity: expiringLicenses.length > 0 ? 'high' : 'info',
+            status: expiringLicenses.length > 0 ? 'warning' : 'passed',
+            issue_summary: expiringLicenses.length > 0 ? `${expiringLicenses.length} active driver(s) have licenses expiring within 60 days` : 'All active driver licenses are current',
+            technical_details: expiringLicenses.map(d => `${d.full_name}: expires ${d.license_expiry}`).join('; ') || null,
+            recommended_fix: expiringLicenses.length > 0 ? 'Ensure affected drivers renew their licenses before expiry date' : null,
+          });
+        }
+      }
+
+      // Duplicate ride detection (same resident + same date)
+      const rideKeys = {};
+      let duplicateRides = 0;
+      requests.forEach(r => {
+        const key = `${r.resident_id}|${r.requested_date}|${r.requested_time || 'notime'}`;
+        rideKeys[key] = (rideKeys[key] || 0) + 1;
+        if (rideKeys[key] > 1) duplicateRides++;
+      });
+      addFinding({
+        module_name: 'Transportation',
+        check_name: 'Duplicate Ride Requests',
+        severity: duplicateRides > 0 ? 'medium' : 'info',
+        status: duplicateRides > 0 ? 'warning' : 'passed',
+        issue_summary: duplicateRides > 0 ? `${duplicateRides} potential duplicate ride request(s) detected (same resident + date + time)` : 'No duplicate ride requests detected',
+        recommended_fix: duplicateRides > 0 ? 'Review and cancel duplicate ride requests in the All Rides tab' : null,
+      });
+    };
+
+    const runGrantCompliance = async () => {
+      const grants = await safeList('Grant', null, 200);
+      if (grants === null) {
+        addFinding({ module_name: 'Grants', check_name: 'Grant records readable', severity: 'critical', status: 'failed', issue_summary: 'Cannot read Grant entity' });
+        return;
+      }
+
+      addFinding({
+        module_name: 'Grants',
+        check_name: 'Total Active Grants',
+        severity: 'info',
+        status: 'passed',
+        issue_summary: `${grants.length} total grant records. Active: ${grants.filter(g => g.status === 'active').length}. Reporting due: ${grants.filter(g => g.status === 'reporting_due').length}.`,
+      });
+
+      // Grants missing manager
+      const noManager = grants.filter(g => !g.grant_manager_id && !g.grant_manager_name && ['active', 'reporting_due', 'awarded'].includes(g.status));
+      addFinding({
+        module_name: 'Grants',
+        check_name: 'Active Grants Without Manager',
+        severity: noManager.length > 0 ? 'high' : 'info',
+        status: noManager.length > 0 ? 'warning' : 'passed',
+        issue_summary: noManager.length > 0 ? `${noManager.length} active/awarded grant(s) have no assigned manager` : 'All active grants have managers',
+        technical_details: noManager.map(g => g.grant_name).join(', ') || null,
+        recommended_fix: noManager.length > 0 ? 'Assign a grant manager to each active grant in the Grant Tracker' : null,
+      });
+
+      // Grants with reporting_due status but no report_due_date
+      const reportingNoDate = grants.filter(g => g.status === 'reporting_due' && !g.report_due_date);
+      addFinding({
+        module_name: 'Grants',
+        check_name: 'Reporting Due Without Deadline',
+        severity: reportingNoDate.length > 0 ? 'high' : 'info',
+        status: reportingNoDate.length > 0 ? 'failed' : 'passed',
+        issue_summary: reportingNoDate.length > 0 ? `${reportingNoDate.length} grant(s) marked reporting_due but have no report_due_date` : 'All reporting grants have deadlines set',
+        recommended_fix: reportingNoDate.length > 0 ? 'Set report_due_date on all grants with reporting_due status' : null,
+      });
+
+      // Past-deadline active grants
+      const today = new Date().toISOString().split('T')[0];
+      const overdueReports = grants.filter(g => g.report_due_date && g.report_due_date < today && ['active', 'reporting_due'].includes(g.status));
+      addFinding({
+        module_name: 'Grants',
+        check_name: 'Overdue Grant Reports',
+        severity: overdueReports.length > 0 ? 'critical' : 'info',
+        status: overdueReports.length > 0 ? 'failed' : 'passed',
+        issue_code: overdueReports.length > 0 ? 'GRANT_OVERDUE_REPORT' : null,
+        issue_summary: overdueReports.length > 0 ? `${overdueReports.length} grant(s) have passed their report due date without being closed` : 'No overdue grant reports',
+        technical_details: overdueReports.map(g => `${g.grant_name}: due ${g.report_due_date}`).join(', ') || null,
+        recommended_fix: overdueReports.length > 0 ? 'Submit reports and update grant status, or update the due date if extended' : null,
+      });
+
+      // Awarded grants missing end_date
+      const noEndDate = grants.filter(g => ['active', 'awarded'].includes(g.status) && !g.end_date);
+      addFinding({
+        module_name: 'Grants',
+        check_name: 'Active Grants Missing End Date',
+        severity: noEndDate.length > 0 ? 'medium' : 'info',
+        status: noEndDate.length > 0 ? 'warning' : 'passed',
+        issue_summary: noEndDate.length > 0 ? `${noEndDate.length} active grant(s) missing end_date` : 'All active grants have end dates',
+        recommended_fix: noEndDate.length > 0 ? 'Set end_date on all active grants to enable deadline tracking' : null,
+      });
+
+      // Grants missing attachments
+      const noAttachments = grants.filter(g => ['active', 'awarded'].includes(g.status) && (!g.attachments || g.attachments.length === 0));
+      addFinding({
+        module_name: 'Grants',
+        check_name: 'Active Grants Without Attachments',
+        severity: noAttachments.length > 0 ? 'medium' : 'info',
+        status: noAttachments.length > 0 ? 'warning' : 'passed',
+        issue_summary: noAttachments.length > 0 ? `${noAttachments.length} active grant(s) have no attached documents (award letter, contract, etc.)` : 'All active grants have attachments',
+        recommended_fix: noAttachments.length > 0 ? 'Upload award letters, contracts, or other documents to each active grant' : null,
+      });
+    };
+
+    const runServicePlanIntegrity = async () => {
+      const plans = await safeList('ServicePlan', null, 500);
+      if (plans === null) {
+        addFinding({ module_name: 'Case Management', check_name: 'ServicePlan readable', severity: 'critical', status: 'failed', issue_summary: 'Cannot read ServicePlan entity' });
+        return;
+      }
+
+      // Broken resident_id (literal ":residentId" or empty)
+      const broken = plans.filter(p => !p.resident_id || p.resident_id === ':residentId' || !p.global_resident_id || p.global_resident_id === '');
+      addFinding({
+        module_name: 'Case Management',
+        check_name: 'Broken ServicePlan Linkages',
+        severity: broken.length > 0 ? 'critical' : 'info',
+        status: broken.length > 0 ? 'failed' : 'passed',
+        issue_code: broken.length > 0 ? 'BROKEN_PLAN_LINK' : null,
+        issue_summary: broken.length > 0 ? `${broken.length} service plan(s) have broken or missing resident links (URL param leak or empty ID)` : 'All service plans have valid resident links',
+        recommended_fix: broken.length > 0 ? 'Delete broken service plans and recreate via the resident\'s intake flow' : null,
+      });
+
+      // Duplicate plans per resident
+      const plansByResident = {};
+      plans.forEach(p => {
+        if (p.global_resident_id) {
+          plansByResident[p.global_resident_id] = (plansByResident[p.global_resident_id] || 0) + 1;
+        }
+      });
+      const duplicated = Object.entries(plansByResident).filter(([, count]) => count > 1);
+      addFinding({
+        module_name: 'Case Management',
+        check_name: 'Duplicate Service Plans Per Resident',
+        severity: duplicated.length > 0 ? 'medium' : 'info',
+        status: duplicated.length > 0 ? 'warning' : 'passed',
+        issue_summary: duplicated.length > 0 ? `${duplicated.length} resident(s) have multiple active service plans` : 'Each resident has at most one service plan',
+        technical_details: duplicated.map(([gri, count]) => `${gri}: ${count} plans`).join(', ') || null,
+        recommended_fix: duplicated.length > 0 ? 'Review and delete duplicate service plans — each resident should have one active plan' : null,
+      });
+
+      // Plans missing title
+      const noTitle = plans.filter(p => !p.title || p.title.includes('undefined'));
+      addFinding({
+        module_name: 'Case Management',
+        check_name: 'Service Plans With Invalid Title',
+        severity: noTitle.length > 0 ? 'medium' : 'info',
+        status: noTitle.length > 0 ? 'warning' : 'passed',
+        issue_summary: noTitle.length > 0 ? `${noTitle.length} service plan(s) have missing or malformed titles` : 'All service plans have valid titles',
+        recommended_fix: noTitle.length > 0 ? 'Update service plan titles to meaningful names' : null,
+      });
+    };
+
     const runReportingConsistency = async () => {
       const residents = await safeList('Resident', null, 500);
       const outcomes = await safeList('OutcomeRecord', null, 200);
@@ -508,6 +751,9 @@ Deno.serve(async (req) => {
     if (runAll || audit_type === 'learning_pathway') await runLearningPathway();
     if (runAll || audit_type === 'housing_employer') await runHousingEmployer();
     if (runAll || audit_type === 'reporting_consistency') await runReportingConsistency();
+    if (runAll) await runTransportation();
+    if (runAll) await runGrantCompliance();
+    if (runAll) await runServicePlanIntegrity();
 
     // ── SAVE FINDINGS ───────────────────────────────────────────────────
     for (const f of findings) {
