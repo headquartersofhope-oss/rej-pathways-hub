@@ -1,18 +1,12 @@
 {
-  "name": "TransportationRequest",
+  "name": "RecurringRide",
   "type": "object",
-  "description": "A single ride request for a participant. Supports driver/vehicle assignment, dispatch, and no-show tracking.",
+  "description": "A standing recurring ride plan for a participant. Auto-generates ride requests on scheduled days.",
   "properties": {
     "resident_id": {
       "type": "string"
     },
     "resident_name": {
-      "type": "string"
-    },
-    "global_resident_id": {
-      "type": "string"
-    },
-    "organization_id": {
       "type": "string"
     },
     "request_type": {
@@ -34,12 +28,9 @@
     "destination_address": {
       "type": "string"
     },
-    "requested_date": {
+    "pickup_time": {
       "type": "string",
-      "format": "date"
-    },
-    "requested_time": {
-      "type": "string"
+      "description": "HH:MM"
     },
     "return_trip_needed": {
       "type": "boolean",
@@ -48,81 +39,54 @@
     "return_time": {
       "type": "string"
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "approved",
-        "scheduled",
-        "in_progress",
-        "completed",
-        "cancelled",
-        "no_show"
-      ],
-      "default": "pending"
+    "recurrence_days": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Days of week: monday, tuesday, wednesday, thursday, friday, saturday, sunday"
     },
     "assigned_driver_id": {
       "type": "string"
     },
-    "assigned_driver": {
-      "type": "string",
-      "description": "Driver name"
+    "assigned_driver_name": {
+      "type": "string"
     },
     "assigned_vehicle_id": {
       "type": "string"
     },
-    "vehicle": {
+    "assigned_vehicle_name": {
+      "type": "string"
+    },
+    "status": {
       "type": "string",
-      "description": "Vehicle name"
+      "enum": [
+        "active",
+        "paused",
+        "cancelled"
+      ],
+      "default": "active"
     },
-    "pickup_order": {
-      "type": "number",
-      "description": "Order in driver's route for the day"
-    },
-    "confirmed_by": {
-      "type": "string"
-    },
-    "confirmed_at": {
+    "start_date": {
       "type": "string",
-      "format": "date-time"
+      "format": "date"
     },
-    "actual_pickup_time": {
-      "type": "string"
-    },
-    "actual_dropoff_time": {
-      "type": "string"
-    },
-    "no_show_reason": {
-      "type": "string"
-    },
-    "incident_noted": {
-      "type": "boolean",
-      "default": false
-    },
-    "incident_description": {
-      "type": "string"
-    },
-    "cost": {
-      "type": "number"
-    },
-    "funding_source": {
-      "type": "string"
-    },
-    "recurring_ride_id": {
+    "end_date": {
       "type": "string",
-      "description": "Link to RecurringRide if generated from a plan"
+      "format": "date"
     },
     "notes": {
       "type": "string"
     },
-    "external_trip_id": {
+    "organization_id": {
       "type": "string"
     }
   },
   "required": [
     "resident_id",
     "request_type",
-    "requested_date"
+    "pickup_time",
+    "recurrence_days"
   ],
   "rls": {
     "create": {
@@ -136,19 +100,11 @@
           "user_condition": {
             "role": "staff"
           }
-        },
-        {
-          "user_condition": {
-            "role": "case_manager"
-          }
         }
       ]
     },
     "read": {
       "$or": [
-        {
-          "data.resident_id": "{{user.data.resident_id}}"
-        },
         {
           "user_condition": {
             "role": "admin"
@@ -157,11 +113,6 @@
         {
           "user_condition": {
             "role": "staff"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "case_manager"
           }
         }
       ]

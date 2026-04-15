@@ -1,0 +1,111 @@
+{
+  "name": "Driver",
+  "type": "object",
+  "description": "Driver record for transportation operations. Tracks credentials, status, and availability.",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "license_number": {
+      "type": "string"
+    },
+    "license_expiry": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "on_leave",
+        "suspended"
+      ],
+      "default": "active"
+    },
+    "availability_days": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Days available: monday, tuesday, wednesday, thursday, friday, saturday, sunday"
+    },
+    "shift_start": {
+      "type": "string",
+      "description": "HH:MM"
+    },
+    "shift_end": {
+      "type": "string",
+      "description": "HH:MM"
+    },
+    "assigned_vehicle_id": {
+      "type": "string"
+    },
+    "assigned_vehicle_name": {
+      "type": "string"
+    },
+    "total_trips": {
+      "type": "number",
+      "default": 0
+    },
+    "no_show_count": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "full_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
