@@ -28,7 +28,8 @@ export function isAdmin(role) {
 /** Returns true for any staff role that can manage residents */
 export function isStaff(role) {
   // 'user' is the Base44 platform default role — treat as admin/staff
-  return ['admin', 'user', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff'].includes(role);
+  return ['admin', 'user', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff',
+    'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator'].includes(role);
 }
 
 export function isCaseManager(role) {

@@ -3,14 +3,14 @@ import { deriveIntakeStatus } from '@/lib/intakeStatus';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import StatCard from '@/components/shared/StatCard';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { format, isPast, isToday, parseISO } from 'date-fns';
 import {
   Users, AlertTriangle, Calendar, Briefcase,
-  Clock, UserCheck, FileWarning, AlertCircle, GraduationCap, Award
+  Clock, UserCheck, FileWarning, AlertCircle, GraduationCap, Award, BedDouble, Car, DollarSign, ChevronRight
 } from 'lucide-react';
 import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 import ResidentCard from '@/components/shared/ResidentCard';
@@ -94,21 +94,55 @@ export default function StaffDashboard({ user }) {
   return (
     <div className="space-y-6">
       {/* Greeting */}
-      <div>
-        <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">
-          Good {new Date().getHours() < 12 ? 'morning' : 'afternoon'}, {user?.full_name?.split(' ')[0]}
-        </h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Here's your program overview for today.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">
+            Good {new Date().getHours() < 12 ? 'morning' : 'afternoon'}, {user?.full_name?.split(' ')[0]}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Here's your program overview for {new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'})}.
+          </p>
+        </div>
       </div>
+
+      {/* Overdue alert bar */}
+      {overdueTasks.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+          <strong>{overdueTasks.length} overdue task(s)</strong> need your attention
+          <ChevronRight className="w-4 h-4 ml-auto" />
+        </div>
+      )}
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard title="Active Residents" value={activeResidents.length} icon={Users} trend={5} />
+        <StatCard title="Active Participants" value={activeResidents.length} icon={Users} />
         <StatCard title="High Risk" value={highRisk.length} icon={AlertTriangle} subtitle="Need attention" />
         <StatCard title="Overdue Tasks" value={overdueTasks.length} icon={Clock} subtitle="Past due" />
-        <StatCard title="Employed" value={employed.length} icon={Briefcase} trend={12} />
+        <StatCard title="Employed" value={employed.length} icon={Briefcase} />
+      </div>
+
+      {/* Quick links to operations modules */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {[
+          { label: 'Housing', to: '/housing', icon: BedDouble, color: 'bg-blue-50 text-blue-600' },
+          { label: 'Transport', to: '/transportation', icon: Car, color: 'bg-amber-50 text-amber-600' },
+          { label: 'Grants', to: '/grants', icon: DollarSign, color: 'bg-emerald-50 text-emerald-600' },
+          { label: 'Participants', to: '/residents', icon: Users, color: 'bg-violet-50 text-violet-600' },
+          { label: 'Case Mgmt', to: '/case-management', icon: FileWarning, color: 'bg-red-50 text-red-600' },
+          { label: 'Learning', to: '/learning', icon: GraduationCap, color: 'bg-indigo-50 text-indigo-600' },
+        ].map(q => (
+          <Link key={q.to} to={q.to}>
+            <Card className="hover:shadow-sm transition-all cursor-pointer group">
+              <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${q.color}`}>
+                  <q.icon className="w-4 h-4" />
+                </div>
+                <p className="text-xs font-medium leading-tight">{q.label}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       {/* Two column layout */}
@@ -117,13 +151,13 @@ export default function StaffDashboard({ user }) {
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-destructive" /> Needs Attention
+              <AlertTriangle className="w-4 h-4 text-destructive" /> Participants Needing Attention
             </h3>
             <Badge variant="destructive" className="text-xs">{needingAttention.length}</Badge>
           </div>
           <div className="space-y-2">
             {needingAttention.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No residents flagged</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">No participants flagged</p>
             ) : (
               needingAttention.slice(0, 5).map((r) => (
                 <Link key={r.id} to={`/residents/${r.id}`}>
@@ -217,7 +251,7 @@ export default function StaffDashboard({ user }) {
                   <Badge className={`text-[10px] flex-shrink-0 mt-0.5 ${severityColors[inc.severity] || ''}`}>{inc.severity}</Badge>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{inc.incident_type?.replace(/_/g, ' ')}</p>
-                    <p className="text-xs text-muted-foreground">{residentName(inc.resident_id)} · {inc.date ? format(parseISO(inc.date), 'MMM d') : ''}</p>
+                    <p className="text-xs text-muted-foreground">{inc.resident_name || residentName(inc.resident_id)} · {inc.incident_date || (inc.date ? format(parseISO(inc.date), 'MMM d') : '')}</p>
                   </div>
                 </div>
               ))
@@ -298,13 +332,13 @@ export default function StaffDashboard({ user }) {
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
-              <FileWarning className="w-4 h-4 text-amber-500" /> High-Barrier Residents
+              <FileWarning className="w-4 h-4 text-amber-500" /> High-Barrier Participants
             </h3>
             <Badge variant="outline" className="text-xs">{highBarrierResidents.length}</Badge>
           </div>
           <div className="space-y-2">
             {highBarrierResidents.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No high-barrier residents</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">No high-barrier participants</p>
             ) : (
               highBarrierResidents.slice(0, 5).map(r => (
                 <Link key={r.id} to={`/residents/${r.id}`}>

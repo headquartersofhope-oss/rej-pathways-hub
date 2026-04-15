@@ -78,13 +78,13 @@ export default function Residents() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
       <PageHeader
-        title="Residents"
-        subtitle={`${residents.length} total residents`}
+        title="Participants"
+        subtitle={`${residents.length} total participants`}
         icon={Users}
         actions={
           canAdd && (
             <Button className="gap-2" onClick={() => setShowAdd(true)}>
-              <Plus className="w-4 h-4" /> Add Resident
+              <Plus className="w-4 h-4" /> Add Participant
             </Button>
           )
         }
@@ -95,7 +95,7 @@ export default function Residents() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name..."
+            placeholder="Search participants by name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -161,7 +161,7 @@ export default function Residents() {
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Resident</DialogTitle>
+            <DialogTitle>Add New Participant</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -187,7 +187,7 @@ export default function Residents() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
             <Button onClick={handleAddResident} disabled={saving || !newResident.first_name || !newResident.last_name}>
-              {saving ? 'Saving...' : 'Create Resident'}
+              {saving ? 'Saving...' : 'Create Participant'}
             </Button>
           </DialogFooter>
         </DialogContent>

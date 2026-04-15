@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import PageHeader from '@/components/shared/PageHeader';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { FolderOpen, Search, Clock, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { FolderOpen, Search, Clock, Calendar, AlertCircle, CheckCircle2, Users, ChevronRight, AlertTriangle } from 'lucide-react';
 import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 import { filterResidentsByAccess } from '@/lib/rbac';
 import { format, isPast, isToday, parseISO } from 'date-fns';
@@ -65,53 +64,77 @@ export default function CaseManagement() {
   // Scope overdue tasks and appointments to accessible residents only
   const overdueTasks = allTasks.filter(t => t.due_date && isPast(parseISO(t.due_date)) && t.status !== 'completed' && accessibleResidentIds.has(t.resident_id));
   const todayApts = allAppointments.filter(a => a.date && isToday(parseISO(a.date)) && accessibleResidentIds.has(a.resident_id));
-  const openIncidents = allIncidents.filter(i => !i.resolved);
+  const openIncidents = allIncidents.filter(i => i.status === 'open' || i.status === 'under_review' || i.status === 'escalated');
 
   const filteredResidents = accessibleResidents.filter(r =>
     !search || `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
-      <PageHeader
-        title="Case Management"
-        subtitle="Manage case notes, appointments, tasks, and incidents across all residents"
-        icon={FolderOpen}
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-heading text-2xl font-bold">Case Management</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {accessibleResidents.length} participant{accessibleResidents.length !== 1 ? 's' : ''} in your caseload
+          </p>
+        </div>
+        <Link to="/intake">
+          <Button className="gap-2"><Users className="w-4 h-4" />New Intake</Button>
+        </Link>
+      </div>
+
+      {/* Alerts */}
+      {overdueTasks.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+          <strong>{overdueTasks.length} overdue task(s)</strong> — review the Overdue Tasks tab
+          <ChevronRight className="w-4 h-4 ml-auto" />
+        </div>
+      )}
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <Card className="p-4 text-center">
-          <p className="font-heading font-bold text-2xl text-destructive">{overdueTasks.length}</p>
-          <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1"><Clock className="w-3 h-3" /> Overdue Tasks</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="p-4">
+            <p className="font-heading font-bold text-2xl text-destructive">{overdueTasks.length}</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Overdue Tasks</p>
+          </CardContent>
         </Card>
-        <Card className="p-4 text-center">
-          <p className="font-heading font-bold text-2xl text-primary">{todayApts.length}</p>
-          <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1"><Calendar className="w-3 h-3" /> Today's Apts</p>
+        <Card>
+          <CardContent className="p-4">
+            <p className="font-heading font-bold text-2xl text-primary">{todayApts.length}</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Calendar className="w-3 h-3" /> Today's Appointments</p>
+          </CardContent>
         </Card>
-        <Card className="p-4 text-center">
-          <p className="font-heading font-bold text-2xl text-amber-600">{openIncidents.length}</p>
-          <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1"><AlertCircle className="w-3 h-3" /> Open Incidents</p>
+        <Card>
+          <CardContent className="p-4">
+            <p className="font-heading font-bold text-2xl text-amber-600">{openIncidents.length}</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Open Incidents</p>
+          </CardContent>
         </Card>
-        <Card className="p-4 text-center">
-          <p className="font-heading font-bold text-2xl text-accent">{allNotes.length}</p>
-          <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1"><CheckCircle2 className="w-3 h-3" /> Total Notes</p>
+        <Card>
+          <CardContent className="p-4">
+            <p className="font-heading font-bold text-2xl text-accent">{allNotes.length}</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Case Notes</p>
+          </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="residents">
-        <TabsList className="mb-4">
-          <TabsTrigger value="residents">Residents</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue Tasks</TabsTrigger>
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="residents">Participants ({accessibleResidents.length})</TabsTrigger>
+          <TabsTrigger value="overdue">Overdue Tasks ({overdueTasks.length})</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="incidents">Incidents</TabsTrigger>
+          <TabsTrigger value="incidents">Incidents ({openIncidents.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="residents">
+        <TabsContent value="residents" className="mt-4">
           <div className="mb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search residents..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+              <Input placeholder="Search participants..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -143,7 +166,7 @@ export default function CaseManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="overdue">
+        <TabsContent value="overdue" className="mt-4">
           <Card className="p-5">
             {overdueTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No overdue tasks</p>
@@ -167,7 +190,7 @@ export default function CaseManagement() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="appointments">
+        <TabsContent value="appointments" className="mt-4">
           <Card className="p-5">
             {allAppointments.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No appointments</p>
@@ -196,7 +219,7 @@ export default function CaseManagement() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="incidents">
+        <TabsContent value="incidents" className="mt-4">
           <Card className="p-5">
             {allIncidents.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No incidents reported</p>
@@ -208,14 +231,14 @@ export default function CaseManagement() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <Badge className={`text-[10px] ${severityColors[inc.severity] || ''}`}>{inc.severity}</Badge>
-                          <span className="text-sm font-medium">{inc.incident_type?.replace(/_/g, ' ')}</span>
+                          <span className="text-sm font-medium capitalize">{inc.incident_type?.replace(/_/g, ' ')}</span>
+                          <Badge variant="outline" className={`text-[10px] ${inc.status === 'resolved' ? 'bg-emerald-50 text-emerald-700' : inc.status === 'open' ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'}`}>{inc.status}</Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">{residentName(inc.resident_id)}</p>
+                        <p className="text-xs text-muted-foreground">{inc.resident_name || residentName(inc.resident_id)} · {inc.house_name || ''}</p>
                         <p className="text-sm mt-1">{inc.description}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-xs text-muted-foreground">{inc.date ? format(parseISO(inc.date), 'MMM d, yyyy') : ''}</p>
-                        {inc.resolved && <Badge className="text-[10px] bg-emerald-50 text-emerald-700 mt-1">Resolved</Badge>}
+                        <p className="text-xs text-muted-foreground">{inc.incident_date || (inc.date ? format(parseISO(inc.date), 'MMM d, yyyy') : '')}</p>
                       </div>
                     </div>
                   </div>
