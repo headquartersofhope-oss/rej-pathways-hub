@@ -44,6 +44,7 @@ import AdminControlCenter from '@/pages/admin/AdminControlCenter';
 import AuditCenter from '@/pages/admin/AuditCenter';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
 import HousingReferrals from '@/pages/HousingReferrals';
+import MyAccessVerification from '@/pages/admin/MyAccessVerification';
 import HousingOperations from '@/pages/HousingOperations';
 import GrantTracker from '@/pages/GrantTracker';
 import TransportationHub from '@/pages/TransportationHub';
@@ -124,6 +125,7 @@ const AuthenticatedApp = () => {
         <Route path="/housing" element={<HousingOperations />} />
         <Route path="/grants" element={<GrantTracker />} />
         <Route path="/transportation" element={<TransportationHub />} />
+        <Route path="/admin/my-access" element={<MyAccessVerification />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

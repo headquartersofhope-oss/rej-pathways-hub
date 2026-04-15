@@ -81,6 +81,7 @@ const navSections = (role) => {
       items: [
         { label: '⚡ Control Center', path: '/admin/control-center', icon: Terminal },
         { label: '🔬 Audit Center', path: '/admin/audit', icon: Shield },
+        { label: '🔐 My Access', path: '/admin/my-access', icon: Shield },
         { label: 'Onboarding Queue', path: '/admin/onboarding', icon: ClipboardList },
         { label: 'Organizations', path: '/organizations', icon: Building2 },
         { label: 'Sites', path: '/sites', icon: MapPin },

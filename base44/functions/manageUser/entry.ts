@@ -13,7 +13,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.role !== 'admin') {
+    const adminRoles = ['admin', 'super_admin', 'org_admin'];
+    const appRole = user.data?.app_role;
+    if (!adminRoles.includes(user.role) && !adminRoles.includes(appRole)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -29,8 +31,8 @@ Deno.serve(async (req) => {
       }
 
       // Map app_role to platform role (only admin/user allowed by platform)
-      // All custom roles (case_manager, probation_officer, staff, etc.) map to 'user'
-      const platformRole = (app_role === 'admin') ? 'admin' : 'user';
+      // super_admin and org_admin map to platform 'admin'; all others map to 'user'
+      const platformRole = ['admin', 'super_admin', 'org_admin'].includes(app_role) ? 'admin' : 'user';
       console.log(`[manageUser] Mapping app_role="${app_role}" to platformRole="${platformRole}"`);
 
       try {
