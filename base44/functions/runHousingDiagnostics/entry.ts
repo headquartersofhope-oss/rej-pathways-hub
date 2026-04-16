@@ -212,6 +212,74 @@ Deno.serve(async (req) => {
       failedChecks++;
     }
 
+    // CHECK 8b: Turnkey placements without org scope
+    try {
+      const placements = await base44.asServiceRole.entities.HousingPlacement.filter({ housing_model: 'turnkey_house' });
+      const missingOrg = placements.filter(p => !p.organization_id);
+      if (missingOrg.length > 0) {
+        findings.push({
+          issue: `${missingOrg.length} turnkey placements missing organization_id (scope leak risk)`,
+          severity: 'error',
+          recommendation: 'Update these HousingPlacement records with the correct organization_id to enforce org-scoped access.'
+        });
+        failedChecks++;
+      } else {
+        passedChecks++;
+      }
+    } catch (err) {
+      findings.push({ issue: 'Failed to check turnkey org scoping', severity: 'error', recommendation: err.message });
+      failedChecks++;
+    }
+
+    // CHECK 8c: Turnkey placements missing room/bed after being marked "placed"
+    try {
+      const placements = await base44.asServiceRole.entities.HousingPlacement.filter({ housing_model: 'turnkey_house', placement_status: 'placed' });
+      const missingBed = placements.filter(p => !p.bed_id && !p.bed_label);
+      if (missingBed.length > 0) {
+        findings.push({
+          issue: `${missingBed.length} turnkey placements are "placed" but missing room/bed assignment`,
+          severity: 'warning',
+          recommendation: 'Re-open the resident housing tab and complete the bed assignment for these residents.'
+        });
+        failedChecks++;
+      } else {
+        passedChecks++;
+      }
+    } catch (err) {
+      findings.push({ issue: 'Failed to check turnkey bed assignments', severity: 'error', recommendation: err.message });
+      failedChecks++;
+    }
+
+    // CHECK 8d: Turnkey sync mismatch — placement says placed but Bed entity shows available
+    try {
+      const turnkeyPlacements = await base44.asServiceRole.entities.HousingPlacement.filter({
+        housing_model: 'turnkey_house', placement_status: 'placed'
+      });
+      const mismatchCount = [];
+      for (const p of turnkeyPlacements) {
+        if (p.bed_id) {
+          const beds = await base44.asServiceRole.entities.Bed.filter({ id: p.bed_id }).catch(() => []);
+          const bed = beds[0];
+          if (bed && bed.status === 'available') {
+            mismatchCount.push(p);
+          }
+        }
+      }
+      if (mismatchCount.length > 0) {
+        findings.push({
+          issue: `${mismatchCount.length} turnkey placements show "placed" but linked Bed is still "available"`,
+          severity: 'warning',
+          recommendation: 'Run a manual sync or re-assign the bed to reconcile occupancy status.'
+        });
+        failedChecks++;
+      } else {
+        passedChecks++;
+      }
+    } catch (err) {
+      findings.push({ issue: 'Failed to check turnkey bed/placement sync', severity: 'warning', recommendation: err.message });
+      failedChecks++;
+    }
+
     // CHECK 8: Housing App API connectivity
     try {
       const apiKey = Deno.env.get('HOUSING_APP_API_KEY');

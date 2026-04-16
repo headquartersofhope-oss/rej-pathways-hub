@@ -174,10 +174,15 @@ export default function PlacementStatusCard({ residentId, globalResidentId, isEd
           </div>
         )}
 
-        {/* Room/Bed Assignment (Per-Bed Only) */}
-        {placement.housing_model === 'per_bed' && placement.room_name && (
+        {/* Room/Bed Assignment (Per-Bed and Turnkey) */}
+        {(placement.housing_model === 'per_bed' || placement.housing_model === 'turnkey_house') && placement.room_name && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">ROOM & BED</p>
+            {placement.housing_model === 'turnkey_house' && (
+              <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20 mb-1">
+                Turnkey House — Internal Placement
+              </Badge>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2 bg-slate-50 rounded border">
                 <p className="text-xs text-muted-foreground">Room</p>
@@ -188,6 +193,16 @@ export default function PlacementStatusCard({ residentId, globalResidentId, isEd
                 <p className="font-medium text-sm">{placement.bed_label || '—'}</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Turnkey placement without specific room (whole-house) */}
+        {placement.housing_model === 'turnkey_house' && !placement.room_name && placement.placement_status === 'placed' && (
+          <div className="space-y-2">
+            <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
+              Turnkey House — Internal Placement
+            </Badge>
+            <p className="text-xs text-muted-foreground">Whole-house placement. Room/bed not yet assigned.</p>
           </div>
         )}
 

@@ -1,7 +1,7 @@
 {
   "name": "HousingPlacement",
   "type": "object",
-  "description": "Housing placement record synced from Housing App. Tracks where a resident is placed and their occupancy status. Single source of placement truth.",
+  "description": "Housing placement record. Tracks where a resident is placed and their occupancy status. For turnkey_house model, Pathway creates/manages the record directly (org-controlled houses). For per_bed model, records are synced from Housing App. Housing App remains source of truth for external placements.",
   "properties": {
     "global_resident_id": {
       "type": "string",
@@ -12,7 +12,8 @@
       "description": "FK to Resident.id"
     },
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Organization that owns this placement. REQUIRED for turnkey_house model to enforce org-scoped access."
     },
     "referral_id": {
       "type": "string",
@@ -20,19 +21,20 @@
     },
     "external_placement_id": {
       "type": "string",
-      "description": "ID from Housing App (synced source of truth)"
+      "description": "ID from Housing App (synced source of truth \u2014 used for per_bed model)"
     },
     "housing_model": {
       "type": "string",
       "enum": [
         "per_bed",
-        "turnkey"
+        "turnkey",
+        "turnkey_house"
       ],
-      "description": "Per-bed allows individual bed selection; turnkey is whole-house placement"
+      "description": "per_bed: individual bed in external provider; turnkey/turnkey_house: org-controlled whole house where org assigns beds internally"
     },
     "house_id": {
       "type": "string",
-      "description": "External Housing App house ID"
+      "description": "House.id (internal, for turnkey_house) or External Housing App house ID (for per_bed)"
     },
     "house_name": {
       "type": "string",
@@ -59,19 +61,19 @@
     },
     "room_id": {
       "type": "string",
-      "description": "External Housing App room ID (null if turnkey)"
+      "description": "Bed.id (turnkey_house) or External Housing App room ID (per_bed)"
     },
     "room_name": {
       "type": "string",
-      "description": "e.g. 'Bedroom 2', 'Rear Room', 'Master Suite' (null if turnkey)"
+      "description": "e.g. 'Room 2', 'Rear Room'"
     },
     "bed_id": {
       "type": "string",
-      "description": "External Housing App bed ID (null if turnkey)"
+      "description": "Bed.id from local Bed entity (turnkey_house) or External Housing App bed ID (per_bed)"
     },
     "bed_label": {
       "type": "string",
-      "description": "e.g. 'Bed A', 'Bed 3' (null if turnkey)"
+      "description": "e.g. 'Bed A', 'Bed 3'"
     },
     "placement_status": {
       "type": "string",
@@ -144,7 +146,7 @@
     "synced_at": {
       "type": "string",
       "format": "date-time",
-      "description": "Last sync timestamp from Housing App"
+      "description": "Last sync timestamp"
     },
     "sync_source": {
       "type": "string",
@@ -154,7 +156,7 @@
         "manual_sync",
         "direct_import"
       ],
-      "description": "How placement was created/updated"
+      "description": "How placement was created/updated. direct_import = Pathway staff assigned turnkey bed."
     },
     "sync_error": {
       "type": "string",
