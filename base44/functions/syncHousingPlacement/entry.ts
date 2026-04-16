@@ -43,8 +43,9 @@ Deno.serve(async (req) => {
     }
 
     // STEP 2: Fetch from Housing App API
-    const housingAppUrl = Deno.env.get('HOUSING_APP_API_URL') || 'https://housing.nonprofit.org/api';
-    const housingAppKey = Deno.env.get('HOUSING_APP_API_KEY');
+    const envKeys = Deno.env.toObject();
+    const housingAppUrl = envKeys['HOUSING_APP_API_URL'] || 'https://housing.nonprofit.org/api';
+    const housingAppKey = envKeys['HOUSING_APP_API_KEY'];
 
     if (!housingAppKey) {
       console.warn('HOUSING_APP_API_KEY not set; sync skipped');

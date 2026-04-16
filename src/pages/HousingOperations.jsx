@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Home, Plus, BedDouble, Users, AlertTriangle, CheckCircle,
-  DollarSign, ClipboardList, ChevronRight, Building2, Search, Edit, X, UserPlus
+  DollarSign, ClipboardList, ChevronRight, Building2, Search, Edit, X, UserPlus, Wrench
 } from 'lucide-react';
+import HousingSystemHealth from '@/components/housing/HousingSystemHealth';
 
 const STATUS_COLORS = {
   available: 'bg-emerald-100 text-emerald-800',
@@ -508,6 +509,7 @@ export default function HousingOperations() {
           <TabsTrigger value="beds">Bed Inventory</TabsTrigger>
           <TabsTrigger value="incidents">Incidents ({openIncidents})</TabsTrigger>
           <TabsTrigger value="payments">Fee Payments</TabsTrigger>
+          <TabsTrigger value="health">System Health</TabsTrigger>
         </TabsList>
 
         {/* Houses Tab */}
@@ -751,6 +753,16 @@ export default function HousingOperations() {
               </table>
             </div>
           )}
+        </TabsContent>
+        {/* System Health Tab */}
+        <TabsContent value="health" className="mt-4">
+          <div className="mb-4">
+            <h3 className="font-heading font-semibold text-base">Housing System Health</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Run diagnostics to validate housing data integrity. Run Full Sync to repair mismatches between houses, beds, and placement records.
+            </p>
+          </div>
+          <HousingSystemHealth />
         </TabsContent>
       </Tabs>
     </div>
