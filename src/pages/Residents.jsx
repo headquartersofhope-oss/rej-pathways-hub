@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Users, Search, Plus, Filter, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { nextGlobalResidentId } from '@/lib/residentIdentity';
+// nextGlobalResidentId replaced by backend generateResidentId to prevent race conditions
 import { filterResidentsByAccess, getResidentPermissions } from '@/lib/rbac';
 import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 import ResidentCard from '@/components/shared/ResidentCard';
@@ -55,7 +55,9 @@ export default function Residents() {
 
   const handleAddResident = async () => {
     setSaving(true);
-    const global_resident_id = nextGlobalResidentId(residents);
+    // Use backend function to generate ID atomically (prevents race conditions)
+    const { data } = await base44.functions.invoke('generateResidentId', {});
+    const global_resident_id = data.global_resident_id;
     await base44.entities.Resident.create({
       ...newResident,
       global_resident_id,
@@ -181,7 +183,7 @@ export default function Residents() {
               />
             </div>
             <p className="text-xs text-muted-foreground font-mono">
-              ID will be assigned: {nextGlobalResidentId(residents)}
+              ID will be auto-assigned on creation
             </p>
           </div>
           <DialogFooter>

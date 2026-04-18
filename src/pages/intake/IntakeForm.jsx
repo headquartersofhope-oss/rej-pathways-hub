@@ -62,6 +62,7 @@ export default function IntakeForm() {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const saveLockRef = React.useRef(false); // prevents duplicate assessment creation on rapid clicks
 
   const { data: resident } = useQuery({
     queryKey: ['resident', residentId],
@@ -112,6 +113,8 @@ export default function IntakeForm() {
   };
 
   const handleSave = async (showFeedback = true) => {
+    if (saveLockRef.current) return; // prevent concurrent saves
+    saveLockRef.current = true;
     setSaving(true);
     const payload = {
       ...formData,
@@ -154,6 +157,7 @@ export default function IntakeForm() {
     }
 
     setSaving(false);
+    saveLockRef.current = false;
   };
 
   const handleComplete = async () => {
