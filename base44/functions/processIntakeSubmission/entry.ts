@@ -215,6 +215,38 @@ async function handleWebsiteApplication(base44, data, orgId) {
     });
     console.log(`✅ [WEBSITE_APP] ServiceTask created: ${task.id}`);
 
+    // Create OnboardingRequest to bridge into queue
+    console.log(`[WEBSITE_APP] Creating OnboardingRequest for queue visibility`);
+    try {
+      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        phone: data.phone,
+        request_type: 'resident_intake',
+        requested_role: 'resident',
+        status: 'pending',
+        submitted_date: new Date().toISOString(),
+        ai_analysis_complete: false,
+        resident_id: resident.id,
+        intake_assessment_id: intake.id,
+        organization_id: orgId
+      });
+      console.log(`✅ [WEBSITE_APP] OnboardingRequest created: ${onboardingRequest.id}`);
+
+      // Trigger AI analysis
+      try {
+        await base44.functions.invoke('analyzeOnboardingRequest', {
+          request_id: onboardingRequest.id
+        });
+        console.log(`✅ [WEBSITE_APP] AI analysis triggered for onboarding request`);
+      } catch (aiError) {
+        console.warn(`⚠️  [WEBSITE_APP] AI analysis trigger failed (non-fatal): ${aiError.message}`);
+      }
+    } catch (onboardingError) {
+      console.warn(`⚠️  [WEBSITE_APP] OnboardingRequest creation failed (non-fatal): ${onboardingError.message}`);
+    }
+
     return {
       submission_id: intake.id,
       created_records: {
@@ -224,7 +256,7 @@ async function handleWebsiteApplication(base44, data, orgId) {
         service_plan_id: servicePlan.id
       },
       status: 'intake_started',
-      message: `Website application received for ${data.first_name} ${data.last_name}. Intake assessment created.`
+      message: `Website application received for ${data.first_name} ${data.last_name}. Intake assessment created and queued for review.`
     };
   } catch (operationError) {
     console.error(`❌ [WEBSITE_APP] Failed to create records:`, operationError.message);
@@ -336,6 +368,39 @@ async function handlePartnerReferral(base44, data, orgId) {
     });
     console.log(`✅ [PARTNER_REFERRAL] ServiceTask created: ${task.id}`);
 
+    // Create OnboardingRequest to bridge into queue
+    console.log(`[PARTNER_REFERRAL] Creating OnboardingRequest for queue visibility`);
+    try {
+      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+        first_name: firstName,
+        last_name: lastName,
+        email: data.resident_email,
+        phone: data.resident_phone,
+        request_type: 'partner_referral',
+        requested_role: 'resident',
+        status: 'pending',
+        submitted_date: new Date().toISOString(),
+        ai_analysis_complete: false,
+        resident_id: resident.id,
+        referral_id: referral.id,
+        organization_id: orgId,
+        notes: `Referred by ${data.partner_name}: ${data.notes || ''}`
+      });
+      console.log(`✅ [PARTNER_REFERRAL] OnboardingRequest created: ${onboardingRequest.id}`);
+
+      // Trigger AI analysis
+      try {
+        await base44.functions.invoke('analyzeOnboardingRequest', {
+          request_id: onboardingRequest.id
+        });
+        console.log(`✅ [PARTNER_REFERRAL] AI analysis triggered for onboarding request`);
+      } catch (aiError) {
+        console.warn(`⚠️  [PARTNER_REFERRAL] AI analysis trigger failed (non-fatal): ${aiError.message}`);
+      }
+    } catch (onboardingError) {
+      console.warn(`⚠️  [PARTNER_REFERRAL] OnboardingRequest creation failed (non-fatal): ${onboardingError.message}`);
+    }
+
     return {
       submission_id: referral.id,
       created_records: {
@@ -344,7 +409,7 @@ async function handlePartnerReferral(base44, data, orgId) {
         referral_id: referral.id
       },
       status: 'referral_submitted',
-      message: `Housing referral received from ${data.partner_name} for ${data.resident_name}.`
+      message: `Housing referral received from ${data.partner_name} for ${data.resident_name}. Queued for review.`
     };
   } catch (operationError) {
     console.error(`❌ [PARTNER_REFERRAL] Failed to create records:`, operationError.message);
@@ -410,6 +475,38 @@ async function handleEmployerIntake(base44, data, orgId) {
       console.log(`[EMPLOYER_INTAKE] No job details provided, skipping JobListing creation`);
     }
 
+    // Create OnboardingRequest to bridge into queue
+    console.log(`[EMPLOYER_INTAKE] Creating OnboardingRequest for queue visibility`);
+    try {
+      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+        first_name: data.contact_name || 'Employer',
+        last_name: data.company_name,
+        email: data.contact_email,
+        phone: data.contact_phone,
+        request_type: 'employer_intake',
+        requested_role: 'employer',
+        status: 'pending',
+        submitted_date: new Date().toISOString(),
+        ai_analysis_complete: false,
+        employer_id: employer.id,
+        organization_id: orgId,
+        notes: `Employer intake: ${data.company_name}`
+      });
+      console.log(`✅ [EMPLOYER_INTAKE] OnboardingRequest created: ${onboardingRequest.id}`);
+
+      // Trigger AI analysis
+      try {
+        await base44.functions.invoke('analyzeOnboardingRequest', {
+          request_id: onboardingRequest.id
+        });
+        console.log(`✅ [EMPLOYER_INTAKE] AI analysis triggered for onboarding request`);
+      } catch (aiError) {
+        console.warn(`⚠️  [EMPLOYER_INTAKE] AI analysis trigger failed (non-fatal): ${aiError.message}`);
+      }
+    } catch (onboardingError) {
+      console.warn(`⚠️  [EMPLOYER_INTAKE] OnboardingRequest creation failed (non-fatal): ${onboardingError.message}`);
+    }
+
     return {
       submission_id: employer.id,
       created_records: {
@@ -417,7 +514,7 @@ async function handleEmployerIntake(base44, data, orgId) {
         job_listing_id: jobListing?.id || null
       },
       status: 'employer_registered',
-      message: `Employer ${data.company_name} registered. ${jobListing ? 'Job listing created.' : 'No job listing submitted.'}`
+      message: `Employer ${data.company_name} registered and queued for review. ${jobListing ? 'Job listing created.' : 'No job listing submitted.'}`
     };
   } catch (createError) {
     console.error(`❌ [EMPLOYER_INTAKE] Failed to create employer:`, createError.message);
@@ -451,13 +548,45 @@ async function handleResourceProvider(base44, data, orgId) {
     });
     console.log(`✅ [RESOURCE_PROVIDER] PartnerAgency created: ${partner.id}`);
 
+    // Create OnboardingRequest to bridge into queue
+    console.log(`[RESOURCE_PROVIDER] Creating OnboardingRequest for queue visibility`);
+    try {
+      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+        first_name: data.contact_name || 'Provider',
+        last_name: data.provider_name,
+        email: data.contact_email,
+        phone: data.contact_phone,
+        request_type: 'resource_provider',
+        requested_role: 'partner',
+        status: 'pending',
+        submitted_date: new Date().toISOString(),
+        ai_analysis_complete: false,
+        partner_id: partner.id,
+        organization_id: orgId,
+        notes: `Resource provider intake: ${data.provider_name}`
+      });
+      console.log(`✅ [RESOURCE_PROVIDER] OnboardingRequest created: ${onboardingRequest.id}`);
+
+      // Trigger AI analysis
+      try {
+        await base44.functions.invoke('analyzeOnboardingRequest', {
+          request_id: onboardingRequest.id
+        });
+        console.log(`✅ [RESOURCE_PROVIDER] AI analysis triggered for onboarding request`);
+      } catch (aiError) {
+        console.warn(`⚠️  [RESOURCE_PROVIDER] AI analysis trigger failed (non-fatal): ${aiError.message}`);
+      }
+    } catch (onboardingError) {
+      console.warn(`⚠️  [RESOURCE_PROVIDER] OnboardingRequest creation failed (non-fatal): ${onboardingError.message}`);
+    }
+
     return {
       submission_id: partner.id,
       created_records: {
         partner_id: partner.id
       },
       status: 'provider_registered',
-      message: `Service provider ${data.provider_name} registered and available for referrals.`
+      message: `Service provider ${data.provider_name} registered, queued for review, and available for referrals.`
     };
   } catch (createError) {
     console.error(`❌ [RESOURCE_PROVIDER] Failed to create partner agency:`, createError.message);
