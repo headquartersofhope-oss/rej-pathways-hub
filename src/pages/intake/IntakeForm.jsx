@@ -161,10 +161,9 @@ export default function IntakeForm() {
   };
 
   const handleComplete = async () => {
-    if (!residentId || residentId === ':residentId' || !resident?.id) {
-      console.error('Cannot complete: invalid residentId', residentId);
-      return;
-    }
+    if (!residentId || residentId === ':residentId' || !resident?.id) return;
+    if (saveLockRef.current) return; // prevent double-submit on complete
+    saveLockRef.current = true;
     setCompleting(true);
     try {
       const globalResidentId = resident.global_resident_id || '';
@@ -284,6 +283,7 @@ export default function IntakeForm() {
       navigate(`/intake/${residentId}`);
     } finally {
       setCompleting(false);
+      saveLockRef.current = false;
     }
   };
 
