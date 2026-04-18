@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
         actual_move_out_date: today,
       });
       if (bed.house_id) affectedHouseIds.add(bed.house_id);
-      actions.push(`Bed "${bed.bed_label}" (${bed.house_name}) → status: available, resident cleared`);
+      actions.push(`Bed "${bed.bed_label}" (${bed.house_name}) → RELEASED immediately. Status: available, resident cleared`);
     }
 
     // ── STEP 5: Recalculate House.occupied_beds for all affected houses ──────
@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
       });
     }
     if (tasksToArchive.length > 0) {
-      actions.push(`${tasksToArchive.length} open task(s) archived (status → blocked)`);
+      actions.push(`${tasksToArchive.length} open task(s) marked as blocked`);
     }
 
     // ── STEP 7: Write exit CaseNote ───────────────────────────────────────────
@@ -170,9 +170,11 @@ Deno.serve(async (req) => {
       resident_id: residentId,
       global_resident_id: resident.global_resident_id,
       exit_date: today,
+      beds_released_immediately: stillOccupied.length,
       placements_closed: activePlacements.length,
-      beds_released: stillOccupied.length,
       tasks_archived: tasksToArchive.length,
+      house_counts_recalculated: affectedHouseIds.size,
+      no_sync_delay: true,
       actions,
     });
 
