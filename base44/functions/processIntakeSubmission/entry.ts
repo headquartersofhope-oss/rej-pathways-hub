@@ -187,9 +187,10 @@ async function handleWebsiteApplication(base44, data, orgId) {
       throw scanError;
     }
 
-    // Create new resident WITH generated global_resident_id
+    // Create new resident WITH generated global_resident_id (using service role for public submissions)
     try {
-      resident = await base44.entities.Resident.create({
+      console.log(`[WEBSITE_APP] Creating Resident using privileged service-role context`);
+      resident = await base44.asServiceRole.entities.Resident.create({
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
@@ -204,17 +205,17 @@ async function handleWebsiteApplication(base44, data, orgId) {
         risk_level: 'low',
         global_resident_id: globalResidentId
       });
-      console.log(`✅ [WEBSITE_APP] Resident created: ID=${resident.id}, global_resident_id=${globalResidentId}`);
+      console.log(`✅ [WEBSITE_APP] Resident created (privileged): ID=${resident.id}, global_resident_id=${globalResidentId}`);
     } catch (createError) {
       console.error(`❌ [WEBSITE_APP] Failed to create resident:`, createError.message);
       throw createError;
     }
   }
 
-  // Create intake assessment
+  // Create intake assessment (using service role for public submissions)
   console.log(`[WEBSITE_APP] Creating IntakeAssessment for resident ${resident.id}`);
   try {
-    const intake = await base44.entities.IntakeAssessment.create({
+    const intake = await base44.asServiceRole.entities.IntakeAssessment.create({
       resident_id: resident.id,
       global_resident_id: globalResidentId,
       organization_id: orgId,
@@ -226,22 +227,22 @@ async function handleWebsiteApplication(base44, data, orgId) {
         phone: data.phone
       }
     });
-    console.log(`✅ [WEBSITE_APP] IntakeAssessment created: ${intake.id}`);
+    console.log(`✅ [WEBSITE_APP] IntakeAssessment created (privileged): ${intake.id}`);
 
-    // Create initial service plan
+    // Create initial service plan (using service role for public submissions)
     console.log(`[WEBSITE_APP] Creating ServicePlan`);
-    const servicePlan = await base44.entities.ServicePlan.create({
+    const servicePlan = await base44.asServiceRole.entities.ServicePlan.create({
       resident_id: resident.id,
       global_resident_id: globalResidentId,
       organization_id: orgId,
       title: 'Initial Service Plan - Website Application',
       status: 'active'
     });
-    console.log(`✅ [WEBSITE_APP] ServicePlan created: ${servicePlan.id}`);
+    console.log(`✅ [WEBSITE_APP] ServicePlan created (privileged): ${servicePlan.id}`);
 
-    // Create intake task
+    // Create intake task (using service role for public submissions)
     console.log(`[WEBSITE_APP] Creating ServiceTask`);
-    const task = await base44.entities.ServiceTask.create({
+    const task = await base44.asServiceRole.entities.ServiceTask.create({
       resident_id: resident.id,
       global_resident_id: globalResidentId,
       organization_id: orgId,
@@ -252,12 +253,12 @@ async function handleWebsiteApplication(base44, data, orgId) {
       priority: 'high',
       requires_staff_action: true
     });
-    console.log(`✅ [WEBSITE_APP] ServiceTask created: ${task.id}`);
+    console.log(`✅ [WEBSITE_APP] ServiceTask created (privileged): ${task.id}`);
 
-    // Create OnboardingRequest to bridge into queue
+    // Create OnboardingRequest to bridge into queue (using service role for public submissions)
     console.log(`[WEBSITE_APP] Creating OnboardingRequest for queue visibility`);
     try {
-      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+      const onboardingRequest = await base44.asServiceRole.entities.OnboardingRequest.create({
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
@@ -271,7 +272,7 @@ async function handleWebsiteApplication(base44, data, orgId) {
         intake_assessment_id: intake.id,
         organization_id: orgId
       });
-      console.log(`✅ [WEBSITE_APP] OnboardingRequest created: ${onboardingRequest.id}`);
+      console.log(`✅ [WEBSITE_APP] OnboardingRequest created (privileged): ${onboardingRequest.id}`);
 
       // Trigger AI analysis
       try {
@@ -358,7 +359,8 @@ async function handlePartnerReferral(base44, data, orgId) {
     }
 
     try {
-      resident = await base44.entities.Resident.create({
+      console.log(`[PARTNER_REFERRAL] Creating Resident using privileged service-role context`);
+      resident = await base44.asServiceRole.entities.Resident.create({
         first_name: firstName,
         last_name: lastName,
         phone: data.resident_phone,
@@ -368,17 +370,17 @@ async function handlePartnerReferral(base44, data, orgId) {
         risk_level: 'low',
         global_resident_id: globalResidentId
       });
-      console.log(`✅ [PARTNER_REFERRAL] Resident created: ID=${resident.id}, global_resident_id=${globalResidentId}`);
+      console.log(`✅ [PARTNER_REFERRAL] Resident created (privileged): ID=${resident.id}, global_resident_id=${globalResidentId}`);
     } catch (createError) {
       console.error(`❌ [PARTNER_REFERRAL] Failed to create resident:`, createError.message);
       throw createError;
     }
   }
 
-  // Create housing referral
+  // Create housing referral (using service role for public submissions)
   console.log(`[PARTNER_REFERRAL] Creating HousingReferral for partner: ${data.partner_name}`);
   try {
-    const referral = await base44.entities.HousingReferral.create({
+    const referral = await base44.asServiceRole.entities.HousingReferral.create({
       resident_id: resident.id,
       global_resident_id: globalResidentId,
       organization_id: orgId,
@@ -390,11 +392,11 @@ async function handlePartnerReferral(base44, data, orgId) {
       referral_date: new Date().toISOString().split('T')[0],
       internal_notes: `Referred by ${data.partner_name}. ${data.notes || ''}`
     });
-    console.log(`✅ [PARTNER_REFERRAL] HousingReferral created: ${referral.id}`);
+    console.log(`✅ [PARTNER_REFERRAL] HousingReferral created (privileged): ${referral.id}`);
 
-    // Create intake task
+    // Create intake task (using service role for public submissions)
     console.log(`[PARTNER_REFERRAL] Creating ServiceTask`);
-    const task = await base44.entities.ServiceTask.create({
+    const task = await base44.asServiceRole.entities.ServiceTask.create({
       resident_id: resident.id,
       global_resident_id: globalResidentId,
       organization_id: orgId,
@@ -405,12 +407,12 @@ async function handlePartnerReferral(base44, data, orgId) {
       priority: 'high',
       requires_staff_action: true
     });
-    console.log(`✅ [PARTNER_REFERRAL] ServiceTask created: ${task.id}`);
+    console.log(`✅ [PARTNER_REFERRAL] ServiceTask created (privileged): ${task.id}`);
 
-    // Create OnboardingRequest to bridge into queue
+    // Create OnboardingRequest to bridge into queue (using service role for public submissions)
     console.log(`[PARTNER_REFERRAL] Creating OnboardingRequest for queue visibility`);
     try {
-      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+      const onboardingRequest = await base44.asServiceRole.entities.OnboardingRequest.create({
         first_name: firstName,
         last_name: lastName,
         email: data.resident_email,
@@ -425,7 +427,7 @@ async function handlePartnerReferral(base44, data, orgId) {
         organization_id: orgId,
         notes: `Referred by ${data.partner_name}: ${data.notes || ''}`
       });
-      console.log(`✅ [PARTNER_REFERRAL] OnboardingRequest created: ${onboardingRequest.id}`);
+      console.log(`✅ [PARTNER_REFERRAL] OnboardingRequest created (privileged): ${onboardingRequest.id}`);
 
       // Trigger AI analysis
       try {
@@ -466,10 +468,10 @@ async function handleEmployerIntake(base44, data, orgId) {
   }
   console.log(`✅ [EMPLOYER_INTAKE] Required field present`);
 
-  // Create employer
+  // Create employer (using service role for public submissions)
   console.log(`[EMPLOYER_INTAKE] Creating Employer: ${data.company_name}`);
   try {
-    let employer = await base44.entities.Employer.create({
+    let employer = await base44.asServiceRole.entities.Employer.create({
       company_name: data.company_name,
       contact_name: data.contact_name,
       contact_email: data.contact_email,
@@ -485,14 +487,14 @@ async function handleEmployerIntake(base44, data, orgId) {
       organization_id: orgId,
       status: 'active'
     });
-    console.log(`✅ [EMPLOYER_INTAKE] Employer created: ${employer.id}`);
+    console.log(`✅ [EMPLOYER_INTAKE] Employer created (privileged): ${employer.id}`);
 
-    // Create job listing if provided
+    // Create job listing if provided (using service role for public submissions)
     let jobListing = null;
     if (data.job_title || data.job_description) {
       console.log(`[EMPLOYER_INTAKE] Job details provided, creating JobListing`);
       try {
-        jobListing = await base44.entities.JobListing.create({
+        jobListing = await base44.asServiceRole.entities.JobListing.create({
           employer_id: employer.id,
           employer_name: data.company_name,
           job_title: data.job_title || 'Position Available',
@@ -506,7 +508,7 @@ async function handleEmployerIntake(base44, data, orgId) {
           posted_date: new Date().toISOString().split('T')[0],
           organization_id: orgId
         });
-        console.log(`✅ [EMPLOYER_INTAKE] JobListing created: ${jobListing.id}`);
+        console.log(`✅ [EMPLOYER_INTAKE] JobListing created (privileged): ${jobListing.id}`);
       } catch (jobError) {
         console.warn(`⚠️  [EMPLOYER_INTAKE] Failed to create job listing, but employer created. Error: ${jobError.message}`);
       }
@@ -514,10 +516,10 @@ async function handleEmployerIntake(base44, data, orgId) {
       console.log(`[EMPLOYER_INTAKE] No job details provided, skipping JobListing creation`);
     }
 
-    // Create OnboardingRequest to bridge into queue
+    // Create OnboardingRequest to bridge into queue (using service role for public submissions)
     console.log(`[EMPLOYER_INTAKE] Creating OnboardingRequest for queue visibility`);
     try {
-      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+      const onboardingRequest = await base44.asServiceRole.entities.OnboardingRequest.create({
         first_name: data.contact_name || 'Employer',
         last_name: data.company_name,
         email: data.contact_email,
@@ -531,7 +533,7 @@ async function handleEmployerIntake(base44, data, orgId) {
         organization_id: orgId,
         notes: `Employer intake: ${data.company_name}`
       });
-      console.log(`✅ [EMPLOYER_INTAKE] OnboardingRequest created: ${onboardingRequest.id}`);
+      console.log(`✅ [EMPLOYER_INTAKE] OnboardingRequest created (privileged): ${onboardingRequest.id}`);
 
       // Trigger AI analysis
       try {
@@ -571,10 +573,10 @@ async function handleResourceProvider(base44, data, orgId) {
   }
   console.log(`✅ [RESOURCE_PROVIDER] Required field present`);
 
-  // Create partner agency
+  // Create partner agency (using service role for public submissions)
   console.log(`[RESOURCE_PROVIDER] Creating PartnerAgency: ${data.provider_name}`);
   try {
-    const partner = await base44.entities.PartnerAgency.create({
+    const partner = await base44.asServiceRole.entities.PartnerAgency.create({
       name: data.provider_name,
       type: data.provider_type || 'other',
       contact_name: data.contact_name,
@@ -585,12 +587,12 @@ async function handleResourceProvider(base44, data, orgId) {
       notes: data.services_offered || data.notes || '',
       organization_id: orgId
     });
-    console.log(`✅ [RESOURCE_PROVIDER] PartnerAgency created: ${partner.id}`);
+    console.log(`✅ [RESOURCE_PROVIDER] PartnerAgency created (privileged): ${partner.id}`);
 
-    // Create OnboardingRequest to bridge into queue
+    // Create OnboardingRequest to bridge into queue (using service role for public submissions)
     console.log(`[RESOURCE_PROVIDER] Creating OnboardingRequest for queue visibility`);
     try {
-      const onboardingRequest = await base44.entities.OnboardingRequest.create({
+      const onboardingRequest = await base44.asServiceRole.entities.OnboardingRequest.create({
         first_name: data.contact_name || 'Provider',
         last_name: data.provider_name,
         email: data.contact_email,
@@ -604,7 +606,7 @@ async function handleResourceProvider(base44, data, orgId) {
         organization_id: orgId,
         notes: `Resource provider intake: ${data.provider_name}`
       });
-      console.log(`✅ [RESOURCE_PROVIDER] OnboardingRequest created: ${onboardingRequest.id}`);
+      console.log(`✅ [RESOURCE_PROVIDER] OnboardingRequest created (privileged): ${onboardingRequest.id}`);
 
       // Trigger AI analysis
       try {
