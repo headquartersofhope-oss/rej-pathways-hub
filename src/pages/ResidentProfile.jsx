@@ -134,7 +134,7 @@ export default function ResidentProfile() {
     queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
   };
 
-  // Fetch placement
+  // Fetch placement (moved before conditional returns)
   const { data: placement } = useQuery({
     queryKey: ['placement', residentId],
     queryFn: async () => {
