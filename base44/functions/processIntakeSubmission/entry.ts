@@ -2,8 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
-    console.log('=== processIntakeSubmission STARTED ===');
-    console.log(`[${new Date().toISOString()}] Request method: ${req.method}`);
+    const startTime = new Date().toISOString();
+    console.error(`=== processIntakeSubmission STARTED at ${startTime} ===`);
+    console.error(`[DEBUG] Request method: ${req.method}`);
 
     // Only accept POST
     if (req.method !== 'POST') {
@@ -120,12 +121,34 @@ async function handleWebsiteApplication(base44, data, orgId) {
   const existingResident = await checkForDuplicate(base44, data);
   
   let resident;
+  let globalResidentId;
+  
   if (existingResident) {
     console.log(`⚠️  [WEBSITE_APP] Duplicate found! Using existing resident ID: ${existingResident.id}, global_resident_id: ${existingResident.global_resident_id}`);
     resident = existingResident;
+    globalResidentId = existingResident.global_resident_id;
   } else {
-    console.log(`✅ [WEBSITE_APP] No duplicate found, creating new resident`);
-    // Create new resident
+    console.log(`✅ [WEBSITE_APP] No duplicate found, generating global_resident_id`);
+    
+    // Generate next global_resident_id by scanning existing residents
+    try {
+      const allResidents = await base44.asServiceRole.entities.Resident.list();
+      let maxNum = 0;
+      for (const r of allResidents) {
+        if (r.global_resident_id && /^RES-\d{6}$/.test(r.global_resident_id)) {
+          const num = parseInt(r.global_resident_id.slice(4), 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+      const nextNum = maxNum + 1;
+      globalResidentId = `RES-${String(nextNum).padStart(6, '0')}`;
+      console.log(`✅ [WEBSITE_APP] Generated global_resident_id: ${globalResidentId}`);
+    } catch (scanError) {
+      console.error(`❌ [WEBSITE_APP] Failed to scan for next ID:`, scanError.message);
+      throw scanError;
+    }
+
+    // Create new resident WITH generated global_resident_id
     try {
       resident = await base44.entities.Resident.create({
         first_name: data.first_name,
@@ -139,9 +162,10 @@ async function handleWebsiteApplication(base44, data, orgId) {
         organization_id: orgId,
         status: 'pre_intake',
         intake_date: new Date().toISOString().split('T')[0],
-        risk_level: 'low'
+        risk_level: 'low',
+        global_resident_id: globalResidentId
       });
-      console.log(`✅ [WEBSITE_APP] Resident created: ID=${resident.id}, global_resident_id=${resident.global_resident_id}`);
+      console.log(`✅ [WEBSITE_APP] Resident created: ID=${resident.id}, global_resident_id=${globalResidentId}`);
     } catch (createError) {
       console.error(`❌ [WEBSITE_APP] Failed to create resident:`, createError.message);
       throw createError;
@@ -153,7 +177,7 @@ async function handleWebsiteApplication(base44, data, orgId) {
   try {
     const intake = await base44.entities.IntakeAssessment.create({
       resident_id: resident.id,
-      global_resident_id: resident.global_resident_id,
+      global_resident_id: globalResidentId,
       organization_id: orgId,
       status: 'in_progress',
       personal: {
@@ -169,7 +193,7 @@ async function handleWebsiteApplication(base44, data, orgId) {
     console.log(`[WEBSITE_APP] Creating ServicePlan`);
     const servicePlan = await base44.entities.ServicePlan.create({
       resident_id: resident.id,
-      global_resident_id: resident.global_resident_id,
+      global_resident_id: globalResidentId,
       organization_id: orgId,
       title: 'Initial Service Plan - Website Application',
       status: 'active'
@@ -180,7 +204,7 @@ async function handleWebsiteApplication(base44, data, orgId) {
     console.log(`[WEBSITE_APP] Creating ServiceTask`);
     const task = await base44.entities.ServiceTask.create({
       resident_id: resident.id,
-      global_resident_id: resident.global_resident_id,
+      global_resident_id: globalResidentId,
       organization_id: orgId,
       title: 'Complete Intake Assessment',
       description: 'Resident submitted application via website. Complete full intake assessment.',
@@ -195,7 +219,7 @@ async function handleWebsiteApplication(base44, data, orgId) {
       submission_id: intake.id,
       created_records: {
         resident_id: resident.id,
-        global_resident_id: resident.global_resident_id,
+        global_resident_id: globalResidentId,
         intake_assessment_id: intake.id,
         service_plan_id: servicePlan.id
       },
@@ -235,11 +259,33 @@ async function handlePartnerReferral(base44, data, orgId) {
   });
 
   let resident;
+  let globalResidentId;
+  
   if (existingResident) {
     console.log(`⚠️  [PARTNER_REFERRAL] Duplicate found! Using existing resident ID: ${existingResident.id}`);
     resident = existingResident;
+    globalResidentId = existingResident.global_resident_id;
   } else {
-    console.log(`✅ [PARTNER_REFERRAL] No duplicate found, creating new resident`);
+    console.log(`✅ [PARTNER_REFERRAL] No duplicate found, generating global_resident_id`);
+    
+    // Generate next global_resident_id by scanning existing residents
+    try {
+      const allResidents = await base44.asServiceRole.entities.Resident.list();
+      let maxNum = 0;
+      for (const r of allResidents) {
+        if (r.global_resident_id && /^RES-\d{6}$/.test(r.global_resident_id)) {
+          const num = parseInt(r.global_resident_id.slice(4), 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+      const nextNum = maxNum + 1;
+      globalResidentId = `RES-${String(nextNum).padStart(6, '0')}`;
+      console.log(`✅ [PARTNER_REFERRAL] Generated global_resident_id: ${globalResidentId}`);
+    } catch (scanError) {
+      console.error(`❌ [PARTNER_REFERRAL] Failed to scan for next ID:`, scanError.message);
+      throw scanError;
+    }
+
     try {
       resident = await base44.entities.Resident.create({
         first_name: firstName,
@@ -248,9 +294,10 @@ async function handlePartnerReferral(base44, data, orgId) {
         email: data.resident_email,
         organization_id: orgId,
         status: 'pre_intake',
-        risk_level: 'low'
+        risk_level: 'low',
+        global_resident_id: globalResidentId
       });
-      console.log(`✅ [PARTNER_REFERRAL] Resident created: ID=${resident.id}, global_resident_id=${resident.global_resident_id}`);
+      console.log(`✅ [PARTNER_REFERRAL] Resident created: ID=${resident.id}, global_resident_id=${globalResidentId}`);
     } catch (createError) {
       console.error(`❌ [PARTNER_REFERRAL] Failed to create resident:`, createError.message);
       throw createError;
@@ -262,15 +309,15 @@ async function handlePartnerReferral(base44, data, orgId) {
   try {
     const referral = await base44.entities.HousingReferral.create({
       resident_id: resident.id,
-      global_resident_id: resident.global_resident_id,
+      global_resident_id: globalResidentId,
       organization_id: orgId,
-      house_name: data.house_name || 'Partner Referral - TBD',
-      house_type: data.house_type || 'transitional_housing',
-      placement_source: data.partner_name,
-      referral_status: 'submitted',
-      placement_status: 'referred',
-      sync_source: 'partner_referral',
-      notes: data.notes || `Referral from ${data.partner_name}`
+      participant_name: data.resident_name,
+      housing_need_summary: data.notes || `Housing referral from ${data.partner_name}`,
+      target_provider_name: data.partner_name,
+      current_housing_situation: 'unknown',
+      status: 'submitted',
+      referral_date: new Date().toISOString().split('T')[0],
+      internal_notes: `Referred by ${data.partner_name}. ${data.notes || ''}`
     });
     console.log(`✅ [PARTNER_REFERRAL] HousingReferral created: ${referral.id}`);
 
@@ -278,7 +325,7 @@ async function handlePartnerReferral(base44, data, orgId) {
     console.log(`[PARTNER_REFERRAL] Creating ServiceTask`);
     const task = await base44.entities.ServiceTask.create({
       resident_id: resident.id,
-      global_resident_id: resident.global_resident_id,
+      global_resident_id: globalResidentId,
       organization_id: orgId,
       title: `Housing Referral from ${data.partner_name}`,
       description: `Process housing referral. Partner: ${data.partner_name}. ${data.notes || ''}`,
@@ -293,7 +340,7 @@ async function handlePartnerReferral(base44, data, orgId) {
       submission_id: referral.id,
       created_records: {
         resident_id: resident.id,
-        global_resident_id: resident.global_resident_id,
+        global_resident_id: globalResidentId,
         referral_id: referral.id
       },
       status: 'referral_submitted',
