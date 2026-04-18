@@ -78,6 +78,19 @@ export default function ResidentProfile() {
     enabled: !!residentId,
   });
 
+  // Fetch placement
+  const { data: placement } = useQuery({
+    queryKey: ['placement', residentId],
+    queryFn: async () => {
+      const placements = await base44.entities.HousingPlacement.filter({
+        resident_id: residentId,
+        placement_status: 'placed'
+      });
+      return placements[0] || null;
+    },
+    enabled: !!residentId,
+  });
+
   // Backfill: if intake data exists but resident record not yet updated, write it back and refresh
   useEffect(() => {
     if (!resident || !assessment) return;
@@ -133,19 +146,6 @@ export default function ResidentProfile() {
   const handleResidentStatusChange = () => {
     queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
   };
-
-  // Fetch placement (moved before conditional returns)
-  const { data: placement } = useQuery({
-    queryKey: ['placement', residentId],
-    queryFn: async () => {
-      const placements = await base44.entities.HousingPlacement.filter({
-        resident_id: residentId,
-        placement_status: 'placed'
-      });
-      return placements[0] || null;
-    },
-    enabled: !!residentId,
-  });
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
