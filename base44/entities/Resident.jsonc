@@ -134,6 +134,27 @@
       "type": "string",
       "description": "User.id of the assigned case manager \u2014 used for permission checks"
     },
+    "assignment_method": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "manual"
+      ],
+      "description": "How the assignment was made: auto (load-balanced) or manual (manager/admin override)"
+    },
+    "assignment_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the assignment was made"
+    },
+    "assigned_by_user_id": {
+      "type": "string",
+      "description": "User ID of the person who made the assignment (for manual assignments)"
+    },
+    "auto_assignment_reason": {
+      "type": "string",
+      "description": "Reason for auto-assignment (e.g. 'resident_activated', 'intake_completed', 'manual_trigger')"
+    },
     "assigned_probation_officer_id": {
       "type": "string",
       "description": "User.id of the assigned probation officer \u2014 grants that PO read-only access to this resident"
@@ -175,5 +196,47 @@
     "first_name",
     "last_name",
     "organization_id"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.assigned_case_manager_id": "{{user.id}}"
+        },
+        {
+          "data.assigned_probation_officer_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.assigned_case_manager_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

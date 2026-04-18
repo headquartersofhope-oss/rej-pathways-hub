@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2 } from 'lucide-react';
+import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2, Eye, Zap as ZapAuto } from 'lucide-react';
 import SystemOverview from '@/components/admin/SystemOverview';
 import QueueCenter from '@/components/admin/QueueCenter';
 import NotesOversight from '@/components/admin/NotesOversight';
 import AIOpsSummary from '@/components/admin/AIOpsSummary';
 import DiagnosticsPanel from '@/components/admin/DiagnosticsPanel';
 import ModuleQuickAccess from '@/components/admin/ModuleQuickAccess';
+import RolePreviewPanel from '@/components/admin/RolePreviewPanel';
+import AutoAssignmentControl from '@/components/admin/AutoAssignmentControl';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminControlCenter() {
@@ -49,6 +51,8 @@ export default function AdminControlCenter() {
                 { value: 'notes', label: 'Notes', icon: FileText },
                 { value: 'ai-ops', label: 'AI Ops', icon: Zap },
                 { value: 'modules', label: 'Modules', icon: BarChart2 },
+                { value: 'auto-assign', label: 'Auto-Assign', icon: ZapAuto },
+                { value: 'role-preview', label: 'Role Preview', icon: Eye },
                 { value: 'diagnostics', label: 'Diagnostics', icon: Wrench },
               ].map(({ value, label, icon: Icon }) => (
                 <TabsTrigger
@@ -77,6 +81,16 @@ export default function AdminControlCenter() {
             </TabsContent>
             <TabsContent value="modules" className="m-0 p-6">
               <ModuleQuickAccess />
+            </TabsContent>
+            <TabsContent value="auto-assign" className="m-0 p-6">
+              <div className="space-y-6">
+                <AutoAssignmentControl organizationId={user?.organization_id} />
+              </div>
+            </TabsContent>
+            <TabsContent value="role-preview" className="m-0 p-6">
+              <div className="space-y-6">
+                <RolePreviewPanel currentUser={user} onPreviewChange={() => {}} />
+              </div>
             </TabsContent>
             <TabsContent value="diagnostics" className="m-0 p-6">
               <DiagnosticsPanel />
