@@ -6,6 +6,7 @@ export {
   ROLES,
   isAdmin,
   isStaff,
+  isManager,
   isCaseManager,
   isResident,
   isProbationOfficer,
@@ -18,6 +19,7 @@ export {
 export const ROLE_LABELS = {
   super_admin: 'Super Admin',
   org_admin: 'Executive Admin',
+  manager: 'Operations Manager',
   program_manager: 'Program Manager',
   case_manager: 'Case Manager',
   house_manager: 'House Manager',
@@ -35,9 +37,10 @@ export const ROLE_LABELS = {
   user: 'Administrator',
 };
 
-export const STAFF_ROLES = ['admin', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff'];
+export const STAFF_ROLES = ['admin', 'super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'instructor', 'staff'];
 export const ADMIN_ROLES = ['admin', 'super_admin', 'org_admin'];
-export const ALL_ROLES = ['super_admin', 'org_admin', 'program_manager', 'case_manager', 'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator', 'instructor', 'staff', 'resident', 'employer', 'probation_officer', 'referral_partner', 'auditor', 'admin', 'user'];
+export const MANAGER_ROLES = ['manager'];
+export const ALL_ROLES = ['super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator', 'instructor', 'staff', 'resident', 'employer', 'probation_officer', 'referral_partner', 'auditor', 'admin', 'user'];
 
 export function isSuperAdmin(role) {
   return role === 'super_admin';

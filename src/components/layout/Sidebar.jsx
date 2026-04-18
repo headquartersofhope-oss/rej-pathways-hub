@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ROLES, isStaff, isAdmin, isSuperAdmin, ROLE_LABELS } from '@/lib/roles';
+import { ROLES, isStaff, isAdmin, isManager, isSuperAdmin, ROLE_LABELS } from '@/lib/roles';
 import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,16 @@ const navSections = (role) => {
     label: 'Dashboard',
     items: [{ label: 'Home', path: '/', icon: LayoutDashboard }],
   });
+
+  // Manager Portal (managers only)
+  if (isManager(role)) {
+    sections.push({
+      label: 'Manager',
+      items: [
+        { label: 'Manager Portal', path: '/manager-portal', icon: GitBranch },
+      ],
+    });
+  }
 
   // Staff sections
   if (isStaff(role)) {

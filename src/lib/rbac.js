@@ -6,6 +6,7 @@
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
   ORG_ADMIN: 'org_admin',
+  MANAGER: 'manager',
   PROGRAM_MANAGER: 'program_manager',
   CASE_MANAGER: 'case_manager',
   INSTRUCTOR: 'instructor',
@@ -28,8 +29,13 @@ export function isAdmin(role) {
 /** Returns true for any staff role that can manage residents */
 export function isStaff(role) {
   // 'user' is the Base44 platform default role — treat as admin/staff
-  return ['admin', 'user', 'super_admin', 'org_admin', 'program_manager', 'case_manager', 'instructor', 'staff',
+  return ['admin', 'user', 'super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'instructor', 'staff',
     'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator'].includes(role);
+}
+
+/** Returns true if user is a manager (operational oversight, not admin) */
+export function isManager(role) {
+  return role === ROLES.MANAGER;
 }
 
 export function isCaseManager(role) {
@@ -66,8 +72,8 @@ export function canAccessResident(user, resident) {
   // Full admins
   if (isAdmin(role)) return true;
 
-  // Program manager / instructor / auditor — read-all
-  if (['program_manager', 'instructor', 'auditor', 'referral_partner'].includes(role)) return true;
+  // Manager / program manager / instructor / auditor — read-all
+  if (['manager', 'program_manager', 'instructor', 'auditor', 'referral_partner'].includes(role)) return true;
 
   // Case managers / staff — only their caseload
   if (role === ROLES.CASE_MANAGER || role === ROLES.STAFF) {
@@ -128,7 +134,11 @@ export function getResidentPermissions(user, resident) {
     isReadOnly: isPO || (access && role === 'auditor'), // general read-only flag
     canAddResident: isAdmin(role) || ['program_manager', 'case_manager'].includes(role),
     canViewSettings: isAdmin(role),
-    canViewAllResidents: isAdmin(role) || ['program_manager', 'instructor', 'auditor'].includes(role),
+    canViewAllResidents: isAdmin(role) || ['manager', 'program_manager', 'instructor', 'auditor'].includes(role),
+    canManageAssignments: isManager(role) || isAdmin(role),
+    canApprovePending: isManager(role) || isAdmin(role),
+    canMarkHousingEligible: isManager(role) || staffEdit,
+    canAssignHousing: isManager(role) || staffEdit,
   };
 }
 
@@ -142,7 +152,7 @@ export function filterResidentsByAccess(residents, user) {
   if (!user) return [];
   const role = user.role;
 
-  if (isAdmin(role) || ['program_manager', 'instructor', 'auditor', 'user'].includes(role)) {
+  if (isAdmin(role) || ['manager', 'program_manager', 'instructor', 'auditor', 'user'].includes(role)) {
     return residents;
   }
 

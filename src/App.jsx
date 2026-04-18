@@ -48,6 +48,7 @@ import MyAccessVerification from '@/pages/admin/MyAccessVerification';
 import HousingOperations from '@/pages/HousingOperations';
 import GrantTracker from '@/pages/GrantTracker';
 import TransportationHub from '@/pages/TransportationHub';
+import ManagerPortal from '@/pages/ManagerPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
         <Route path="/housing" element={<HousingOperations />} />
         <Route path="/grants" element={<GrantTracker />} />
         <Route path="/transportation" element={<TransportationHub />} />
+        <Route path="/manager-portal" element={<ManagerPortal />} />
         <Route path="/admin/my-access" element={<MyAccessVerification />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
