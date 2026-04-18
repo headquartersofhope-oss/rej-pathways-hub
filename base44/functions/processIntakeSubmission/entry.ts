@@ -3,8 +3,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const startTime = new Date().toISOString();
-    console.error(`=== processIntakeSubmission STARTED at ${startTime} ===`);
-    console.error(`[DEBUG] Request method: ${req.method}`);
+    const traceId = `TRACE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.error(`\n${'='.repeat(80)}`);
+    console.error(`🔍 [TRACE: ${traceId}] processIntakeSubmission INVOKED`);
+    console.error(`⏰ Timestamp: ${startTime}`);
+    console.error(`🌐 Request method: ${req.method}`);
+    console.error(`📍 Request URL: ${req.url}`);
+    console.error(`${'='.repeat(80)}\n`);
 
     // Only accept POST
     if (req.method !== 'POST') {
@@ -18,9 +24,15 @@ Deno.serve(async (req) => {
       payload = await req.json();
       console.log('✅ Payload parsed successfully');
       console.log('📥 Incoming payload:', JSON.stringify(payload, null, 2));
+      console.error(`[TRACE: ${traceId}] ✅ Payload parsed - source_type: ${payload.source_type}`);
     } catch (parseError) {
       console.error('❌ EARLY EXIT: JSON parse error:', parseError.message);
-      return Response.json({ error: 'Invalid JSON payload' }, { status: 400 });
+      console.error(`[TRACE: ${traceId}] ❌ FAILED - Parse error: ${parseError.message}`);
+      return Response.json({ 
+        error: 'Invalid JSON payload',
+        trace_id: traceId,
+        received_by_hub: false
+      }, { status: 400 });
     }
 
     // Validate required fields
@@ -29,15 +41,27 @@ Deno.serve(async (req) => {
     
     if (!payload.source_type || !validTypes.includes(payload.source_type)) {
       console.warn(`❌ EARLY EXIT: Invalid source_type "${payload.source_type}". Valid types: ${validTypes.join(', ')}`);
-      return Response.json({ error: 'Invalid or missing source_type' }, { status: 400 });
+      console.error(`[TRACE: ${traceId}] ❌ FAILED - Invalid source_type: ${payload.source_type}`);
+      return Response.json({ 
+        error: 'Invalid or missing source_type',
+        trace_id: traceId,
+        received_by_hub: false
+      }, { status: 400 });
     }
     console.log(`✅ Source type validated: ${payload.source_type}`);
+    console.error(`[TRACE: ${traceId}] ✅ Source type validated: ${payload.source_type}`);
 
     if (!payload.data) {
       console.warn(`❌ EARLY EXIT: Missing data object in payload`);
-      return Response.json({ error: 'Missing data object' }, { status: 400 });
+      console.error(`[TRACE: ${traceId}] ❌ FAILED - Missing data object`);
+      return Response.json({ 
+        error: 'Missing data object',
+        trace_id: traceId,
+        received_by_hub: false
+      }, { status: 400 });
     }
     console.log(`✅ Data object present, keys: ${Object.keys(payload.data).join(', ')}`);
+    console.error(`[TRACE: ${traceId}] ✅ Data object validated - payload ready for routing`);
 
     const orgId = payload.organization_id || 'org1';
     console.log(`[ROUTING] Organization ID: ${orgId}`);
@@ -70,8 +94,11 @@ Deno.serve(async (req) => {
     } catch (handlerError) {
       console.error(`❌ Handler error for ${payload.source_type}:`, handlerError.message);
       console.error('Stack:', handlerError.stack);
+      console.error(`[TRACE: ${traceId}] ❌ FAILED - Handler error: ${handlerError.message}`);
       return Response.json({
         success: false,
+        received_by_hub: true,
+        trace_id: traceId,
         error: handlerError.message,
         source_type: payload.source_type,
         status: 'handler_failed'
@@ -82,9 +109,18 @@ Deno.serve(async (req) => {
     console.log('[RESULT] Created records:', JSON.stringify(result.created_records, null, 2));
     console.log('[RESULT] Status:', result.status);
 
+    console.error(`[TRACE: ${traceId}] ✅ Handler succeeded - records created`);
+    console.error(`[TRACE: ${traceId}] 📦 submission_id: ${result.submission_id}`);
+    console.error(`[TRACE: ${traceId}] 📋 created_records: ${JSON.stringify(result.created_records)}`);
+    console.error(`[TRACE: ${traceId}] ✅ SUBMISSION COMPLETE\n`);
+
     console.log('=== processIntakeSubmission SUCCEEDED ===');
     return Response.json({
       success: true,
+      received_by_hub: true,
+      trace_id: traceId,
+      timestamp: startTime,
+      submission_type: payload.source_type,
       submission_id: result.submission_id,
       source_type: payload.source_type,
       created_records: result.created_records,
@@ -95,9 +131,12 @@ Deno.serve(async (req) => {
     console.error('❌ FATAL ERROR: Uncaught exception in processIntakeSubmission');
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
+    console.error(`[TRACE: ${traceId || 'UNKNOWN'}] ❌ FATAL ERROR: ${error.message}`);
     console.log('=== processIntakeSubmission FAILED ===');
     return Response.json({
       success: false,
+      received_by_hub: true,
+      trace_id: traceId || 'UNKNOWN',
       error: error.message,
       status: 'fatal_error',
       timestamp: new Date().toISOString()
