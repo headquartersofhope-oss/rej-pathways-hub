@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/lib/AuthContext';
+import GlobalSearchBar from '@/components/shared/GlobalSearchBar';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -22,8 +23,12 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar user={user} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="pl-0 lg:pl-0">
+      <main className="flex-1 overflow-y-auto flex flex-col">
+        {/* Top bar with global search */}
+        <div className="hidden lg:flex items-center gap-3 px-6 py-3 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
+          <GlobalSearchBar />
+        </div>
+        <div className="flex-1">
           <Outlet context={{ user }} />
         </div>
       </main>

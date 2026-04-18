@@ -13,7 +13,7 @@
     },
     "action": {
       "type": "string",
-      "description": "e.g. create_resident, update_document, login"
+      "description": "e.g. resident_discharged, resident_reentry, housing_assigned, duplicate_override"
     },
     "entity_type": {
       "type": "string"
@@ -23,6 +23,14 @@
     },
     "details": {
       "type": "string"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "JSON snapshot of prior state (truncated)"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "JSON snapshot of new state (truncated)"
     },
     "ip_address": {
       "type": "string"
@@ -39,5 +47,45 @@
   },
   "required": [
     "action"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

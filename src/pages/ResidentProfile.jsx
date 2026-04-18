@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useOutletContext } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -45,6 +45,8 @@ export default function ResidentProfile() {
   const { residentId } = useParams();
   const { user } = useOutletContext();
   const queryClient = useQueryClient();
+  const [showDischarge, setShowDischarge] = useState(false);
+  const [showReEntry, setShowReEntry] = useState(false);
 
   const { data: resident } = useQuery({
     queryKey: ['resident', residentId],
@@ -163,12 +165,24 @@ export default function ResidentProfile() {
             </div>
           </div>
           {perms.canManageIntake && (
-            <div className="sm:ml-auto flex gap-2">
+            <div className="sm:ml-auto flex flex-wrap gap-2">
               <Link to={intakeStatus === 'not_started' ? `/intake/${residentId}/form` : `/intake/${residentId}`}>
                 <Button variant={intakeStatus === 'completed' ? 'outline' : 'default'} size="sm" className="gap-1.5">
                   <ClipboardList className="w-3.5 h-3.5" /> {intakeLabel}
                 </Button>
               </Link>
+              {/* Re-Entry: only show for exited/inactive/graduated */}
+              {['exited', 'inactive', 'graduated'].includes(resident.status) && (
+                <Button variant="outline" size="sm" className="gap-1.5 text-accent border-accent/40 hover:bg-accent/10" onClick={() => setShowReEntry(true)}>
+                  <RefreshCw className="w-3.5 h-3.5" /> Re-Enroll
+                </Button>
+              )}
+              {/* Discharge: only show for active residents */}
+              {!['exited', 'inactive'].includes(resident.status) && (
+                <Button variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setShowDischarge(true)}>
+                  <LogOut className="w-3.5 h-3.5" /> Discharge
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -308,6 +322,22 @@ export default function ResidentProfile() {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Discharge & Re-Entry dialogs */}
+      {showDischarge && resident && (
+        <DischargeDialog
+          resident={resident}
+          open={showDischarge}
+          onClose={() => setShowDischarge(false)}
+        />
+      )}
+      {showReEntry && resident && (
+        <ReEntryDialog
+          resident={resident}
+          open={showReEntry}
+          onClose={() => setShowReEntry(false)}
+        />
+      )}
     </div>
   );
 }
