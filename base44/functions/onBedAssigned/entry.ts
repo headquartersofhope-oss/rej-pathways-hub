@@ -116,12 +116,11 @@ Deno.serve(async (req) => {
     }
 
     // ── STEP 5: Recalculate House.occupied_beds from actual Bed records ──────
+    // Fetch AFTER the bed update so the count reflects the new state
     const allHouseBeds = await base44.asServiceRole.entities.Bed.filter({
       house_id: placement.house_id
     });
-    const actualOccupied = allHouseBeds.filter(b =>
-      b.id === targetBed.id ? true : b.status === 'occupied'
-    ).length;
+    const actualOccupied = allHouseBeds.filter(b => b.status === 'occupied').length;
 
     await base44.asServiceRole.entities.House.update(placement.house_id, {
       occupied_beds: actualOccupied

@@ -34,9 +34,9 @@ Deno.serve(async (req) => {
 
     // ── Load all data ─────────────────────────────────────────────────────────
     const [houses, beds, placements] = await Promise.all([
-      base44.asServiceRole.entities.House.list('name', 500),
-      base44.asServiceRole.entities.Bed.list('house_id', 1000),
-      base44.asServiceRole.entities.HousingPlacement.list('-synced_at', 1000),
+      base44.asServiceRole.entities.House.list('name', 2000),
+      base44.asServiceRole.entities.Bed.list('house_id', 5000),
+      base44.asServiceRole.entities.HousingPlacement.list('-synced_at', 5000),
     ]);
 
     const bedsByHouse = {};

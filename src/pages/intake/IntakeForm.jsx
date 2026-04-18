@@ -105,7 +105,15 @@ export default function IntakeForm() {
     if (!completedSteps.includes(currentStep.id)) {
       setCompletedSteps(prev => [...prev, currentStep.id]);
     }
-    // Auto-save
+    // Wait if a concurrent save is in progress, then save and advance
+    if (saveLockRef.current) {
+      // brief poll — lock clears in ~1-2s max
+      await new Promise(resolve => {
+        const interval = setInterval(() => {
+          if (!saveLockRef.current) { clearInterval(interval); resolve(); }
+        }, 100);
+      });
+    }
     await handleSave(false);
     if (currentStepIdx < INTAKE_STEPS.length - 1) {
       setCurrentStepIdx(prev => prev + 1);
@@ -126,6 +134,8 @@ export default function IntakeForm() {
       await base44.entities.IntakeAssessment.update(existingAssessment.id, payload);
     } else {
       await base44.entities.IntakeAssessment.create(payload);
+      // Invalidate so next save finds the newly created record and does an update, not another create
+      queryClient.invalidateQueries({ queryKey: ['assessment', residentId] });
     }
 
     // Also sync identity/contact fields during partial saves

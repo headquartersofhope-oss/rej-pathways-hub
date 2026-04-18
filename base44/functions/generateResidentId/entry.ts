@@ -27,7 +27,8 @@ Deno.serve(async (req) => {
 
     let max = 0;
     for (const r of residents) {
-      if (r.global_resident_id && /^RES-\d{6}$/.test(r.global_resident_id)) {
+      // Support both legacy GRI- format and current RES- format
+      if (r.global_resident_id && /^(RES|GRI)-\d{6}$/.test(r.global_resident_id)) {
         const n = parseInt(r.global_resident_id.slice(4), 10);
         if (n > max) max = n;
       }
