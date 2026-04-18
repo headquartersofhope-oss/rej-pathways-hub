@@ -26,6 +26,8 @@ import AlumniProfileTab from '@/components/alumni/AlumniProfileTab';
 import ResourceDistributionTab from '@/components/resources/ResourceDistributionTab';
 import ResidentJobMatchTab from '@/components/jobmatching/ResidentJobMatchTab';
 import HousingEligibilityPanel from '@/components/resident/HousingEligibilityPanel';
+import UnifiedWorkflowPanel from '@/components/casemanagement/UnifiedWorkflowPanel';
+import WorkflowStatusBanner from '@/components/casemanagement/WorkflowStatusBanner';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -132,6 +134,19 @@ export default function ResidentProfile() {
     queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
   };
 
+  // Fetch placement
+  const { data: placement } = useQuery({
+    queryKey: ['placement', residentId],
+    queryFn: async () => {
+      const placements = await base44.entities.HousingPlacement.filter({
+        resident_id: residentId,
+        placement_status: 'placed'
+      });
+      return placements[0] || null;
+    },
+    enabled: !!residentId,
+  });
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
       {/* Back + Header */}
@@ -218,10 +233,15 @@ export default function ResidentProfile() {
           </div>
         </div>
 
-        {/* Housing panel for eligible residents */}
-        {['active', 'housing_eligible', 'housing_pending'].includes(resident.status) && (
+        {/* Workflow status banner */}
+        <div className="mt-4">
+          <WorkflowStatusBanner resident={resident} placement={placement} />
+        </div>
+
+        {/* Unified workflow panel */}
+        {perms.canManageIntake && (
           <div className="mt-4">
-            <HousingEligibilityPanel resident={resident} onStatusChange={handleResidentStatusChange} />
+            <UnifiedWorkflowPanel resident={resident} onStatusChange={handleResidentStatusChange} user={user} />
           </div>
         )}
 

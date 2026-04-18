@@ -6,18 +6,24 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    console.log('[HOUSING] submitToHousingQueue invoked by:', user.email);
+
     const { resident_id, reason } = await req.json();
     if (!resident_id) return Response.json({ error: 'resident_id required' }, { status: 400 });
 
-    const resident = await base44.asServiceRole.entities.Resident.get(resident_id);
+    const resident = await base44.entities.Resident.get(resident_id);
     if (!resident) return Response.json({ error: 'Resident not found' }, { status: 404 });
 
-    // Mark resident as housing_pending
-    await base44.asServiceRole.entities.Resident.update(resident_id, {
+    console.log('[HOUSING] Resident found:', resident.id, 'current status:', resident.status);
+
+    // Mark resident as housing_pending (use user context, not service role)
+    const updateResult = await base44.entities.Resident.update(resident_id, {
       status: 'housing_pending'
     });
 
-    // Create task for housing staff
+    console.log('[HOUSING] Resident updated to housing_pending:', updateResult.id);
+
+    // Create task for housing staff (service role OK for task creation)
     const task = await base44.asServiceRole.entities.ServiceTask.create({
       resident_id: resident.id,
       global_resident_id: resident.global_resident_id,
@@ -30,6 +36,8 @@ Deno.serve(async (req) => {
       requires_staff_action: true
     });
 
+    console.log('[HOUSING] Task created:', task.id);
+
     return Response.json({
       success: true,
       resident_id,
@@ -37,7 +45,7 @@ Deno.serve(async (req) => {
       message: 'Resident submitted to housing queue'
     });
   } catch (error) {
-    console.error('Housing queue submission error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[HOUSING] Housing queue submission error:', error);
+    return Response.json({ error: error.message || 'Failed to submit to housing queue' }, { status: 500 });
   }
 });

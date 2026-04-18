@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Home, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, Home, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import HousingPlacementModal from './HousingPlacementModal';
 
@@ -17,14 +17,17 @@ export default function HousingQueueTab() {
   const [showPlacementModal, setShowPlacementModal] = useState(false);
 
   // Fetch residents in housing_pending status
-  const { data: pendingResidents = [], isLoading: loadingPending } = useQuery({
+  const { data: pendingResidents = [], isLoading: loadingPending, refetch: refetchQueue } = useQuery({
     queryKey: ['housing-pending-residents'],
     queryFn: async () => {
+      console.log('[HOUSING] Fetching pending residents...');
       const residents = await base44.entities.Resident.filter({
         status: 'housing_pending'
       });
+      console.log('[HOUSING] Found', residents.length, 'pending residents');
       return residents.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
+    refetchInterval: 5000, // Auto-refetch every 5 seconds
   });
 
   // Fetch housed residents
@@ -60,15 +63,26 @@ export default function HousingQueueTab() {
           </h2>
         </div>
 
-        {/* Search */}
-        <div className="mb-4 relative">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search residents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
+        {/* Search + Refresh */}
+        <div className="mb-4 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search residents..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button
+            onClick={() => refetchQueue()}
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
         </div>
 
         {/* Queue list */}

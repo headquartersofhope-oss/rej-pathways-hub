@@ -16,14 +16,17 @@ export default function HousingEligibilityPanel({ resident, onStatusChange }) {
 
   const handleMarkEligible = async () => {
     setIsMarking(true);
+    console.log('[HOUSING] Starting mark eligible for resident:', resident.id);
     try {
-      await base44.asServiceRole.entities.Resident.update(resident.id, {
+      const result = await base44.entities.Resident.update(resident.id, {
         status: 'housing_eligible'
       });
+      console.log('[HOUSING] Mark eligible succeeded:', result);
       toast.success('Resident marked as housing eligible');
       if (onStatusChange) onStatusChange();
     } catch (err) {
-      toast.error(err.message || 'Failed to mark as eligible');
+      console.error('[HOUSING] Mark eligible failed:', err);
+      toast.error(err?.response?.data?.message || err.message || 'Failed to mark as eligible');
     } finally {
       setIsMarking(false);
     }
@@ -35,17 +38,22 @@ export default function HousingEligibilityPanel({ resident, onStatusChange }) {
       return;
     }
     setIsSubmitting(true);
+    console.log('[HOUSING] Sending to housing queue:', resident.id);
     try {
       const result = await base44.functions.invoke('submitToHousingQueue', {
         resident_id: resident.id,
         reason: reason.trim()
       });
+      console.log('[HOUSING] Response:', result?.data);
       if (result?.data?.success) {
         toast.success('Resident submitted to housing queue');
         setReason('');
         if (onStatusChange) onStatusChange();
+      } else {
+        throw new Error(result?.data?.error || 'Unknown error');
       }
     } catch (err) {
+      console.error('[HOUSING] Error:', err);
       toast.error(err.message || 'Failed to submit to housing');
     } finally {
       setIsSubmitting(false);
