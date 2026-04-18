@@ -26,26 +26,27 @@ export default function OnboardingRequestDetail({ request, onClose }) {
   const handleApprove = async () => {
     setIsApproving(true);
     try {
-      // Update onboarding request
+      // Call backend function first to create user + send email + link records
+      const result = await base44.functions.invoke('approveOnboardingRequest', {
+        request_id: request.id,
+        final_role: finalRole,
+      });
+
+      if (!result?.data?.success) {
+        throw new Error(result?.data?.error || 'Backend approval failed');
+      }
+
+      // Update onboarding request to approved (now we know backend succeeded)
       await base44.entities.OnboardingRequest.update(request.id, {
         status: 'approved',
         final_assigned_role: finalRole,
-        approved_by: (await base44.auth.me()).email,
-        approved_date: new Date().toISOString(),
         notes,
-      });
-
-      // Create user and send activation email
-      await base44.functions.invoke('approveOnboardingRequest', {
-        request_id: request.id,
-        final_role: finalRole,
       });
 
       toast.success('Request approved. Activation email sent.');
       onClose();
     } catch (err) {
       toast.error(err.message || 'Failed to approve request');
-    } finally {
       setIsApproving(false);
     }
   };

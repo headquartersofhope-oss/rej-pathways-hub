@@ -25,6 +25,7 @@ import OutcomeMilestoneTab from '@/components/outcomes/OutcomeMilestoneTab';
 import AlumniProfileTab from '@/components/alumni/AlumniProfileTab';
 import ResourceDistributionTab from '@/components/resources/ResourceDistributionTab';
 import ResidentJobMatchTab from '@/components/jobmatching/ResidentJobMatchTab';
+import HousingEligibilityPanel from '@/components/resident/HousingEligibilityPanel';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700',
@@ -127,6 +128,10 @@ export default function ResidentProfile() {
     : intakeStatus === 'in_progress' ? 'Continue Intake'
     : 'Start Intake';
 
+  const handleResidentStatusChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['resident', residentId] });
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
       {/* Back + Header */}
@@ -212,6 +217,13 @@ export default function ResidentProfile() {
             <p className="text-[10px] text-muted-foreground">Population</p>
           </div>
         </div>
+
+        {/* Housing panel for eligible residents */}
+        {['active', 'housing_eligible', 'housing_pending'].includes(resident.status) && (
+          <div className="mt-4">
+            <HousingEligibilityPanel resident={resident} onStatusChange={handleResidentStatusChange} />
+          </div>
+        )}
 
         {/* High risk banner */}
         {resident.risk_level === 'high' && (

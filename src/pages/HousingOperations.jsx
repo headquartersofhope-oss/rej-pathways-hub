@@ -13,6 +13,7 @@ import {
   DollarSign, ClipboardList, ChevronRight, Building2, Search, Edit, X, UserPlus, Wrench
 } from 'lucide-react';
 import HousingSystemHealth from '@/components/housing/HousingSystemHealth';
+import HousingQueueTab from '@/components/housing/HousingQueueTab';
 
 const STATUS_COLORS = {
   available: 'bg-emerald-100 text-emerald-800',
@@ -505,12 +506,18 @@ export default function HousingOperations() {
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full justify-start">
+          <TabsTrigger value="queue">Queue</TabsTrigger>
           <TabsTrigger value="overview">Houses</TabsTrigger>
           <TabsTrigger value="beds">Bed Inventory</TabsTrigger>
           <TabsTrigger value="incidents">Incidents ({openIncidents})</TabsTrigger>
           <TabsTrigger value="payments">Fee Payments</TabsTrigger>
           <TabsTrigger value="health">System Health</TabsTrigger>
         </TabsList>
+
+        {/* Housing Queue Tab */}
+        <TabsContent value="queue" className="mt-4">
+          <HousingQueueTab />
+        </TabsContent>
 
         {/* Houses Tab */}
         <TabsContent value="overview" className="mt-4">
