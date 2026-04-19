@@ -177,26 +177,36 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
     setStep('select_bed');
   };
 
-  // Treat expired reserved beds as available in the UI (will be swept soon)
+  // Bed categorisation for display
   const now = Date.now();
+
+  // Available: status=available, OR reserved-but-expired, OR reserved-by-us-for-this-resident
   const availableBeds = beds.filter(b => {
     if (b.status === 'available') return true;
     if (b.status === 'reserved') {
-      // Show as available if reservation is expired OR held by this user for this resident
       const exp = b.reservation_expires_at ? new Date(b.reservation_expires_at) : null;
       const isExpired = !exp || now >= exp;
-      const isOurs = b.reserved_by === (currentUser?.id) && b.reserved_for === resident?.id;
+      const isOurs = b.reserved_by === currentUser?.id && b.reserved_for === resident?.id;
       return isExpired || isOurs;
     }
     return false;
   });
+
+  // Locked (reserved by someone else, not expired) — hidden from other CMs per spec
+  // (these beds do NOT appear in results for other case managers)
+  // We keep the array only for the count shown in the empty-state message.
   const lockedBeds = beds.filter(b => {
     if (b.status !== 'reserved') return false;
     const exp = b.reservation_expires_at ? new Date(b.reservation_expires_at) : null;
     const isExpired = !exp || now >= exp;
-    const isOurs = b.reserved_by === (currentUser?.id) && b.reserved_for === resident?.id;
+    const isOurs = b.reserved_by === currentUser?.id && b.reserved_for === resident?.id;
     return !isExpired && !isOurs;
   });
+
+  // Needs cleaning — shown but not selectable
+  const cleaningBeds = beds.filter(b => b.status === 'needs_cleaning');
+
+  // Occupied — hidden entirely
   const occupiedBeds = beds.filter(b => b.status === 'occupied');
 
   if (loading && step === 'select_house') {
@@ -312,24 +322,26 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
               <div className="flex justify-center py-4">
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
               </div>
-            ) : availableBeds.length === 0 && lockedBeds.length === 0 ? (
+            ) : availableBeds.length === 0 && cleaningBeds.length === 0 ? (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
-                No available beds in this house. {occupiedBeds.length} bed(s) currently occupied.
+                No available beds in this house.{occupiedBeds.length > 0 ? ` ${occupiedBeds.length} bed(s) currently occupied.` : ''}{lockedBeds.length > 0 ? ` ${lockedBeds.length} bed(s) being assigned by another staff member.` : ''}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
+                {/* ── Available beds — green indicator, selectable ── */}
                 {availableBeds.map(bed => (
                   <button
                     key={bed.id}
                     onClick={() => !reserving && handleSelectBed(bed)}
                     disabled={reserving}
-                    className="p-3 border rounded-md text-left hover:border-primary/60 hover:bg-primary/5 transition disabled:opacity-60 disabled:cursor-wait"
+                    className="p-3 border border-emerald-200 rounded-md text-left hover:border-emerald-400 hover:bg-emerald-50 transition disabled:opacity-60 disabled:cursor-wait group"
                   >
                     <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 group-hover:bg-emerald-600" />
                       {reserving ? (
-                        <Loader2 className="w-4 h-4 text-primary shrink-0 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-emerald-600 shrink-0 animate-spin" />
                       ) : (
-                        <Bed className="w-4 h-4 text-primary shrink-0" />
+                        <Bed className="w-4 h-4 text-emerald-600 shrink-0" />
                       )}
                       <div>
                         <p className="text-sm font-medium">{bed.bed_label || `Bed ${bed.id.slice(-4)}`}</p>
@@ -340,28 +352,29 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
                     </div>
                   </button>
                 ))}
-                {lockedBeds.map(bed => {
-                  const exp = bed.reservation_expires_at ? new Date(bed.reservation_expires_at) : null;
-                  const sLeft = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 1000)) : 0;
-                  return (
-                    <div
-                      key={bed.id}
-                      className="p-3 border border-amber-200 bg-amber-50 rounded-md opacity-70 cursor-not-allowed"
-                      title="This bed is being assigned by another case manager"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-amber-600 shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-amber-800">{bed.bed_label || `Bed ${bed.id.slice(-4)}`}</p>
-                          <p className="text-xs text-amber-600 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Being assigned… {sLeft}s
-                          </p>
-                        </div>
+
+                {/* ── Needs cleaning — yellow indicator, NOT selectable ── */}
+                {cleaningBeds.map(bed => (
+                  <div
+                    key={bed.id}
+                    className="p-3 border border-yellow-200 bg-yellow-50 rounded-md cursor-not-allowed"
+                    title="This bed is being prepared and is not yet available"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0" />
+                      <Bed className="w-4 h-4 text-yellow-600 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">{bed.bed_label || `Bed ${bed.id.slice(-4)}`}</p>
+                        <p className="text-xs text-yellow-600">Being prepared</p>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
+
+                {/* ── Reserved by another CM — amber lock, NOT selectable, hidden from search ── */}
+                {/* Per spec: reserved beds do NOT appear in results for other case managers.    */}
+                {/* They are intentionally omitted here — lockedBeds array is used only for     */}
+                {/* the empty-state message count above.                                        */}
               </div>
             )}
           </div>
