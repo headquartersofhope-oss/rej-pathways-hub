@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, Bed, CheckCircle, AlertCircle, ArrowRight, Loader2, Building } from 'lucide-react';
+import { Home, Bed, CheckCircle, AlertCircle, ArrowRight, Loader2, Building, Lock, Clock } from 'lucide-react';
 
 /**
  * TurnkeyBedAssignment
@@ -25,6 +24,11 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [reserving, setReserving] = useState(false);
+  const [reservationExpiry, setReservationExpiry] = useState(null); // Date object
+  const [secondsLeft, setSecondsLeft] = useState(null);
+  const countdownRef = useRef(null);
+  const reservedBedIdRef = useRef(null);
 
   const orgId = currentUser?.data?.organization_id || resident?.organization_id;
 
@@ -68,9 +72,59 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
     setStep('select_bed');
   };
 
-  const handleSelectBed = (bed) => {
-    setSelectedBed(bed);
-    setStep('confirm');
+  // ── Countdown timer ────────────────────────────────────────────────────────
+  const startCountdown = (expiresAt) => {
+    clearInterval(countdownRef.current);
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((new Date(expiresAt) - Date.now()) / 1000));
+      setSecondsLeft(left);
+      if (left === 0) {
+        clearInterval(countdownRef.current);
+        // Reservation expired — bounce back to bed selection
+        setSelectedBed(null);
+        setReservationExpiry(null);
+        setSecondsLeft(null);
+        reservedBedIdRef.current = null;
+        setStep('select_bed');
+        setError('Reservation expired. Please select a bed again.');
+      }
+    };
+    tick();
+    countdownRef.current = setInterval(tick, 1000);
+  };
+
+  const clearReservation = () => {
+    clearInterval(countdownRef.current);
+    setReservationExpiry(null);
+    setSecondsLeft(null);
+    reservedBedIdRef.current = null;
+  };
+
+  // ── Select bed: call reserveBed first ──────────────────────────────────────
+  const handleSelectBed = async (bed) => {
+    setReserving(true);
+    setError(null);
+    try {
+      const res = await base44.functions.invoke('reserveBed', {
+        bed_id: bed.id,
+        resident_id: resident.id,
+        case_manager_id: currentUser?.id || 'unknown',
+      });
+      const data = res.data;
+      if (!data?.success) {
+        setError(data?.error || 'Could not reserve this bed. It may have just been taken.');
+        return;
+      }
+      reservedBedIdRef.current = bed.id;
+      setReservationExpiry(new Date(data.expires_at));
+      startCountdown(data.expires_at);
+      setSelectedBed(bed);
+      setStep('confirm');
+    } catch (err) {
+      setError(err?.response?.data?.error || err.message || 'Could not reserve bed');
+    } finally {
+      setReserving(false);
+    }
   };
 
   const handleAssign = async () => {
@@ -123,6 +177,7 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
         move_in_date: placementData.move_in_date
       });
 
+      clearReservation();
       setStep('success');
       onAssigned?.();
     } catch (err) {
@@ -132,7 +187,36 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
     }
   };
 
-  const availableBeds = beds.filter(b => b.status === 'available');
+  // Release reservation and go back to bed selection
+  const handleBackFromConfirm = async () => {
+    clearReservation();
+    // Bed will auto-release via releaseExpiredReservations or we can just
+    // let it expire — 60s is short enough. Skip an explicit release call
+    // to avoid needing an extra endpoint.
+    setSelectedBed(null);
+    setStep('select_bed');
+  };
+
+  // Treat expired reserved beds as available in the UI (will be swept soon)
+  const now = Date.now();
+  const availableBeds = beds.filter(b => {
+    if (b.status === 'available') return true;
+    if (b.status === 'reserved') {
+      // Show as available if reservation is expired OR held by this user for this resident
+      const exp = b.reservation_expires_at ? new Date(b.reservation_expires_at) : null;
+      const isExpired = !exp || now >= exp;
+      const isOurs = b.reserved_by === (currentUser?.id) && b.reserved_for === resident?.id;
+      return isExpired || isOurs;
+    }
+    return false;
+  });
+  const lockedBeds = beds.filter(b => {
+    if (b.status !== 'reserved') return false;
+    const exp = b.reservation_expires_at ? new Date(b.reservation_expires_at) : null;
+    const isExpired = !exp || now >= exp;
+    const isOurs = b.reserved_by === (currentUser?.id) && b.reserved_for === resident?.id;
+    return !isExpired && !isOurs;
+  });
   const occupiedBeds = beds.filter(b => b.status === 'occupied');
 
   if (loading && step === 'select_house') {
@@ -248,7 +332,7 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
               <div className="flex justify-center py-4">
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
               </div>
-            ) : availableBeds.length === 0 ? (
+            ) : availableBeds.length === 0 && lockedBeds.length === 0 ? (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
                 No available beds in this house. {occupiedBeds.length} bed(s) currently occupied.
               </div>
@@ -257,11 +341,16 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
                 {availableBeds.map(bed => (
                   <button
                     key={bed.id}
-                    onClick={() => handleSelectBed(bed)}
-                    className="p-3 border rounded-md text-left hover:border-primary/60 hover:bg-primary/5 transition"
+                    onClick={() => !reserving && handleSelectBed(bed)}
+                    disabled={reserving}
+                    className="p-3 border rounded-md text-left hover:border-primary/60 hover:bg-primary/5 transition disabled:opacity-60 disabled:cursor-wait"
                   >
                     <div className="flex items-center gap-2">
-                      <Bed className="w-4 h-4 text-primary shrink-0" />
+                      {reserving ? (
+                        <Loader2 className="w-4 h-4 text-primary shrink-0 animate-spin" />
+                      ) : (
+                        <Bed className="w-4 h-4 text-primary shrink-0" />
+                      )}
                       <div>
                         <p className="text-sm font-medium">{bed.bed_label || `Bed ${bed.id.slice(-4)}`}</p>
                         {bed.room_number && (
@@ -271,6 +360,28 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
                     </div>
                   </button>
                 ))}
+                {lockedBeds.map(bed => {
+                  const exp = bed.reservation_expires_at ? new Date(bed.reservation_expires_at) : null;
+                  const sLeft = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 1000)) : 0;
+                  return (
+                    <div
+                      key={bed.id}
+                      className="p-3 border border-amber-200 bg-amber-50 rounded-md opacity-70 cursor-not-allowed"
+                      title="This bed is being assigned by another case manager"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800">{bed.bed_label || `Bed ${bed.id.slice(-4)}`}</p>
+                          <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Being assigned… {sLeft}s
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -279,9 +390,23 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
         {/* STEP: Confirm */}
         {step === 'confirm' && selectedHouse && selectedBed && (
           <div className="space-y-4">
-            <button onClick={() => setStep('select_bed')} className="text-xs text-primary hover:underline">
-              ← Back
-            </button>
+            <div className="flex items-center justify-between">
+              <button onClick={handleBackFromConfirm} className="text-xs text-primary hover:underline">
+                ← Back
+              </button>
+              {secondsLeft !== null && (
+                <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
+                  secondsLeft > 20
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : secondsLeft > 10
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-red-100 text-red-700 animate-pulse'
+                }`}>
+                  <Lock className="w-3 h-3" />
+                  Bed locked — {secondsLeft}s remaining
+                </div>
+              )}
+            </div>
 
             <div className="p-4 bg-slate-50 border rounded-md space-y-2">
               <p className="text-xs font-medium text-muted-foreground">PLACEMENT SUMMARY</p>

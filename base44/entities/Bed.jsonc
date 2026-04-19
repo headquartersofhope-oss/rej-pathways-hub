@@ -1,7 +1,7 @@
 {
   "name": "Bed",
   "type": "object",
-  "description": "Individual bed unit within a House. Tracks occupancy, resident assignment, and room details.",
+  "description": "Individual bed unit within a House. Tracks occupancy, resident assignment, room details, and short-lived reservation locks.",
   "properties": {
     "house_id": {
       "type": "string",
@@ -56,6 +56,24 @@
     },
     "organization_id": {
       "type": "string"
+    },
+    "reserved_by": {
+      "type": "string",
+      "description": "User.id of the case manager who holds the active reservation lock"
+    },
+    "reserved_for": {
+      "type": "string",
+      "description": "Resident.id this bed is being reserved for"
+    },
+    "reserved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the reservation was created"
+    },
+    "reservation_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the reservation lock expires (reserved_at + 60s). After this, releaseExpiredReservations will return the bed to available."
     }
   },
   "required": [
