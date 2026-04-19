@@ -230,6 +230,54 @@ Deno.serve(async (req) => {
       organization_id: resident.organization_id || '',
     }).catch(err => console.warn('[completeBedAssignment] AuditLog write failed:', err.message));
 
+    // ── 12. Non-blocking MRT address sync ────────────────────────────────────
+    // Build the new address from the house record (same data written to HousingPlacement).
+    // Failure must NOT block the bed assignment — log to AuditLog + alert admins.
+    const addressParts = [house.address, house.city, house.state].filter(Boolean);
+    const mrtAddress = addressParts.length > 0
+      ? addressParts.join(', ')
+      : house.name; // fallback to house name if no street address configured
+
+    base44.asServiceRole.functions.invoke('syncResidentAddressToMRT', {
+      resident_id: resident.id,
+      new_address: mrtAddress,
+      new_house_name: house.name,
+    }).catch(async (mrtErr) => {
+      console.error('[completeBedAssignment] MRT sync failed (non-blocking):', mrtErr.message);
+
+      // Log failure to AuditLog
+      await base44.asServiceRole.entities.AuditLog.create({
+        action: 'mrt_address_sync_failed',
+        entity_type: 'Resident',
+        entity_id: resident.id,
+        user_id: user.id,
+        user_name: user.full_name || user.email,
+        user_email: user.email,
+        details: JSON.stringify({
+          event: 'mrt_address_sync_failed',
+          resident_id: resident.id,
+          resident_name: `${resident.first_name} ${resident.last_name}`,
+          placement_id: placementId,
+          attempted_address: mrtAddress,
+          error: mrtErr.message,
+          triggered_at: new Date().toISOString(),
+        }),
+        severity: 'high',
+        organization_id: resident.organization_id || '',
+      }).catch(e => console.warn('[completeBedAssignment] AuditLog for MRT failure failed:', e.message));
+
+      // Alert all admins
+      const adminUsers = await base44.asServiceRole.entities.User.list().catch(() => []);
+      const admins = adminUsers.filter(u => u.role === 'admin' && u.email);
+      await Promise.allSettled(admins.map(admin =>
+        base44.asServiceRole.integrations.Core.SendEmail({
+          to: admin.email,
+          subject: 'MRT address sync failed — manual update required',
+          body: `MRT address sync failed for resident ${resident.id} (${resident.first_name} ${resident.last_name}) after housing placement to ${house.name}.\n\nAttempted address: ${mrtAddress}\nError: ${mrtErr.message}\n\nManual update of open transportation requests required.`,
+        }).catch(() => {})
+      ));
+    });
+
     return Response.json({
       success: true,
       placement_id: placementId,
