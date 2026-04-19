@@ -24,7 +24,8 @@
         "occupied",
         "reserved",
         "maintenance",
-        "offline"
+        "offline",
+        "needs_cleaning"
       ],
       "default": "available"
     },

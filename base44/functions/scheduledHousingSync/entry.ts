@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
         repairs.push(`Backfilled bed_id on placement ${placement.id} → ${bed.id}`);
       }
 
-      // Fix bed status if it's incorrectly available
+      // Fix bed status if it's incorrectly available (needs_cleaning is a valid turnover state — do not overwrite)
       if (bed.status === 'available') {
         await base44.asServiceRole.entities.Bed.update(bed.id, {
           status: 'occupied',
@@ -120,6 +120,7 @@ Deno.serve(async (req) => {
       beds_total: freshBeds.length,
       beds_occupied: freshBeds.filter(b => b.status === 'occupied').length,
       beds_available: freshBeds.filter(b => b.status === 'available').length,
+      beds_needs_cleaning: freshBeds.filter(b => b.status === 'needs_cleaning').length,
       beds_reserved: freshBeds.filter(b => b.status === 'reserved').length,
       beds_maintenance: freshBeds.filter(b => b.status === 'maintenance').length,
       placements_active: placements.filter(p => p.placement_status === 'placed').length,

@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
     // ── STEP 4: Release all occupied Beds ────────────────────────────────────
     for (const bed of stillOccupied) {
       await base44.asServiceRole.entities.Bed.update(bed.id, {
-        status: 'available',
+        status: 'needs_cleaning',
         resident_id: null,
         resident_name: null,
         move_in_date: null,
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
         actual_move_out_date: today,
       });
       if (bed.house_id) affectedHouseIds.add(bed.house_id);
-      actions.push(`Bed "${bed.bed_label}" (${bed.house_name}) → RELEASED immediately. Status: available, resident cleared`);
+      actions.push(`Bed "${bed.bed_label}" (${bed.house_name}) → needs_cleaning (awaiting housekeeping confirmation before available)`);
     }
 
     // ── STEP 5: Recalculate House.occupied_beds for all affected houses ──────

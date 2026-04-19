@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     const stillOccupied = occupiedBeds.filter(b => b.status === 'occupied');
     for (const bed of stillOccupied) {
       await base44.asServiceRole.entities.Bed.update(bed.id, {
-        status: 'available',
+        status: 'needs_cleaning',
         resident_id: null,
         resident_name: null,
         move_in_date: null,
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       });
       if (bed.house_id) affectedHouseIds.add(bed.house_id);
     }
-    if (stillOccupied.length > 0) actions.push(`${stillOccupied.length} bed(s) released`);
+    if (stillOccupied.length > 0) actions.push(`${stillOccupied.length} bed(s) set to needs_cleaning (pending housekeeping confirmation)`);
 
     // ── 4. Recalculate House occupied_beds ───────────────────────────────────
     for (const houseId of affectedHouseIds) {

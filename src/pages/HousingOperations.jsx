@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Home, Plus, BedDouble, Users, AlertTriangle, CheckCircle,
-  DollarSign, ClipboardList, ChevronRight, Building2, Search, Edit, X, UserPlus, Wrench
+  DollarSign, ClipboardList, ChevronRight, Building2, Search, Edit, X, UserPlus, Wrench, Sparkles
 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 import HousingSystemHealth from '@/components/housing/HousingSystemHealth';
 import HousingQueueTab from '@/components/housing/HousingQueueTab';
 
@@ -21,6 +22,7 @@ const STATUS_COLORS = {
   reserved: 'bg-yellow-100 text-yellow-800',
   maintenance: 'bg-orange-100 text-orange-800',
   offline: 'bg-slate-100 text-slate-600',
+  needs_cleaning: 'bg-purple-100 text-purple-800',
 };
 
 const HOUSE_STATUS_COLORS = {
@@ -155,7 +157,7 @@ function BedFormModal({ bed, houses, onClose, onSave }) {
               <label className="text-xs font-medium text-muted-foreground">Status</label>
               <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
                 value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
-                {['available','occupied','reserved','maintenance','offline'].map(s =>
+                {['available','occupied','reserved','maintenance','offline','needs_cleaning'].map(s =>
                   <option key={s} value={s}>{s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</option>
                 )}
               </select>
@@ -365,6 +367,8 @@ function PaymentFormModal({ payment, houses, residents, onClose, onSave }) {
 export default function HousingOperations() {
   const { user } = useOutletContext();
   const qc = useQueryClient();
+  const { toast } = useToast();
+  const [markingBedReady, setMarkingBedReady] = useState(null); // bed_id being processed
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
   const [houseModal, setHouseModal] = useState(null);
@@ -398,9 +402,24 @@ export default function HousingOperations() {
     onSuccess: () => { qc.invalidateQueries(['fee-payments']); setPaymentModal(null); }
   });
 
+  const handleMarkBedReady = async (bed) => {
+    setMarkingBedReady(bed.id);
+    try {
+      await base44.functions.invoke('markBedReady', { bed_id: bed.id });
+      qc.invalidateQueries(['beds']);
+      qc.invalidateQueries(['houses']);
+      toast({ title: 'Bed marked ready', description: `"${bed.bed_label}" is now available for placement.` });
+    } catch (err) {
+      toast({ title: 'Error', description: err?.response?.data?.error || err.message, variant: 'destructive' });
+    } finally {
+      setMarkingBedReady(null);
+    }
+  };
+
   const totalBeds = houses.reduce((s, h) => s + (h.total_beds || 0), 0);
   const occupiedBeds = beds.filter(b => b.status === 'occupied').length;
   const availableBeds = beds.filter(b => b.status === 'available').length;
+  const needsCleaningBeds = beds.filter(b => b.status === 'needs_cleaning').length;
   const openIncidents = incidents.filter(i => i.status === 'open' || i.status === 'under_review').length;
   const pendingPayments = payments.filter(p => p.status === 'pending' || p.status === 'late').length;
   const nonCompliant = houses.filter(h => h.compliance_status === 'non_compliant').length;
@@ -461,12 +480,13 @@ export default function HousingOperations() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
         {[
           { label: 'Total Houses', value: houses.length, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
           { label: 'Total Beds', value: totalBeds, icon: BedDouble, color: 'text-indigo-600', bg: 'bg-indigo-50' },
           { label: 'Occupied', value: occupiedBeds, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'Available', value: availableBeds, icon: CheckCircle, color: 'text-teal-600', bg: 'bg-teal-50' },
+          { label: 'Needs Cleaning', value: needsCleaningBeds, icon: Sparkles, color: needsCleaningBeds > 0 ? 'text-purple-600' : 'text-slate-400', bg: needsCleaningBeds > 0 ? 'bg-purple-50' : 'bg-slate-50' },
           { label: 'Open Incidents', value: openIncidents, icon: AlertTriangle, color: openIncidents > 0 ? 'text-red-600' : 'text-slate-400', bg: openIncidents > 0 ? 'bg-red-50' : 'bg-slate-50' },
           { label: 'Pending Fees', value: pendingPayments, icon: DollarSign, color: pendingPayments > 0 ? 'text-orange-600' : 'text-slate-400', bg: pendingPayments > 0 ? 'bg-orange-50' : 'bg-slate-50' },
         ].map((s, i) => (
@@ -498,6 +518,11 @@ export default function HousingOperations() {
           {nonCompliant > 0 && (
             <p className="text-xs text-red-600 mt-2 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5" /> {nonCompliant} house(s) flagged non-compliant
+            </p>
+          )}
+          {needsCleaningBeds > 0 && (
+            <p className="text-xs text-purple-700 mt-1.5 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> {needsCleaningBeds} bed(s) awaiting housekeeping sign-off before becoming available — go to Bed Inventory to mark ready
             </p>
           )}
         </CardContent>
@@ -624,7 +649,7 @@ export default function HousingOperations() {
                     <th className="text-left py-2 px-3">Resident</th>
                     <th className="text-left py-2 px-3">Move-In</th>
                     <th className="text-left py-2 px-3">Fee/wk</th>
-                    <th className="text-left py-2 px-3"></th>
+                    <th className="text-left py-2 px-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -643,11 +668,24 @@ export default function HousingOperations() {
                         <td className="py-2 px-3">{b.resident_name || (b.status === 'occupied' ? '(linked)' : '—')}</td>
                         <td className="py-2 px-3">{b.move_in_date || '—'}</td>
                         <td className="py-2 px-3">{b.weekly_fee ? `$${b.weekly_fee}` : '—'}</td>
-                        <td className="py-2 px-3">
-                          <button onClick={() => setBedModal(b)} className="text-muted-foreground hover:text-foreground">
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
+                         <td className="py-2 px-3">
+                           <div className="flex items-center gap-2">
+                             {b.status === 'needs_cleaning' && (
+                               <button
+                                 onClick={() => handleMarkBedReady(b)}
+                                 disabled={markingBedReady === b.id}
+                                 className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md bg-purple-100 text-purple-700 hover:bg-purple-200 disabled:opacity-50 transition-colors"
+                                 title="Mark bed as cleaned and ready for placement"
+                               >
+                                 <Sparkles className="w-3 h-3" />
+                                 {markingBedReady === b.id ? 'Saving...' : 'Mark Ready'}
+                               </button>
+                             )}
+                             <button onClick={() => setBedModal(b)} className="text-muted-foreground hover:text-foreground">
+                               <Edit className="w-3.5 h-3.5" />
+                             </button>
+                           </div>
+                         </td>
                       </tr>
                     );
                   })}
