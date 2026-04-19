@@ -45,11 +45,15 @@ Deno.serve(async (req) => {
 
     for (const resident of unassignedResidents) {
       try {
-        // Get all case managers
-        const caseManagers = await base44.asServiceRole.entities.User.filter({
-          role: 'case_manager',
-          organization_id: organization_id
+        // Get all case managers via UserProfile (platform User only has admin/user roles)
+        const cmProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+          app_role: 'case_manager',
+          organization_id: organization_id,
+          status: 'active'
         });
+        const caseManagers = cmProfiles.length > 0
+          ? cmProfiles
+          : await base44.asServiceRole.entities.UserProfile.filter({ app_role: 'case_manager', status: 'active' });
 
         if (caseManagers.length === 0) {
           failed++;
@@ -65,14 +69,16 @@ Deno.serve(async (req) => {
         // Calculate caseloads
         const caseloadData = await Promise.all(
           caseManagers.map(async (cm) => {
-            const assigned = await base44.asServiceRole.entities.Resident.filter({
-              assigned_case_manager_id: cm.id,
+            const cmName = cm.full_name || cm.email;
+            const assignedResidents = await base44.asServiceRole.entities.Resident.filter({
+              assigned_case_manager: cmName,
               organization_id: organization_id
             });
             return {
               user_id: cm.id,
-              name: cm.full_name || cm.email,
-              caseload: assigned.length
+              name: cmName,
+              email: cm.email,
+              caseload: assignedResidents.length
             };
           })
         );
@@ -129,12 +135,7 @@ Deno.serve(async (req) => {
       action: 'bulk_auto_assign_residents',
       entity_type: 'Resident',
       entity_id: organization_id,
-      details: {
-        total_unassigned: unassignedResidents.length,
-        assigned,
-        failed,
-        organization_id
-      },
+      details: `Bulk auto-assign: ${assigned} assigned, ${failed} failed out of ${unassignedResidents.length} unassigned in org ${organization_id}`,
       severity: 'info'
     }).catch(err => console.warn('Audit log failed:', err.message));
 

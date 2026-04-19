@@ -46,11 +46,17 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Get all case managers in organization
-    const caseManagers = await base44.asServiceRole.entities.User.filter({
-      role: 'case_manager',
-      organization_id: organization_id
+    // Get all case managers in organization via UserProfile (platform User only has admin/user roles)
+    const caseManagerProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+      app_role: 'case_manager',
+      organization_id: organization_id,
+      status: 'active'
     });
+
+    // Also try without org filter if none found (profiles may use different org format)
+    const caseManagers = caseManagerProfiles.length > 0
+      ? caseManagerProfiles
+      : await base44.asServiceRole.entities.UserProfile.filter({ app_role: 'case_manager', status: 'active' });
 
     if (caseManagers.length === 0) {
       // No case managers available
@@ -60,11 +66,7 @@ Deno.serve(async (req) => {
         action: 'auto_assignment_failed_no_managers',
         entity_type: 'Resident',
         entity_id: resident_id,
-        details: {
-          resident_name: `${resident.first_name} ${resident.last_name}`,
-          organization_id,
-          reason: 'No case managers available in organization'
-        },
+        details: `No case managers available for resident ${resident.first_name} ${resident.last_name} in org ${organization_id}`,
         severity: 'warning'
       }).catch(err => console.warn('Audit log failed:', err.message));
 
@@ -79,14 +81,16 @@ Deno.serve(async (req) => {
     // Calculate caseload for each case manager
     const caseloadData = await Promise.all(
       caseManagers.map(async (cm) => {
-        const assigned = await base44.asServiceRole.entities.Resident.filter({
-          assigned_case_manager_id: cm.id,
+        const cmName = cm.full_name || cm.email;
+        const assignedResidents = await base44.asServiceRole.entities.Resident.filter({
+          assigned_case_manager: cmName,
           organization_id: organization_id
         });
         return {
           user_id: cm.id,
-          name: cm.full_name || cm.email,
-          caseload: assigned.length
+          name: cmName,
+          email: cm.email,
+          caseload: assignedResidents.length
         };
       })
     );
@@ -102,12 +106,7 @@ Deno.serve(async (req) => {
         action: 'auto_assignment_failed_all_overloaded',
         entity_type: 'Resident',
         entity_id: resident_id,
-        details: {
-          resident_name: `${resident.first_name} ${resident.last_name}`,
-          organization_id,
-          caseload_threshold,
-          reason: 'All case managers at or over caseload threshold'
-        },
+        details: `All case managers at/over caseload threshold (${caseload_threshold}) for resident ${resident.first_name} ${resident.last_name}`,
         severity: 'warning'
       }).catch(err => console.warn('Audit log failed:', err.message));
 
@@ -128,6 +127,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.Resident.update(resident_id, {
       assigned_case_manager_id: assignedManager.user_id,
       assigned_case_manager: assignedManager.name,
+      assigned_case_manager_email: assignedManager.email,
       assignment_method: 'auto',
       assignment_timestamp: new Date().toISOString(),
       auto_assignment_reason: reason,
@@ -141,14 +141,7 @@ Deno.serve(async (req) => {
       action: 'resident_auto_assigned',
       entity_type: 'Resident',
       entity_id: resident_id,
-      details: {
-        resident_name: `${resident.first_name} ${resident.last_name}`,
-        assigned_case_manager: assignedManager.name,
-        assigned_case_manager_id: assignedManager.user_id,
-        assigned_caseload: assignedManager.caseload + 1,
-        reason,
-        triggered_by: user.full_name || user.email
-      },
+      details: `Assigned ${resident.first_name} ${resident.last_name} to ${assignedManager.name} (caseload: ${assignedManager.caseload + 1}, reason: ${reason}, by: ${user.full_name || user.email})`,
       severity: 'info'
     }).catch(err => console.warn('Audit log failed:', err.message));
 
