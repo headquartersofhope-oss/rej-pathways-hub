@@ -133,55 +133,35 @@ export default function TurnkeyBedAssignment({ resident, currentUser, onAssigned
     setError(null);
 
     try {
-      // Check if a placement already exists for this resident
-      const existing = await base44.entities.HousingPlacement.filter({
-        global_resident_id: resident.global_resident_id
-      }, '-synced_at', 1);
-
-      const placementData = {
-        global_resident_id: resident.global_resident_id,
-        resident_id: resident.id,
-        organization_id: orgId,
-        housing_model: 'turnkey_house',
-        house_id: selectedHouse.id,
-        house_name: selectedHouse.name,
-        house_type: selectedHouse.program_type,
-        city: selectedHouse.city,
-        state: selectedHouse.state,
-        room_id: selectedBed.room_number || null,
-        room_name: selectedBed.room_number ? `Room ${selectedBed.room_number}` : null,
+      const res = await base44.functions.invoke('completeBedAssignment', {
         bed_id: selectedBed.id,
-        bed_label: selectedBed.bed_label,
-        placement_status: 'placed',
-        occupancy_status: 'occupied',
-        move_in_date: new Date().toISOString().split('T')[0],
-        placement_source: currentUser?.full_name || currentUser?.email || 'Staff',
-        synced_at: new Date().toISOString(),
-        sync_source: 'direct_import',
-        sync_error: null,
-        last_verified: new Date().toISOString(),
-        notes: `Internal turnkey assignment by ${currentUser?.email || 'staff'}`
-      };
-
-      if (existing.length > 0) {
-        await base44.entities.HousingPlacement.update(existing[0].id, placementData);
-      } else {
-        await base44.entities.HousingPlacement.create(placementData);
-      }
-
-      // Mark the bed as occupied
-      await base44.entities.Bed.update(selectedBed.id, {
-        status: 'occupied',
         resident_id: resident.id,
-        resident_name: `${resident.first_name} ${resident.last_name}`,
-        move_in_date: placementData.move_in_date
+        case_manager_id: currentUser?.id || 'unknown',
       });
+
+      const data = res.data;
+      if (!data?.success) {
+        setError(data?.error || 'Assignment failed. The reservation may have expired.');
+        // If reservation expired/stolen, bounce back to bed selection
+        if (data?.error?.includes('Reservation expired') || data?.error?.includes('taken by another')) {
+          clearReservation();
+          setSelectedBed(null);
+          setStep('select_bed');
+        }
+        return;
+      }
 
       clearReservation();
       setStep('success');
       onAssigned?.();
     } catch (err) {
-      setError(err.message || 'Failed to assign placement');
+      const msg = err?.response?.data?.error || err.message || 'Failed to assign placement';
+      setError(msg);
+      if (msg.includes('Reservation expired') || msg.includes('taken by another')) {
+        clearReservation();
+        setSelectedBed(null);
+        setStep('select_bed');
+      }
     } finally {
       setSaving(false);
     }
