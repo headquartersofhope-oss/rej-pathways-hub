@@ -49,6 +49,7 @@ import HousingOperations from '@/pages/HousingOperations';
 import GrantTracker from '@/pages/GrantTracker';
 import TransportationHub from '@/pages/TransportationHub';
 import ManagerPortal from '@/pages/ManagerPortal';
+import SystemHealth from '@/pages/admin/SystemHealth';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -128,6 +129,7 @@ const AuthenticatedApp = () => {
         <Route path="/transportation" element={<TransportationHub />} />
         <Route path="/manager-portal" element={<ManagerPortal />} />
         <Route path="/admin/my-access" element={<MyAccessVerification />} />
+        <Route path="/admin/system-health" element={<SystemHealth />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
