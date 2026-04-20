@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useQuery } from '@tanstack/react-query';
-import { Mail, Phone, Users, Shield, CheckCircle2, X, Edit2, Trash2 } from 'lucide-react';
+import { Mail, Phone, Users, Shield, CheckCircle2, X, Edit2, Trash2, Mail as MailIcon, Copy } from 'lucide-react';
 import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
+import { format } from 'date-fns';
 
 const AVAILABLE_ROLES = [
   { value: 'super_admin', label: 'Super Admin', color: '#F59E0B' },
@@ -137,13 +138,19 @@ const ROLE_PERMISSIONS = {
 };
 
 export default function TeamManagement() {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', role: 'case_manager' });
+  const [formMode, setFormMode] = useState('invite'); // 'invite' or 'manual'
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', role: 'case_manager', tempPassword: '', notes: '' });
+  const [activateImmediately, setActivateImmediately] = useState(false);
   const [adminToggleState, setAdminToggleState] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const { data: teamMembers = [], refetch } = useQuery({
     queryKey: ['user_profiles'],
     queryFn: () => base44.entities.UserProfile.list(),
   });
+
+  const activeMembers = teamMembers.filter(m => m.data?.status === 'active');
+  const pendingMembers = teamMembers.filter(m => m.data?.status === 'pending_invitation');
 
   useEffect(() => {
     const toggleState = {};
@@ -155,26 +162,86 @@ export default function TeamManagement() {
     setAdminToggleState(toggleState);
   }, [teamMembers]);
 
-  const handleInvite = async () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.role) {
       alert('Please fill in required fields');
       return;
     }
 
+    if (formMode === 'manual' && !formData.tempPassword) {
+      alert('Temporary password is required in manual add mode');
+      return;
+    }
+
+    setLoading(true);
     try {
-      await base44.entities.UserProfile.create({
-        email: formData.email,
-        full_name: formData.name,
-        phone_number: formData.phone,
-        app_role: formData.role,
-        status: 'active',
-        onboarding_status: 'invited',
-      });
-      setFormData({ name: '', email: '', phone: '', role: 'case_manager' });
+      if (formMode === 'invite') {
+        // Send invitation - create pending profile
+        await base44.entities.UserProfile.create({
+          email: formData.email,
+          full_name: formData.name,
+          phone_number: formData.phone,
+          app_role: formData.role,
+          status: 'pending_invitation',
+          onboarding_status: 'invited',
+        });
+        // Send invite email via backend function
+        await base44.functions.invoke('createUserWithOnboarding', {
+          full_name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          app_role: formData.role,
+          send_invite: true,
+        });
+        alert('Invitation sent successfully!');
+      } else {
+        // Add manually - create active profile
+        await base44.entities.UserProfile.create({
+          email: formData.email,
+          full_name: formData.name,
+          phone_number: formData.phone,
+          app_role: formData.role,
+          status: 'active',
+          onboarding_status: 'completed',
+        });
+        alert('Team member added successfully!');
+      }
+      setFormData({ name: '', email: '', phone: '', role: 'case_manager', tempPassword: '', notes: '' });
+      setActivateImmediately(false);
       refetch();
     } catch (error) {
-      console.error('Error inviting team member:', error);
-      alert('Failed to invite team member');
+      console.error('Error:', error);
+      alert('Failed to process request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendInvite = async (member) => {
+    try {
+      await base44.functions.invoke('createUserWithOnboarding', {
+        full_name: member.data.full_name,
+        email: member.data.email,
+        phone: member.data.phone_number,
+        app_role: member.data.app_role,
+        send_invite: true,
+      });
+      alert('Invitation resent!');
+    } catch (error) {
+      console.error('Error resending invite:', error);
+      alert('Failed to resend invitation');
+    }
+  };
+
+  const handleCancelInvite = async (memberId) => {
+    if (confirm('Cancel this invitation?')) {
+      try {
+        await base44.entities.UserProfile.delete(memberId);
+        refetch();
+      } catch (error) {
+        console.error('Error canceling invite:', error);
+        alert('Failed to cancel invitation');
+      }
     }
   };
 
@@ -199,14 +266,57 @@ export default function TeamManagement() {
     <div className="space-y-8">
       <PremiumPageHeader title="Team Management" subtitle="Invite staff, assign roles, and control permissions." icon={Shield} />
 
-      {/* Invite Section */}
+      {/* Add Team Member Form */}
       <Card className="border-2" style={{ backgroundColor: '#161B22', borderColor: '#30363D', borderTopColor: '#34D399', borderTopWidth: '4px' }}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
-            <Users className="w-5 h-5" />
-            Invite New Team Member
-          </CardTitle>
-          <CardDescription style={{ color: '#8B949E' }}>Add a new user to the Pathways system</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+                <Users className="w-5 h-5" />
+                Add Team Member
+              </CardTitle>
+              <CardDescription style={{ color: '#8B949E' }}>Choose how to add a new user to the Pathways system</CardDescription>
+            </div>
+            {/* Mode Toggle Pills */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFormMode('invite')}
+                style={{
+                  backgroundColor: formMode === 'invite' ? '#F59E0B' : 'transparent',
+                  color: formMode === 'invite' ? '#0D1117' : '#F59E0B',
+                  border: `2px solid #F59E0B`,
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => !formMode !== 'invite' && (e.target.style.backgroundColor = '#F59E0B20')}
+                onMouseLeave={(e) => formMode !== 'invite' && (e.target.style.backgroundColor = 'transparent')}
+              >
+                Send Invitation
+              </button>
+              <button
+                onClick={() => setFormMode('manual')}
+                style={{
+                  backgroundColor: formMode === 'manual' ? '#F59E0B' : 'transparent',
+                  color: formMode === 'manual' ? '#0D1117' : '#F59E0B',
+                  border: `2px solid #F59E0B`,
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => formMode !== 'manual' && (e.target.style.backgroundColor = '#F59E0B20')}
+                onMouseLeave={(e) => formMode !== 'manual' && (e.target.style.backgroundColor = 'transparent')}
+              >
+                Add Manually
+              </button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -246,20 +356,123 @@ export default function TeamManagement() {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleInvite} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">
-            Send Invitation
+
+          {/* Manual Mode Fields */}
+          {formMode === 'manual' && (
+            <div className="space-y-4 pt-4 border-t border-amber-500/30">
+              <Input
+                placeholder="Temporary Password"
+                type="password"
+                value={formData.tempPassword}
+                onChange={(e) => setFormData({ ...formData, tempPassword: e.target.value })}
+                style={{ backgroundColor: '#21262D', borderColor: '#30363D', color: '#E6EDF3' }}
+                onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+                onBlur={(e) => e.target.style.borderColor = '#30363D'}
+              />
+              <div className="flex items-center gap-2 p-3 rounded-lg" style={{ backgroundColor: '#21262D' }}>
+                <Switch checked={activateImmediately} onCheckedChange={setActivateImmediately} />
+                <span style={{ color: '#CDD9E5', fontSize: '14px' }}>Activate immediately</span>
+              </div>
+              <Input
+                placeholder="Notes (optional)"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                style={{ backgroundColor: '#21262D', borderColor: '#30363D', color: '#E6EDF3' }}
+                onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+                onBlur={(e) => e.target.style.borderColor = '#30363D'}
+              />
+            </div>
+          )}
+
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold w-full"
+          >
+            {loading ? 'Processing...' : formMode === 'invite' ? 'Send Invitation' : 'Add Member'}
           </Button>
         </CardContent>
       </Card>
 
+      {/* Pending Invitations Table */}
+      {pendingMembers.length > 0 && (
+        <Card className="border-2" style={{ backgroundColor: '#161B22', borderColor: '#30363D', borderTopColor: '#F59E0B', borderTopWidth: '4px' }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+              <Mail className="w-5 h-5" />
+              Pending Invitations ({pendingMembers.length})
+            </CardTitle>
+            <CardDescription style={{ color: '#8B949E' }}>Awaiting acceptance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{ color: '#CDD9E5' }}>
+                <thead style={{ backgroundColor: '#21262D' }}>
+                  <tr style={{ borderBottom: '1px solid #30363D' }}>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Name</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Email</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Role</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Date Invited</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingMembers.map(member => {
+                    const memberData = member.data || {};
+                    return (
+                      <tr key={member.id} style={{ borderBottom: '1px solid #30363D' }}>
+                        <td className="py-3 px-4">{memberData.full_name || 'N/A'}</td>
+                        <td className="py-3 px-4">{memberData.email || 'N/A'}</td>
+                        <td className="py-3 px-4">
+                          <Badge style={{
+                            backgroundColor: (ROLE_COLOR_MAP[memberData.app_role] || '#94A3B8') + '20',
+                            color: ROLE_COLOR_MAP[memberData.app_role] || '#94A3B8',
+                            border: `1px solid ${ROLE_COLOR_MAP[memberData.app_role] || '#94A3B8'}`
+                          }}>
+                            {memberData.app_role || 'unknown'}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4" style={{ color: '#8B949E', fontSize: '13px' }}>
+                          {member.created_date ? format(new Date(member.created_date), 'MMM dd, yyyy') : 'N/A'}
+                        </td>
+                        <td className="py-3 px-4 space-x-2">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => handleResendInvite(member)}
+                            title="Resend invitation"
+                          >
+                            <Mail className="w-4 h-4" style={{ color: '#F59E0B' }} />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-red-500 hover:text-red-600"
+                            onClick={() => handleCancelInvite(member.id)}
+                            title="Cancel invitation"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Active Team Members */}
-      <Card className="border-border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+      <Card className="border-2" style={{ backgroundColor: '#161B22', borderColor: '#30363D', borderTopColor: '#34D399', borderTopWidth: '4px' }}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
             <Shield className="w-5 h-5" />
-            Active Team Members
+            Active Team Members <Badge className="ml-2 bg-green-500/20 text-green-400">{activeMembers.length}</Badge>
           </CardTitle>
-          <CardDescription style={{ color: '#8B949E' }}>{teamMembers.length} team members</CardDescription>
+          <CardDescription style={{ color: '#8B949E' }}>Currently active users</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -274,7 +487,7 @@ export default function TeamManagement() {
                 </tr>
               </thead>
               <tbody>
-                {teamMembers.map(member => {
+                {activeMembers.map(member => {
                   const memberData = member.data || {};
                   return (
                     <tr key={member.id} style={{ borderBottom: '1px solid #30363D' }}>
@@ -290,8 +503,8 @@ export default function TeamManagement() {
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        <Badge className={memberData.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
-                          {memberData.status || 'inactive'}
+                        <Badge className="bg-green-500/20 text-green-400">
+                          active
                         </Badge>
                       </td>
                       <td className="py-3 px-4 space-x-2">

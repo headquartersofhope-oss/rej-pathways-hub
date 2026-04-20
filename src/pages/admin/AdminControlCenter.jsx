@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2, Eye, Zap as ZapAuto, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import SystemOverview from '@/components/admin/SystemOverview';
 import QueueCenter from '@/components/admin/QueueCenter';
 import NotesOversight from '@/components/admin/NotesOversight';
@@ -17,6 +19,13 @@ import { useNavigate } from 'react-router-dom';
 export default function AdminControlCenter() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['user_profiles'],
+    queryFn: () => base44.entities.UserProfile.list(),
+  });
+
+  const activeTeamCount = teamMembers.filter(m => m.data?.status === 'active').length;
 
   useEffect(() => {
     if (user && !['admin', 'user', 'super_admin', 'org_admin'].includes(user.role)) {
@@ -48,7 +57,7 @@ export default function AdminControlCenter() {
             <TabsList className="h-10 bg-transparent gap-1 p-0">
               {[
                 { value: 'overview', label: 'Overview', icon: LayoutDashboard },
-                { value: 'team', label: 'Team Management', icon: Users },
+                { value: 'team', label: 'Team Management', icon: Users, badge: activeTeamCount },
                 { value: 'queues', label: 'Queues', icon: Inbox },
                 { value: 'notes', label: 'Notes', icon: FileText },
                 { value: 'ai-ops', label: 'AI Ops', icon: Zap },
@@ -56,13 +65,19 @@ export default function AdminControlCenter() {
                 { value: 'auto-assign', label: 'Auto-Assign', icon: ZapAuto },
                 { value: 'role-preview', label: 'Role Preview', icon: Eye },
                 { value: 'diagnostics', label: 'Diagnostics', icon: Wrench },
-              ].map(({ value, label, icon: Icon }) => (
+              ].map(({ value, label, icon: Icon, badge }) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className="h-10 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs px-3"
+                  className="h-10 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs px-3 flex items-center gap-2"
                 >
-                  <Icon className="w-3.5 h-3.5 mr-1.5" />{label}
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{label}</span>
+                  {badge !== undefined && (
+                    <Badge className="ml-1 bg-amber-500/20 text-amber-300 h-5 px-1.5 text-xs font-semibold">
+                      {badge}
+                    </Badge>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
