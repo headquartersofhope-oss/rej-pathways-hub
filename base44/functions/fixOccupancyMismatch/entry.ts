@@ -47,14 +47,41 @@ Deno.serve(async (req) => {
 
     // Validate each placement has a corresponding occupied bed
     let invalidPlacements = 0;
+    let deletedPlacements = 0;
     for (const placement of placements) {
+      // If placement has no bed_id, it's a ghost placement - delete it
+      if (!placement.bed_id) {
+        console.warn(`[OCCUPANCY] Invalid placement: no bed_id assigned`);
+        invalidPlacements++;
+        await base44.asServiceRole.entities.HousingPlacement.delete(placement.id);
+        console.log(`[OCCUPANCY] Deleted ghost placement ${placement.id} (no bed_id)`);
+        deletedPlacements++;
+        continue;
+      }
+      
       const bed = beds.find(b => b.id === placement.bed_id);
       if (!bed || bed.status !== 'occupied') {
         console.warn(`[OCCUPANCY] Invalid placement: bed ${placement.bed_id} not occupied`);
         invalidPlacements++;
         
-        // Fix: mark bed as occupied if not already
-        if (bed && bed.status !== 'occupied') {
+        // Try to verify resident exists
+        let residentExists = false;
+        try {
+          if (placement.resident_id) {
+            await base44.asServiceRole.entities.Resident.get(placement.resident_id);
+            residentExists = true;
+          }
+        } catch (e) {
+          residentExists = false;
+        }
+        
+        // If resident doesn't exist, delete the placement
+        if (!residentExists && placement.resident_id) {
+          await base44.asServiceRole.entities.HousingPlacement.delete(placement.id);
+          console.log(`[OCCUPANCY] Deleted orphaned placement ${placement.id} (resident not found)`);
+          deletedPlacements++;
+        } else if (bed && bed.status !== 'occupied') {
+          // Fix: mark bed as occupied if not already
           await base44.asServiceRole.entities.Bed.update(bed.id, {
             status: 'occupied',
             resident_id: placement.resident_id,
@@ -74,8 +101,18 @@ Deno.serve(async (req) => {
         ghostBeds++;
         
         // Check if resident still in housing or exited
-        const resident = await base44.asServiceRole.entities.Resident.get(bed.resident_id);
-        if (!resident || resident.status === 'exited') {
+        let residentExists = false;
+        try {
+          if (bed.resident_id) {
+            const resident = await base44.asServiceRole.entities.Resident.get(bed.resident_id);
+            if (!resident || resident.status === 'exited') residentExists = false;
+            else residentExists = true;
+          }
+        } catch (e) {
+          residentExists = false;
+        }
+        
+        if (!residentExists) {
           await base44.asServiceRole.entities.Bed.update(bed.id, {
             status: 'available',
             resident_id: null,
@@ -88,15 +125,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[OCCUPANCY] Repair complete: ${repairs.length} houses fixed, ${invalidPlacements} invalid placements, ${ghostBeds} ghost beds`);
+    console.log(`[OCCUPANCY] Repair complete: ${repairs.length} houses fixed, ${invalidPlacements} invalid placements, ${ghostBeds} ghost beds, ${deletedPlacements} orphaned placements deleted`);
 
     return Response.json({
       success: true,
       repairs_applied: repairs.length,
       invalid_placements: invalidPlacements,
       ghost_beds: ghostBeds,
+      deleted_placements: deletedPlacements,
       details: repairs,
-      message: `Fixed ${repairs.length} occupancy mismatches. Validated ${placements.length} placements.`
+      message: `Fixed ${repairs.length} occupancy mismatches. Validated ${placements.length} placements. Deleted ${deletedPlacements} orphaned placements.`
     });
   } catch (error) {
     console.error('[OCCUPANCY] Error:', error);
