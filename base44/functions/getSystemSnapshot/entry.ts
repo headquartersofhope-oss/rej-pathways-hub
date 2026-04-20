@@ -14,13 +14,16 @@ Deno.serve(async (req) => {
 
     // Get all residents with status
     const allResidents = await base44.asServiceRole.entities.Resident.list();
-    const residentsWithStatus = allResidents.map(r => ({
-      id: r.id,
-      name: r.data?.first_name && r.data?.last_name ? `${r.data.first_name} ${r.data.last_name}` : 'Unknown',
-      status: r.data?.status,
-      housing: r.data?.housing || 'None',
-      caseManager: r.data?.assigned_case_manager,
-    }));
+    const residentsWithStatus = allResidents.map(r => {
+      const firstName = r.data?.first_name || r.first_name;
+      const lastName = r.data?.last_name || r.last_name;
+      return {
+        id: r.id,
+        name: firstName && lastName ? `${firstName} ${lastName}` : 'Unknown',
+        status: r.data?.status || r.status,
+        caseManager: r.data?.assigned_case_manager || r.assigned_case_manager,
+      };
+    });
 
     // Get housing inventory
     const allHouses = await base44.asServiceRole.entities.House.list();
