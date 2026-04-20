@@ -4,11 +4,10 @@ A fully configurable, plug-and-play AI assistant component library for any Base4
 
 ## Package Contents
 
-- `AppAssistant.jsx` - Main floating chat panel (configurable per app)
-- `ClaudeBridge.jsx` - Brief Claude and Copy Brief buttons (standalone)
-- `TrainingButtonWidget.jsx` - Floating training module button
-- `aiAssistant.js` - Backend Claude API function (shared across all apps)
-- `README.md` - This documentation
+- `components/ai/AppAssistant.jsx` - Main floating chat panel (configurable per app)
+- `components/ai/ClaudeBridge.jsx` - Brief Claude and Copy Brief buttons (standalone)
+- `components/ai/TrainingButtonWidget.jsx` - Floating training module button
+- `functions/aiAssistant.js` - Backend Claude API function (shared across all apps)
 
 ## Features
 
