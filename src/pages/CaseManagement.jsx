@@ -3,6 +3,9 @@ import { useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import PremiumCard from '@/components/premium/PremiumCard';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
+import PremiumSectionHeader from '@/components/premium/PremiumSectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -72,19 +75,15 @@ export default function CaseManagement() {
 
   return (
      <div className="space-y-8">
-       {/* Hero Header */}
-       <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border border-primary/10 rounded-2xl p-8">
-         <div className="flex items-center justify-between flex-wrap gap-4">
-           <div>
-             <h1 className="font-heading text-3xl font-bold">Case Management</h1>
-             <p className="text-sm text-muted-foreground mt-2">
-               {accessibleResidents.length} participant{accessibleResidents.length !== 1 ? 's' : ''} · Manage caseload and workflow
-             </p>
-           </div>
-           <Link to="/intake">
-             <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"><Users className="w-4 h-4" />New Intake</Button>
-           </Link>
-         </div>
+       <div className="flex items-start justify-between gap-4">
+         <PremiumPageHeader
+           title="Case Management"
+           subtitle={`${accessibleResidents.length} participant${accessibleResidents.length !== 1 ? 's' : ''} · Manage caseload and workflow`}
+           icon={FolderOpen}
+         />
+         <Link to="/intake" className="mt-1">
+           <Button className="gap-2"><Users className="w-4 h-4" />New Intake</Button>
+         </Link>
        </div>
 
       {/* Alerts */}
@@ -96,62 +95,14 @@ export default function CaseManagement() {
         </div>
       )}
 
-      {/* Summary cards - Metric Cards */}
+      {/* Premium Metric Cards */}
       <div>
-        <h3 className="font-heading text-lg font-bold mb-4 text-foreground">Quick Snapshot</h3>
+        <PremiumSectionHeader title="Quick Snapshot" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="metric-card border hover:shadow-lg transition-smooth">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Overdue Tasks</p>
-                  <p className="font-heading text-3xl font-bold mt-2 text-destructive">{overdueTasks.length}</p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-5 h-5 text-destructive" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="metric-card border hover:shadow-lg transition-smooth">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Today's Appts</p>
-                  <p className="font-heading text-3xl font-bold mt-2 text-primary">{todayApts.length}</p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="metric-card border hover:shadow-lg transition-smooth">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Open Incidents</p>
-                  <p className="font-heading text-3xl font-bold mt-2 text-warning">{openIncidents.length}</p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 text-warning" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="metric-card border hover:shadow-lg transition-smooth">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Case Notes</p>
-                  <p className="font-heading text-3xl font-bold mt-2 text-success">{allNotes.length}</p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-success" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <PremiumCard title="Overdue Tasks" value={overdueTasks.length} icon={Clock} accentColor="#F87171" trend={overdueTasks.length > 0 ? "Action" : "Clear"} trendPositive={overdueTasks.length === 0} />
+          <PremiumCard title="Today's Appts" value={todayApts.length} icon={Calendar} accentColor="#60A5FA" trend={todayApts.length > 0 ? "Scheduled" : "Clear"} trendPositive={true} />
+          <PremiumCard title="Open Incidents" value={openIncidents.length} icon={AlertCircle} accentColor="#FBBF24" trend={openIncidents.length > 0 ? "Review" : "Clear"} trendPositive={openIncidents.length === 0} />
+          <PremiumCard title="Case Notes" value={allNotes.length} icon={CheckCircle2} accentColor="#34D399" trend="Logged" trendPositive={true} />
         </div>
       </div>
 

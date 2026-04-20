@@ -4,11 +4,14 @@ import { base44 } from '@/api/base44Client';
 import { useOutletContext, Link } from 'react-router-dom';
 import { isStaff } from '@/lib/roles';
 import { Card } from '@/components/ui/card';
+import PremiumCard from '@/components/premium/PremiumCard';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
+import PremiumSectionHeader from '@/components/premium/PremiumSectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Star, ChevronRight, AlertCircle, CheckCircle2, Search } from 'lucide-react';
+import { Star, ChevronRight, AlertCircle, CheckCircle2, Search, Users, FileText } from 'lucide-react';
 
 export default function JobReadiness() {
   const { user } = useOutletContext();
@@ -114,34 +117,25 @@ export default function JobReadiness() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Star className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="font-heading text-2xl font-bold">Job Readiness</h1>
-            <p className="text-sm text-muted-foreground">Track resident employment readiness</p>
-          </div>
-        </div>
-      </div>
+      <PremiumPageHeader
+        title="Job Readiness"
+        subtitle="Track resident employment readiness"
+        icon={Star}
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Active Residents', value: activeResidents.length },
-          { label: 'Nearly Job-Ready (70%+)', value: nearlyReady.length },
-          { label: 'Resumes on File', value: Object.keys(resumeByResident).length },
-          { label: 'Mock Interviews Done', value: Object.keys(interviewByResident).length },
-        ].map(({ label, value }) => (
-          <Card key={label} className="p-4 text-center">
-            <p className="font-heading font-bold text-2xl">{value}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{label}</p>
-          </Card>
-        ))}
-      </div>
+       {/* Premium Stats */}
+       <div>
+         <PremiumSectionHeader title="Readiness Metrics" />
+         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+           <PremiumCard title="Active Residents" value={activeResidents.length} icon={Users} accentColor="#A78BFA" />
+           <PremiumCard title="Nearly Ready (70%+)" value={nearlyReady.length} icon={CheckCircle2} accentColor="#34D399" />
+           <PremiumCard title="Resumes on File" value={Object.keys(resumeByResident).length} icon={FileText} accentColor="#F59E0B" />
+           <PremiumCard title="Mock Interviews" value={Object.keys(interviewByResident).length} icon={Users} accentColor="#3B82F6" />
+         </div>
+       </div>
 
       {/* Search */}
+      <PremiumSectionHeader title="Search & Filter" />
       <div className="relative mb-5">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -155,10 +149,8 @@ export default function JobReadiness() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Nearly Ready */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <h2 className="font-heading font-semibold text-sm">Nearly Job-Ready ({nearlyReady.length})</h2>
-          </div>
+          <PremiumSectionHeader title={`Nearly Job-Ready (${nearlyReady.length})`} icon={CheckCircle2} />
+          <div className="mt-3">
           {nearlyReady.length === 0 ? (
             <Card className="p-4 text-center text-sm text-muted-foreground">No residents at 70%+ yet.</Card>
           ) : (
@@ -168,10 +160,8 @@ export default function JobReadiness() {
 
         {/* Needs Work */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-4 h-4 text-amber-500" />
-            <h2 className="font-heading font-semibold text-sm">Needs Work ({needsWork.length})</h2>
-          </div>
+          <PremiumSectionHeader title={`Needs Work (${needsWork.length})`} icon={AlertCircle} />
+          <div className="mt-3">
           {needsWork.length === 0 ? (
             <Card className="p-4 text-center text-sm text-muted-foreground">All residents are nearly ready!</Card>
           ) : (

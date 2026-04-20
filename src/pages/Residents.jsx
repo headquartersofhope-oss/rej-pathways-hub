@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import PageHeader from '@/components/shared/PageHeader';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -133,18 +133,18 @@ export default function Residents() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
-      <PageHeader
-        title="Participants"
-        subtitle={`${allResidents.length} total participants`}
-        icon={Users}
-        actions={
-          canAdd && (
-            <Button className="gap-2" onClick={() => setShowAdd(true)}>
-              <Plus className="w-4 h-4" /> Add Participant
-            </Button>
-          )
-        }
-      />
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <PremiumPageHeader
+          title="Participants"
+          subtitle={`${allResidents.length} total participants`}
+          icon={Users}
+        />
+        {canAdd && (
+          <Button className="gap-2 mt-1" onClick={() => setShowAdd(true)}>
+            <Plus className="w-4 h-4" /> Add Participant
+          </Button>
+        )}
+      </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">

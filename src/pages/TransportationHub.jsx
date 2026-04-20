@@ -11,6 +11,9 @@ import {
   Car, Plus, Clock, CheckCircle, AlertTriangle, Search, MapPin,
   Calendar, Users, Repeat, Edit, Trash2, User, Truck, LayoutGrid
 } from 'lucide-react';
+import PremiumCard from '@/components/premium/PremiumCard';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
+import PremiumSectionHeader from '@/components/premium/PremiumSectionHeader';
 
 import RideRequestModal from '@/components/transportation/RideRequestModal';
 import DriverFormModal from '@/components/transportation/DriverFormModal';
@@ -145,44 +148,33 @@ export default function TransportationHub() {
         />
       )}
 
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border border-primary/10 rounded-2xl p-8">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="font-heading text-3xl font-bold">Transportation Hub</h1>
-            <p className="text-sm text-muted-foreground mt-2">{activeDrivers} drivers · {activeVehicles} vehicles · {activeRecurring} recurring rides</p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" className="transition-smooth hover:shadow-sm" onClick={() => setVehicleModal('new')}><Truck className="w-4 h-4 mr-1.5" />Add Vehicle</Button>
-            <Button variant="outline" size="sm" className="transition-smooth hover:shadow-sm" onClick={() => setDriverModal('new')}><User className="w-4 h-4 mr-1.5" />Add Driver</Button>
-            <Button variant="outline" size="sm" className="transition-smooth hover:shadow-sm" onClick={() => setRecurringModal('new')}><Repeat className="w-4 h-4 mr-1.5" />Recurring Ride</Button>
-            <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-smooth" onClick={() => setRideModal('new')}><Plus className="w-4 h-4 mr-1.5" />New Request</Button>
-          </div>
+      {/* Premium Header */}
+      <div className="flex items-start justify-between gap-4">
+        <PremiumPageHeader
+          title="Transportation Hub"
+          subtitle={`${activeDrivers} drivers · ${activeVehicles} vehicles · ${activeRecurring} recurring rides`}
+          icon={Car}
+        />
+        <div className="flex gap-2 flex-wrap mt-1">
+          <Button variant="outline" size="sm" onClick={() => setVehicleModal('new')}><Truck className="w-4 h-4 mr-1.5" />Add Vehicle</Button>
+          <Button variant="outline" size="sm" onClick={() => setDriverModal('new')}><User className="w-4 h-4 mr-1.5" />Add Driver</Button>
+          <Button variant="outline" size="sm" onClick={() => setRecurringModal('new')}><Repeat className="w-4 h-4 mr-1.5" />Recurring</Button>
+          <Button size="sm" className="bg-amber-500 hover:bg-amber-600" onClick={() => setRideModal('new')}><Plus className="w-4 h-4 mr-1.5" />New Request</Button>
         </div>
       </div>
 
-      {/* KPIs - Metric Cards */}
+      {/* Premium KPIs */}
       <div>
-        <h3 className="font-heading text-lg font-bold mb-4 text-foreground">Fleet Status</h3>
+        <PremiumSectionHeader title="Fleet Status" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3">
-          {[
-            { label: 'Today', value: todayTrips, color: 'text-blue-600', bg: 'bg-blue-100', icon: Calendar },
-            { label: 'Pending', value: pending, color: pending > 0 ? 'text-yellow-600' : 'text-slate-500', bg: pending > 0 ? 'bg-yellow-100' : 'bg-slate-100', icon: Clock },
-            { label: 'Unassigned', value: unassigned, color: unassigned > 0 ? 'text-orange-600' : 'text-slate-500', bg: unassigned > 0 ? 'bg-orange-100' : 'bg-slate-100', icon: AlertTriangle },
-            { label: 'This Month', value: completedThisMonth, color: 'text-emerald-600', bg: 'bg-emerald-100', icon: CheckCircle },
-            { label: 'No-Shows', value: noShowCount, color: noShowCount > 0 ? 'text-red-600' : 'text-slate-500', bg: noShowCount > 0 ? 'bg-red-100' : 'bg-slate-100', icon: AlertTriangle },
-            { label: 'Drivers', value: activeDrivers, color: 'text-indigo-600', bg: 'bg-indigo-100', icon: Users },
-            { label: 'Vehicles', value: activeVehicles, color: 'text-teal-600', bg: 'bg-teal-100', icon: Car },
-            { label: 'Recurring', value: activeRecurring, color: 'text-purple-600', bg: 'bg-purple-100', icon: Repeat },
-          ].map((s, i) => (
-            <Card key={i} className="metric-card border hover:shadow-lg transition-smooth"><CardContent className="p-5">
-              <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
-                <s.icon className={`w-4 h-4 ${s.color}`} />
-              </div>
-              <p className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-muted-foreground font-medium mt-1">{s.label}</p>
-            </CardContent></Card>
-          ))}
+          <PremiumCard title="Today" value={todayTrips} icon={Calendar} accentColor="#3B82F6" />
+          <PremiumCard title="Pending" value={pending} icon={Clock} accentColor={pending > 0 ? "#FBBF24" : "#94A3B8"} />
+          <PremiumCard title="Unassigned" value={unassigned} icon={AlertTriangle} accentColor={unassigned > 0 ? "#FB923C" : "#94A3B8"} />
+          <PremiumCard title="This Month" value={completedThisMonth} icon={CheckCircle} accentColor="#34D399" />
+          <PremiumCard title="No-Shows" value={noShowCount} icon={AlertTriangle} accentColor={noShowCount > 0 ? "#F87171" : "#94A3B8"} />
+          <PremiumCard title="Drivers" value={activeDrivers} icon={Users} accentColor="#6366F1" />
+          <PremiumCard title="Vehicles" value={activeVehicles} icon={Car} accentColor="#2DD4BF" />
+          <PremiumCard title="Recurring" value={activeRecurring} icon={Repeat} accentColor="#8B5CF6" />
         </div>
       </div>
 

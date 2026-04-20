@@ -4,6 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { useOutletContext, Link } from 'react-router-dom';
 import { isStaff } from '@/lib/roles';
 import { Card } from '@/components/ui/card';
+import PremiumCard from '@/components/premium/PremiumCard';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
+import PremiumSectionHeader from '@/components/premium/PremiumSectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Briefcase, Plus, Search, MapPin, DollarSign, Clock,
-  Users, Zap, Pencil
+  Users, Zap, Pencil, CheckCircle
 } from 'lucide-react';
 import JobListingDialog from '@/components/jobmatching/JobListingDialog';
 import { computeMatchScore, JOB_STATUSES, matchLabel } from '@/lib/jobMatchScoring';
@@ -337,43 +340,35 @@ export default function JobMatching() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Briefcase className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="font-heading text-2xl font-bold">Job Matching</h1>
-            <p className="text-sm text-muted-foreground">Match residents to employment opportunities</p>
-          </div>
-        </div>
+      {/* Premium Header */}
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <PremiumPageHeader
+          title="Job Matching"
+          subtitle="Match residents to employment opportunities"
+          icon={Briefcase}
+        />
         {staff && (
-          <div className="sm:ml-auto flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={handleBulkMatch} disabled={bulkMatching} className="gap-1.5">
-              <Zap className="w-3.5 h-3.5" />{bulkMatching ? 'Running...' : 'Run Bulk Match Engine'}
+          <div className="flex gap-2 flex-wrap mt-1">
+            <Button variant="outline" size="sm" onClick={handleBulkMatch} disabled={bulkMatching}>
+              <Zap className="w-3.5 h-3.5 mr-1.5" />{bulkMatching ? 'Running...' : 'Bulk Match'}
             </Button>
-            <Button size="sm" onClick={handleNew} className="gap-1.5">
-              <Plus className="w-3.5 h-3.5" /> Add Job Listing
+            <Button size="sm" onClick={handleNew}>
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Job
             </Button>
           </div>
         )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Active Listings', value: jobListings.filter(j => j.status === 'active').length },
-          { label: 'Total Matches', value: allMatches.length },
-          { label: 'Applied', value: appliedCount },
-          { label: 'Hired', value: hiredCount },
-        ].map(({ label, value }) => (
-          <Card key={label} className="p-4 text-center">
-            <p className="font-heading font-bold text-2xl">{value}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{label}</p>
-          </Card>
-        ))}
-      </div>
+       {/* Premium Stats */}
+       <div>
+         <PremiumSectionHeader title="Matching Pipeline" />
+         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+           <PremiumCard title="Active Listings" value={jobListings.filter(j => j.status === 'active').length} icon={Briefcase} accentColor="#A78BFA" />
+           <PremiumCard title="Total Matches" value={allMatches.length} icon={Users} accentColor="#2DD4BF" />
+           <PremiumCard title="Applied" value={appliedCount} icon={CheckCircle} accentColor="#F59E0B" />
+           <PremiumCard title="Hired" value={hiredCount} icon={CheckCircle} accentColor="#34D399" />
+         </div>
+       </div>
 
       <Tabs defaultValue="listings">
         <TabsList className="mb-5 flex-wrap h-auto gap-1">

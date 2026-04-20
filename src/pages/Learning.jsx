@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { GraduationCap } from 'lucide-react';
-import PageHeader from '@/components/shared/PageHeader';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
 import { isStaff } from '@/lib/roles';
 import ClassCatalog from '@/components/learning/ClassCatalog';
 import ClassSchedule from '@/components/learning/ClassSchedule';
@@ -40,7 +40,7 @@ export default function Learning() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
-      <PageHeader
+      <PremiumPageHeader
         title="Learning Center"
         subtitle={staffView ? "Manage classes, enrollments, and certifications" : "Your classes and progress"}
         icon={GraduationCap}

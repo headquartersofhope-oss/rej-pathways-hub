@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Home, Plus, Search, ChevronRight, Building2, Users } from 'lucide-react';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
 import ReferralStatusBadge from '@/components/housing/ReferralStatusBadge';
 import ReferralForm from '@/components/housing/ReferralForm';
 import ReferralDetail from '@/components/housing/ReferralDetail';
@@ -101,27 +102,16 @@ export default function HousingReferrals() {
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-background">
-      {/* Hero Header */}
-      <div className="border-b px-6 py-6 bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border-primary/10">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center">
-              <Home className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="font-heading font-bold text-xl">Housing Referrals</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Manage external housing referrals · {statusGroups.active + statusGroups.decided} total</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex gap-4 text-xs">
-              <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span className="text-muted-foreground">{statusGroups.active} active</span></div>
-              <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span className="text-muted-foreground">{statusGroups.decided} decided</span></div>
-              <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span className="text-muted-foreground">{statusGroups.closed} closed</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Premium Header */}
+      <div className="border-b px-6 py-6" style={{ backgroundColor: '#34D39914', borderColor: '#34D399' }}>
+         <div className="flex items-start justify-between gap-4">
+           <PremiumPageHeader
+             title="Housing Referrals"
+             subtitle={`${statusGroups.active + statusGroups.decided} total · {statusGroups.active} active, {statusGroups.decided} decided, {statusGroups.closed} closed`}
+             icon={Home}
+           />
+         </div>
+       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel — List */}
