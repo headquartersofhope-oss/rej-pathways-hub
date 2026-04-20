@@ -78,47 +78,47 @@ export default function CaseManagementTab({ resident, user, barriers, perms = {}
 
   return (
     <div className="space-y-5">
-      {/* Case Notes */}
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-primary" /> Case Notes
-          </h3>
-          {canAddNote && (
-            <Button size="sm" className="gap-1.5" onClick={() => setShowNoteForm(true)}>
-              <Plus className="w-3.5 h-3.5" /> Add Note
-            </Button>
-          )}
-        </div>
+       {/* Case Notes */}
+       <Card className="p-5" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+         <div className="flex items-center justify-between mb-4">
+           <h3 className="font-heading font-semibold text-sm flex items-center gap-2 text-white">
+             <MessageSquare className="w-4 h-4 text-amber-500" /> Case Notes
+           </h3>
+           {canAddNote && (
+             <Button size="sm" className="gap-1.5" onClick={() => setShowNoteForm(true)}>
+               <Plus className="w-3.5 h-3.5" /> Add Note
+             </Button>
+           )}
+         </div>
 
-        {notes.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">No case notes yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {notes
-              .filter(note => !note.is_confidential || (perms.canViewConfidentialNotes ?? true))
-              .map(note => (
-              <div key={note.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className={`text-[10px] ${noteTypeColors[note.note_type] || ''}`}>
-                      {note.note_type?.replace(/_/g, ' ')}
-                    </Badge>
-                    {note.is_confidential && (
-                      <Badge variant="outline" className="text-[10px] text-red-600 border-red-200">Confidential</Badge>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-muted-foreground flex-shrink-0">
-                    {note.note_date || (note.created_date ? format(new Date(note.created_date), 'MMM d, yyyy') : '')}
-                  </span>
-                </div>
-                <p className="text-sm text-foreground">{note.description}</p>
-                <p className="text-xs text-muted-foreground mt-2">— {note.staff_name || 'Staff'}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+         {notes.length === 0 ? (
+           <p className="text-sm text-center py-6" style={{ color: '#8B949E' }}>No case notes yet.</p>
+         ) : (
+           <div className="space-y-3">
+             {notes
+               .filter(note => !note.is_confidential || (perms.canViewConfidentialNotes ?? true))
+               .map(note => (
+               <div key={note.id} className="border rounded-lg p-4" style={{ borderColor: '#30363D', backgroundColor: '#1C2128' }}>
+                 <div className="flex items-start justify-between gap-2 mb-2">
+                   <div className="flex items-center gap-2 flex-wrap">
+                     <Badge className={`text-[10px] ${noteTypeColors[note.note_type] || ''}`}>
+                       {note.note_type?.replace(/_/g, ' ')}
+                     </Badge>
+                     {note.is_confidential && (
+                       <Badge variant="outline" className="text-[10px] border" style={{ color: '#F87171', borderColor: '#F87171' }}>Confidential</Badge>
+                     )}
+                   </div>
+                   <span className="text-[11px] flex-shrink-0" style={{ color: '#8B949E' }}>
+                     {note.note_date || (note.created_date ? format(new Date(note.created_date), 'MMM d, yyyy') : '')}
+                   </span>
+                 </div>
+                 <p className="text-sm text-white">{note.description}</p>
+                 <p className="text-xs mt-2" style={{ color: '#8B949E' }}>— {note.staff_name || 'Staff'}</p>
+               </div>
+             ))}
+           </div>
+         )}
+       </Card>
 
       {/* AI Service Plan Assistant */}
       {barriers && barriers.length > 0 && (

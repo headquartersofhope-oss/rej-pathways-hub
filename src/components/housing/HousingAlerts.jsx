@@ -165,66 +165,52 @@ export default function HousingAlerts() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-4 text-sm text-muted-foreground">Loading housing alerts...</div>;
+    return <div className="text-center py-4 text-sm" style={{ color: '#8B949E' }}>Loading housing alerts...</div>;
   }
 
   if (alerts.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          ✓ All housing workflows healthy—no alerts.
-        </CardContent>
-      </Card>
-    );
-  }
+      <Card style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+         <CardContent className="py-8 text-center text-sm" style={{ color: '#8B949E' }}>
+           ✓ All housing workflows healthy—no alerts.
+         </CardContent>
+       </Card>
+     );
+   }
 
   return (
     <div className="space-y-2">
-      {alerts.map(alert => {
-        const Icon = alert.icon;
-        const bgClass = {
-          success: 'bg-emerald-50 border-emerald-200',
-          info: 'bg-blue-50 border-blue-200',
-          warning: 'bg-amber-50 border-amber-200',
-          error: 'bg-red-50 border-red-200',
-        }[alert.type];
-        
-        const textClass = {
-          success: 'text-emerald-800',
-          info: 'text-blue-800',
-          warning: 'text-amber-800',
-          error: 'text-red-800',
-        }[alert.type];
+       {alerts.map(alert => {
+         const Icon = alert.icon;
+         const styleMap = {
+           success: { bg: '#34D39914', border: '#34D399', text: '#34D399', icon: '#34D399' },
+           info: { bg: '#60A5FA14', border: '#60A5FA', text: '#60A5FA', icon: '#60A5FA' },
+           warning: { bg: '#FBBF2414', border: '#FBBF24', text: '#FBBF24', icon: '#FBBF24' },
+           error: { bg: '#F8717114', border: '#F87171', text: '#F87171', icon: '#F87171' },
+         }[alert.type];
 
-        const iconClass = {
-          success: 'text-emerald-600',
-          info: 'text-blue-600',
-          warning: 'text-amber-600',
-          error: 'text-red-600',
-        }[alert.type];
-
-        return (
-          <Card key={alert.id} className={`border ${bgClass}`}>
-            <CardContent className="p-3 flex items-start gap-3">
-              <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${iconClass}`} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-2 flex-wrap">
-                  <p className={`text-sm font-medium ${textClass}`}>{alert.title}</p>
-                  {alert.count > 0 && (
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      {alert.count}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{alert.message}</p>
-              </div>
-              <Badge variant="outline" className="text-xs shrink-0 h-fit">
-                {alert.action}
-              </Badge>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
+         return (
+           <Card key={alert.id} className="border" style={{ backgroundColor: styleMap.bg, borderColor: styleMap.border }}>
+             <CardContent className="p-3 flex items-start gap-3">
+               <Icon className="w-4 h-4 shrink-0 mt-0.5" style={{ color: styleMap.icon }} />
+               <div className="flex-1 min-w-0">
+                 <div className="flex items-start gap-2 flex-wrap">
+                   <p className="text-sm font-medium" style={{ color: styleMap.text }}>{alert.title}</p>
+                   {alert.count > 0 && (
+                     <Badge variant="outline" className="text-xs shrink-0" style={{ borderColor: styleMap.border, color: styleMap.text }}>
+                       {alert.count}
+                     </Badge>
+                   )}
+                 </div>
+                 <p className="text-xs mt-0.5" style={{ color: '#8B949E' }}>{alert.message}</p>
+               </div>
+               <Badge variant="outline" className="text-xs shrink-0 h-fit" style={{ borderColor: styleMap.border, color: styleMap.text }}>
+                 {alert.action}
+               </Badge>
+             </CardContent>
+           </Card>
+         );
+       })}
+     </div>
+   );
 }

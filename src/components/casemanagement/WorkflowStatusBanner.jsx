@@ -25,28 +25,28 @@ export default function WorkflowStatusBanner({ resident, placement }) {
   const Icon = config.icon;
 
   return (
-    <Card className={`p-4 ${config.bg} border-0`}>
+    <Card className="p-4 border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
       <div className="flex items-center gap-3">
-        <Icon className={`w-5 h-5 ${config.color} flex-shrink-0`} />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground">
-            {config.label}
-            {placement && (
-              <span className="text-xs text-muted-foreground ml-2">
-                • Placed in {placement.house_name}
-              </span>
-            )}
-          </p>
-          {resident.assigned_case_manager && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Assigned to {resident.assigned_case_manager}
-            </p>
-          )}
-        </div>
-        <Badge variant="outline" className="flex-shrink-0">
-          {resident.global_resident_id}
-        </Badge>
-      </div>
-    </Card>
-  );
+         <Icon className={`w-5 h-5 ${config.color} flex-shrink-0`} />
+         <div className="flex-1 min-w-0">
+           <p className="text-sm font-medium text-white">
+             {config.label}
+             {placement && (
+               <span className="text-xs ml-2" style={{ color: '#8B949E' }}>
+                 • Placed in {placement.house_name}
+               </span>
+             )}
+           </p>
+           {resident.assigned_case_manager && (
+             <p className="text-xs mt-0.5" style={{ color: '#8B949E' }}>
+               Assigned to {resident.assigned_case_manager}
+             </p>
+           )}
+         </div>
+         <Badge variant="outline" className="flex-shrink-0" style={{ color: '#CDD9E5', borderColor: '#30363D', backgroundColor: 'transparent' }}>
+           {resident.global_resident_id}
+         </Badge>
+       </div>
+     </Card>
+   );
 }

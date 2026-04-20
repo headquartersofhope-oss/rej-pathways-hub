@@ -157,32 +157,32 @@ Focus on support level needed and demographic compatibility.`,
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">
-          Housing Referral for {resident.first_name}
-        </CardTitle>
-      </CardHeader>
+    <Card style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+       <CardHeader>
+         <CardTitle className="text-base text-white">
+           Housing Referral for {resident.first_name}
+         </CardTitle>
+       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* AI Recommendations */}
-        {recommendations.length > 0 && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-xs font-medium text-blue-900 mb-2">AI Recommendations</p>
-            <div className="space-y-2">
-              {recommendations.map((rec, i) => (
-                <div key={i} className="text-xs text-blue-800">
-                  <p className="font-medium">{i + 1}. {rec.housing_type}</p>
-                  <p className="text-blue-700">{rec.reasoning}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+       <CardContent className="space-y-4">
+         {/* AI Recommendations */}
+         {recommendations.length > 0 && (
+           <div className="p-3 border rounded-md" style={{ backgroundColor: '#60A5FA14', borderColor: '#60A5FA' }}>
+             <p className="text-xs font-medium mb-2" style={{ color: '#60A5FA' }}>AI Recommendations</p>
+             <div className="space-y-2">
+               {recommendations.map((rec, i) => (
+                 <div key={i} className="text-xs" style={{ color: '#CDD9E5' }}>
+                   <p className="font-medium">{i + 1}. {rec.housing_type}</p>
+                   <p style={{ color: '#8B949E' }}>{rec.reasoning}</p>
+                 </div>
+               ))}
+             </div>
+           </div>
+         )}
 
-        {/* Search Filters */}
-        <div className="space-y-3">
-          <p className="text-xs font-medium text-muted-foreground">FILTER HOUSING</p>
+         {/* Search Filters */}
+         <div className="space-y-3">
+           <p className="text-xs font-medium" style={{ color: '#8B949E' }}>FILTER HOUSING</p>
           
           <div className="grid grid-cols-3 gap-2">
             <Input
@@ -218,9 +218,9 @@ Focus on support level needed and demographic compatibility.`,
 
         {/* Error */}
         {error && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-red-800">{error}</p>
+          <div className="flex items-start gap-2 p-3 border rounded-md" style={{ backgroundColor: '#F8717114', borderColor: '#F87171' }}>
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F87171' }} />
+            <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>
           </div>
         )}
 
@@ -239,26 +239,26 @@ Focus on support level needed and demographic compatibility.`,
               <button
                 key={provider.id}
                 onClick={() => setSelectedProvider(provider)}
-                className={`w-full p-3 border rounded-md text-left transition ${
-                  selectedProvider?.id === provider.id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/50'
-                }`}
+                className="w-full p-3 border rounded-md text-left transition"
+                style={{
+                  backgroundColor: selectedProvider?.id === provider.id ? '#F59E0B14' : '#1C2128',
+                  borderColor: selectedProvider?.id === provider.id ? '#F59E0B' : '#30363D'
+                }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{provider.provider_name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="font-medium text-sm text-white">{provider.provider_name}</p>
+                    <p className="text-xs mt-1" style={{ color: '#8B949E' }}>
                       {provider.city} • {provider.program_type?.replace(/_/g, ' ')}
                     </p>
                     {provider.available_beds !== undefined && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs" style={{ color: '#8B949E' }}>
                         {provider.available_beds} of {provider.total_beds} beds available
                       </p>
                     )}
                   </div>
                   {selectedProvider?.id === provider.id && (
-                    <Badge className="bg-primary text-primary-foreground">Selected</Badge>
+                    <Badge style={{ backgroundColor: '#F59E0B', color: '#0D1117' }}>Selected</Badge>
                   )}
                 </div>
               </button>

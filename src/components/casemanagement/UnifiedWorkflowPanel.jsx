@@ -124,35 +124,35 @@ export default function UnifiedWorkflowPanel({ resident, onStatusChange, user })
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
-      <h3 className="font-heading font-bold text-lg mb-4">Resident Workflow</h3>
+    <Card className="p-6 border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+      <h3 className="font-heading font-bold text-lg mb-4 text-white">Resident Workflow</h3>
 
-      {/* Workflow steps visual */}
-      <div className="mb-6 space-y-3">
-        {/* Step indicators */}
-        <div className="overflow-x-auto pb-2">
-          <div className="flex gap-2 min-w-max">
-            {WORKFLOW_STEPS.map((step, idx) => {
-              const isActive = step.id === currentStatus;
-              const isPassed = WORKFLOW_STEPS.findIndex(s => s.id === currentStatus) >= idx;
-              const Icon = step.icon;
-              
-              return (
-                <div key={step.id} className="flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${isActive ? step.bgColor : isPassed ? 'bg-emerald-50' : 'bg-slate-200'}`}>
-                    <Icon className={`w-4 h-4 ${isActive ? step.color : isPassed ? 'text-emerald-600' : 'text-slate-400'}`} />
-                  </div>
-                  <p className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-foreground' : isPassed ? 'text-emerald-700' : 'text-muted-foreground'}`}>
-                    {step.label}
-                  </p>
-                  {idx < WORKFLOW_STEPS.length - 1 && (
-                    <ChevronRight className={`w-3 h-3 ${isPassed ? 'text-emerald-400' : 'text-slate-300'}`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+       {/* Workflow steps visual */}
+       <div className="mb-6 space-y-3">
+         {/* Step indicators */}
+         <div className="overflow-x-auto pb-2">
+           <div className="flex gap-2 min-w-max">
+             {WORKFLOW_STEPS.map((step, idx) => {
+               const isActive = step.id === currentStatus;
+               const isPassed = WORKFLOW_STEPS.findIndex(s => s.id === currentStatus) >= idx;
+               const Icon = step.icon;
+
+               return (
+                 <div key={step.id} className="flex items-center gap-2">
+                   <div className={`p-2 rounded-lg ${isActive ? 'bg-amber-500/20' : isPassed ? 'bg-emerald-500/20' : 'bg-slate-700'}`}>
+                     <Icon className={`w-4 h-4 ${isActive ? 'text-amber-500' : isPassed ? 'text-emerald-500' : 'text-slate-500'}`} />
+                   </div>
+                   <p className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-amber-400' : isPassed ? 'text-emerald-400' : 'text-slate-500'}`} style={{ color: isActive ? '#F59E0B' : isPassed ? '#34D399' : '#8B949E' }}>
+                     {step.label}
+                   </p>
+                   {idx < WORKFLOW_STEPS.length - 1 && (
+                     <ChevronRight className={`w-3 h-3 ${isPassed ? 'text-emerald-500' : 'text-slate-600'}`} />
+                   )}
+                 </div>
+               );
+             })}
+           </div>
+         </div>
 
         {/* Action buttons */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">
@@ -233,16 +233,16 @@ export default function UnifiedWorkflowPanel({ resident, onStatusChange, user })
         </div>
 
         {/* Current status info */}
-        <div className="pt-2 border-t border-slate-300">
-          <p className="text-xs text-muted-foreground">
-            Current Status: <span className="font-medium text-foreground capitalize">{resident.status?.replace(/_/g, ' ')}</span>
-          </p>
-          {placement && (
-            <p className="text-xs text-emerald-700 mt-1">
-              ✓ Placed in {placement.house_name}, {placement.bed_label}
-            </p>
-          )}
-        </div>
+         <div className="pt-2 border-t" style={{ borderColor: '#30363D' }}>
+           <p className="text-xs" style={{ color: '#8B949E' }}>
+             Current Status: <span className="font-medium text-white capitalize">{resident.status?.replace(/_/g, ' ')}</span>
+           </p>
+           {placement && (
+             <p className="text-xs mt-1" style={{ color: '#34D399' }}>
+               ✓ Placed in {placement.house_name}, {placement.bed_label}
+             </p>
+           )}
+         </div>
       </div>
 
       {/* Housing Modal */}

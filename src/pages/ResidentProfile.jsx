@@ -212,30 +212,30 @@ export default function ResidentProfile() {
         </div>
 
         {/* Quick stats row */}
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mt-6">
-          <div className="metric-card flex flex-col items-center">
-            <p className="font-heading font-bold text-2xl text-primary">{resident.job_readiness_score || 0}%</p>
-            <p className="text-xs text-muted-foreground mt-2 font-medium">Job Readiness</p>
-          </div>
-          <div className="metric-card flex flex-col items-center">
-            <p className="font-heading font-bold text-2xl text-primary">{activeBarriersCount}</p>
-            <p className="text-xs text-muted-foreground mt-2 font-medium">Active Barriers</p>
-          </div>
-          <div className="metric-card flex flex-col items-center">
-            <p className="font-heading font-bold text-2xl text-primary">{openTasks}</p>
-            <p className="text-xs text-muted-foreground mt-2 font-medium">Open Tasks</p>
-          </div>
-          <div className="metric-card flex flex-col items-center hidden sm:flex">
-            {intakeStatus === 'completed'
-              ? <p className="font-heading font-bold text-2xl text-success">✓</p>
-              : <p className="font-heading font-bold text-2xl text-muted-foreground">—</p>}
-            <p className="text-xs text-muted-foreground mt-2 font-medium">Intake Done</p>
-          </div>
-          <div className="metric-card flex flex-col items-center hidden sm:flex">
-            <p className="font-heading font-bold text-base text-primary capitalize">{resident.population?.replace(/_/g, ' ').split(' ')[0] || '—'}</p>
-            <p className="text-xs text-muted-foreground mt-2 font-medium">Population</p>
-          </div>
-        </div>
+         <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mt-6">
+           <div className="flex flex-col items-center p-4 rounded-lg border" style={{ backgroundColor: '#1C2128', borderColor: '#30363D' }}>
+             <p className="font-heading font-bold text-3xl text-white">{resident.job_readiness_score || 0}%</p>
+             <p className="text-xs mt-2 font-medium" style={{ color: '#8B949E' }}>Job Readiness</p>
+           </div>
+           <div className="flex flex-col items-center p-4 rounded-lg border" style={{ backgroundColor: '#1C2128', borderColor: '#30363D' }}>
+             <p className="font-heading font-bold text-3xl text-white">{activeBarriersCount}</p>
+             <p className="text-xs mt-2 font-medium" style={{ color: '#8B949E' }}>Active Barriers</p>
+           </div>
+           <div className="flex flex-col items-center p-4 rounded-lg border" style={{ backgroundColor: '#1C2128', borderColor: '#30363D' }}>
+             <p className="font-heading font-bold text-3xl text-white">{openTasks}</p>
+             <p className="text-xs mt-2 font-medium" style={{ color: '#8B949E' }}>Open Tasks</p>
+           </div>
+           <div className="hidden sm:flex flex-col items-center p-4 rounded-lg border" style={{ backgroundColor: '#1C2128', borderColor: '#30363D' }}>
+             {intakeStatus === 'completed'
+               ? <p className="font-heading font-bold text-3xl text-white">✓</p>
+               : <p className="font-heading font-bold text-3xl text-white">—</p>}
+             <p className="text-xs mt-2 font-medium" style={{ color: '#8B949E' }}>Intake Done</p>
+           </div>
+           <div className="hidden sm:flex flex-col items-center p-4 rounded-lg border" style={{ backgroundColor: '#1C2128', borderColor: '#30363D' }}>
+             <p className="font-heading font-bold text-2xl text-white capitalize">{resident.population?.replace(/_/g, ' ').split(' ')[0] || '—'}</p>
+             <p className="text-xs mt-2 font-medium" style={{ color: '#8B949E' }}>Population</p>
+           </div>
+         </div>
 
         {/* Workflow status banner */}
         <div className="mt-4">
@@ -270,19 +270,19 @@ export default function ResidentProfile() {
 
       {/* Tabs */}
       <Tabs defaultValue={perms.isProbationOfficer ? 'probation-notes' : 'overview'}>
-        <TabsList className="mb-4 flex-wrap h-auto gap-1">
-          {!perms.isProbationOfficer && <TabsTrigger value="overview">Overview</TabsTrigger>}
-          {!perms.isProbationOfficer && <TabsTrigger value="case">Case Management</TabsTrigger>}
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          {!perms.isProbationOfficer && <TabsTrigger value="learning">Learning</TabsTrigger>}
-          <TabsTrigger value="job-readiness">Job Readiness</TabsTrigger>
-          {!perms.isProbationOfficer && <TabsTrigger value="job-matching">Job Matching</TabsTrigger>}
-          {!perms.isProbationOfficer && <TabsTrigger value="documents">Documents</TabsTrigger>}
-          {perms.canViewProbationNotes && <TabsTrigger value="probation-notes">Probation Notes</TabsTrigger>}
-          {!perms.isProbationOfficer && <TabsTrigger value="outcomes">Outcomes</TabsTrigger>}
-          {!perms.isProbationOfficer && <TabsTrigger value="alumni">Alumni</TabsTrigger>}
-          {!perms.isProbationOfficer && <TabsTrigger value="resources">Resources</TabsTrigger>}
+        <TabsList className="mb-4 flex-wrap h-auto gap-1" style={{ color: '#E6EDF3' }}>
+          {!perms.isProbationOfficer && <TabsTrigger value="overview" style={{ color: '#E6EDF3' }}>Overview</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="case" style={{ color: '#E6EDF3' }}>Case Management</TabsTrigger>}
+          <TabsTrigger value="tasks" style={{ color: '#E6EDF3' }}>Tasks</TabsTrigger>
+          <TabsTrigger value="appointments" style={{ color: '#E6EDF3' }}>Appointments</TabsTrigger>
+          {!perms.isProbationOfficer && <TabsTrigger value="learning" style={{ color: '#E6EDF3' }}>Learning</TabsTrigger>}
+          <TabsTrigger value="job-readiness" style={{ color: '#E6EDF3' }}>Job Readiness</TabsTrigger>
+          {!perms.isProbationOfficer && <TabsTrigger value="job-matching" style={{ color: '#E6EDF3' }}>Job Matching</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="documents" style={{ color: '#E6EDF3' }}>Documents</TabsTrigger>}
+          {perms.canViewProbationNotes && <TabsTrigger value="probation-notes" style={{ color: '#E6EDF3' }}>Probation Notes</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="outcomes" style={{ color: '#E6EDF3' }}>Outcomes</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="alumni" style={{ color: '#E6EDF3' }}>Alumni</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="resources" style={{ color: '#E6EDF3' }}>Resources</TabsTrigger>}
         </TabsList>
 
         {!perms.isProbationOfficer && (
