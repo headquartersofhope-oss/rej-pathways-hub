@@ -6,18 +6,45 @@
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
   ORG_ADMIN: 'org_admin',
+  ADMIN: 'admin',
   MANAGER: 'manager',
   PROGRAM_MANAGER: 'program_manager',
   CASE_MANAGER: 'case_manager',
+  HOUSING_STAFF: 'housing_staff',
+  EMPLOYMENT_STAFF: 'employment_staff',
   INSTRUCTOR: 'instructor',
   STAFF: 'staff',
   RESIDENT: 'resident',
   PROBATION_OFFICER: 'probation_officer',
   REFERRAL_PARTNER: 'referral_partner',
   AUDITOR: 'auditor',
+  EMPLOYER: 'employer',
   // Base44 platform default roles treated as admin
-  ADMIN: 'admin',
   USER: 'user',
+};
+
+/**
+ * Super Admin Permissions Matrix
+ * Super admins can do everything admin can do, plus:
+ * - Assign and revoke any role including admin
+ * - Enable/disable role assignment permissions for other admins
+ * - Preview any role in the system
+ * - Access all modules regardless of settings
+ * - Cannot be locked out by any other role
+ */
+export const SUPER_ADMIN_PERMISSIONS = {
+  canManageAllResidents: true,
+  canManageAllUsers: true,
+  canAssignRoles: true,
+  canRevokeRoles: true,
+  canAssignAdminRoles: true,
+  canToggleAdminRoleAssignment: true,
+  canPreviewAllRoles: true,
+  canAccessAllModules: true,
+  cannotBeLocked: true,
+  canManageSettings: true,
+  canViewAuditLogs: true,
+  canModifyPermissions: true,
 };
 
 /** Returns true for any administrative role with full system access */
@@ -26,11 +53,16 @@ export function isAdmin(role) {
   return ['admin', 'user', 'super_admin', 'org_admin'].includes(role);
 }
 
+/** Returns true only for super admin (highest privilege) */
+export function isSuperAdmin(role) {
+  return role === ROLES.SUPER_ADMIN;
+}
+
 /** Returns true for any staff role that can manage residents */
 export function isStaff(role) {
   // 'user' is the Base44 platform default role — treat as admin/staff
   return ['admin', 'user', 'super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'instructor', 'staff',
-    'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator'].includes(role);
+    'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator', 'housing_staff', 'employment_staff'].includes(role);
 }
 
 /** Returns true if user is a manager (operational oversight, not admin) */
