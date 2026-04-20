@@ -42,6 +42,7 @@ import RequestAccess from '@/pages/RequestAccess';
 import OnboardingQueue from '@/pages/admin/OnboardingQueue';
 import AdminControlCenter from '@/pages/admin/AdminControlCenter';
 import AuditCenter from '@/pages/admin/AuditCenter';
+import Training from '@/pages/Training';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
 import HousingReferrals from '@/pages/HousingReferrals';
 import MyAccessVerification from '@/pages/admin/MyAccessVerification';
@@ -130,6 +131,7 @@ const AuthenticatedApp = () => {
         <Route path="/manager-portal" element={<ManagerPortal />} />
         <Route path="/admin/my-access" element={<MyAccessVerification />} />
         <Route path="/admin/system-health" element={<SystemHealth />} />
+        <Route path="/training" element={<Training />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

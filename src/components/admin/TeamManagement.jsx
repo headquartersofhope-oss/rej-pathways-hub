@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -564,6 +565,17 @@ export default function TeamManagement() {
                     ))}
                   </tr>
                 ))}
+                <tr style={{ borderBottom: '1px solid #30363D' }}>
+                  <td className="py-3 px-4 font-medium">Training Required</td>
+                  {AVAILABLE_ROLES.map(role => (
+                    <td key={`training-${role.value}`} className="text-center py-3 px-3">
+                      <Switch
+                        checked={true}
+                        onCheckedChange={() => {}}
+                      />
+                    </td>
+                  ))}
+                </tr>
               </tbody>
             </table>
           </div>

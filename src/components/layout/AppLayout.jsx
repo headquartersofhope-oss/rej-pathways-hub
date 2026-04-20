@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/lib/AuthContext';
 import GlobalSearchBar from '@/components/shared/GlobalSearchBar';
+import TrainingButton from '@/components/training/TrainingButton';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -32,9 +33,10 @@ export default function AppLayout() {
           <GlobalSearchBar />
         </div>
         <div className="flex-1 animate-in fade-in duration-300">
-          <Outlet context={{ user }} />
+           <Outlet context={{ user }} />
+         </div>
+        </main>
+        <TrainingButton />
         </div>
-      </main>
-    </div>
-  );
-}
+        );
+        }

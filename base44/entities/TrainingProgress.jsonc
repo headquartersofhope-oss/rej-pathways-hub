@@ -1,0 +1,109 @@
+{
+  "name": "TrainingProgress",
+  "type": "object",
+  "description": "Tracks user progress through training modules",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User.id of the trainee"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "training_id": {
+      "type": "string",
+      "description": "Training.training_id"
+    },
+    "module_title": {
+      "type": "string"
+    },
+    "steps_completed": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "Array of completed step numbers"
+    },
+    "current_step": {
+      "type": "integer",
+      "default": 1,
+      "description": "Current step the user is on"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed",
+        "skipped"
+      ],
+      "default": "not_started"
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "score": {
+      "type": "integer",
+      "description": "Score for modules with quizzes (0-100)"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "started_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "training_id",
+    "role"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "name": "Training",
+  "type": "object",
+  "description": "Training modules for in-app onboarding and role-based training",
+  "properties": {
+    "training_id": {
+      "type": "string",
+      "description": "Unique training module identifier"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "case_manager",
+        "staff",
+        "probation_officer",
+        "employer",
+        "resident",
+        "super_admin",
+        "housing_staff",
+        "employment_staff"
+      ],
+      "description": "Role this training is for"
+    },
+    "module_title": {
+      "type": "string",
+      "description": "Title of the training module"
+    },
+    "module_description": {
+      "type": "string",
+      "description": "Description of what the module covers"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step_number": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "read",
+              "click",
+              "fill",
+              "watch",
+              "quiz"
+            ]
+          },
+          "target_element": {
+            "type": "string",
+            "description": "CSS selector for click/fill actions"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content for read steps"
+          },
+          "quiz_question": {
+            "type": "string"
+          },
+          "quiz_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "quiz_correct_answer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "step_number",
+          "title",
+          "description",
+          "action_type"
+        ]
+      }
+    },
+    "completion_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this training is mandatory"
+    },
+    "estimated_minutes": {
+      "type": "integer",
+      "description": "Estimated time to complete module"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "training_id",
+    "role",
+    "module_title",
+    "steps"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
