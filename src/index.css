@@ -130,17 +130,182 @@
     border-color: #30363D;
   }
 
-  /* Status badge colors - dark theme adjusted */
-  .badge-housing-pending {
-    @apply bg-yellow-900 text-yellow-200 border-yellow-700;
+  /* Typography - Dark Theme */
+  .heading-xl {
+    @apply text-3xl font-bold;
+    color: #FFFFFF;
   }
-  .badge-active {
-    @apply bg-green-900 text-green-200 border-green-700;
+
+  .heading-lg {
+    @apply text-2xl font-bold;
+    color: #FFFFFF;
   }
-  .badge-exiting {
-    @apply bg-red-900 text-red-200 border-red-700;
+
+  .heading-md {
+    @apply text-lg font-bold;
+    color: #FFFFFF;
   }
-  .badge-alumni {
-    @apply bg-blue-900 text-blue-200 border-blue-700;
+
+  .heading-sm {
+    @apply text-sm font-semibold;
+    color: #FFFFFF;
+  }
+
+  .subheading {
+    @apply text-sm;
+    color: #8B949E;
+  }
+
+  .body-text {
+    @apply text-base;
+    color: #CDD9E5;
+  }
+
+  .muted-text {
+    @apply text-sm;
+    color: #8B949E;
+  }
+
+  .metric-number {
+    @apply font-bold;
+    color: #FFFFFF;
+    font-size: 3rem;
+  }
+
+  .metric-label {
+    @apply text-sm;
+    color: #8B949E;
+  }
+
+  /* Status badge colors - dark theme with vibrant colors */
+  .status-badge-active {
+    background-color: #34D39914;
+    color: #34D399;
+    border-color: #34D399;
+  }
+
+  .status-badge-housing-pending {
+    background-color: #FBBF2414;
+    color: #FBBF24;
+    border-color: #FBBF24;
+  }
+
+  .status-badge-housing-eligible {
+    background-color: #60A5FA14;
+    color: #60A5FA;
+    border-color: #60A5FA;
+  }
+
+  .status-badge-employed {
+    background-color: #A78BFA14;
+    color: #A78BFA;
+    border-color: #A78BFA;
+  }
+
+  .status-badge-exited {
+    background-color: #F8717114;
+    color: #F87171;
+    border-color: #F87171;
+  }
+
+  .status-badge-graduated {
+    background-color: #2DD4BF14;
+    color: #2DD4BF;
+    border-color: #2DD4BF;
+  }
+
+  .status-badge-pre-intake {
+    background-color: #94A3B814;
+    color: #94A3B8;
+    border-color: #94A3B8;
+  }
+
+  /* Card surfaces - dark theme */
+  .card-dark {
+    background-color: #161B22;
+    border-color: #30363D;
+  }
+
+  .card-elevated {
+    background-color: #21262D;
+    border-color: #30363D;
+  }
+
+  /* Form inputs - dark theme */
+  .input-dark {
+    background-color: #21262D;
+    border-color: #30363D;
+    color: #E6EDF3;
+  }
+
+  .input-dark::placeholder {
+    color: #8B949E;
+  }
+
+  .input-dark:focus {
+    border-color: #F59E0B;
+    outline: none;
+  }
+
+  /* Table - dark theme */
+  .table-dark {
+    background-color: #0D1117;
+  }
+
+  .table-dark thead {
+    background-color: #161B22;
+  }
+
+  .table-dark thead th {
+    color: #8B949E;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .table-dark tbody tr {
+    border-color: #30363D;
+  }
+
+  .table-dark tbody tr:hover {
+    background-color: #161B22;
+  }
+
+  .table-dark tbody tr:nth-child(even) {
+    background-color: #161B22;
+  }
+
+  .table-dark tbody td {
+    color: #CDD9E5;
+  }
+
+  /* Buttons - dark theme */
+  .btn-primary {
+    background-color: #F59E0B;
+    color: #0D1117;
+    font-weight: 600;
+  }
+
+  .btn-primary:hover {
+    background-color: #D97706;
+  }
+
+  .btn-secondary {
+    border-color: #30363D;
+    color: #CDD9E5;
+    background-color: transparent;
+  }
+
+  .btn-secondary:hover {
+    background-color: #21262D;
+  }
+
+  .btn-ghost {
+    color: #CDD9E5;
+  }
+
+  .btn-ghost:hover {
+    background-color: #1C2128;
+    color: #FFFFFF;
   }
 }

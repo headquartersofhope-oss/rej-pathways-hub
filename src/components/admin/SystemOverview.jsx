@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, ClipboardList, Briefcase, BookOpen, Home, AlertTriangle, CheckSquare, UserCheck, Activity, RefreshCw, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { getStatusBadgeStyle } from '@/lib/darkThemeClasses';
 
 export default function SystemOverview() {
   const [data, setData] = useState(null);

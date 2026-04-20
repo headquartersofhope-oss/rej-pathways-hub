@@ -12,19 +12,19 @@ import {
 
 function StatCard({ title, value, sub, icon: Icon, color, bg, to, alert }) {
   const content = (
-    <Card className={`metric-card border ${alert ? 'border-destructive/30 bg-destructive/5' : 'border-border'} hover:shadow-lg transition-smooth group`}>
+    <Card className={`metric-card border ${alert ? 'border-red-500/30 bg-red-500/5' : 'border-border'} hover:shadow-lg transition-smooth group`}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{title}</p>
-            <p className={`font-heading text-3xl font-bold mt-2 ${alert ? 'text-destructive' : 'text-foreground'}`}>{value}</p>
-            {sub && <p className="text-xs text-muted-foreground mt-1.5">{sub}</p>}
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#8B949E' }}>{title}</p>
+            <p className={`font-heading text-3xl font-bold mt-2 ${alert ? 'text-red-400' : 'text-white'}`}>{value}</p>
+            {sub && <p className="text-xs mt-1.5" style={{ color: '#8B949E' }}>{sub}</p>}
           </div>
           <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-smooth`}>
             <Icon className={`w-5 h-5 ${color}`} />
           </div>
         </div>
-        {to && <div className="flex items-center gap-1 mt-4 text-xs text-primary font-semibold group-hover:gap-2 transition-smooth">View Details <ChevronRight className="w-3 h-3" /></div>}
+        {to && <div className="flex items-center gap-1 mt-4 text-xs font-semibold group-hover:gap-2 transition-smooth" style={{ color: '#F59E0B' }}>View Details <ChevronRight className="w-3 h-3" /></div>}
       </CardContent>
     </Card>
   );
@@ -83,25 +83,25 @@ export default function HOHAdminDashboard({ user }) {
   return (
     <div className="space-y-8">
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border border-primary/10 rounded-2xl p-8">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-foreground">Pathways Command Center</h1>
-            <p className="text-sm text-muted-foreground mt-2">Executive dashboard · {new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</p>
-          </div>
-          <Link to="/intake">
-            <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"><Plus className="w-4 h-4" />New Intake</Button>
-          </Link>
-        </div>
-      </div>
+       <div className="border rounded-2xl p-8" style={{ backgroundColor: '#21262D', borderColor: '#30363D' }}>
+         <div className="flex items-start justify-between">
+           <div>
+             <h1 className="font-heading text-3xl font-bold text-white">Pathways Command Center</h1>
+             <p className="text-sm mt-2" style={{ color: '#8B949E' }}>Executive dashboard · {new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</p>
+           </div>
+           <Link to="/intake">
+             <Button className="gap-2 shadow-lg"><Plus className="w-4 h-4" />New Intake</Button>
+           </Link>
+         </div>
+       </div>
 
       {/* Alerts bar */}
       {(criticalIncidents > 0 || pendingOnboarding > 0 || reportingDueGrants > 0 || grantDeadlines > 0) && (
         <div className="space-y-2">
           {criticalIncidents > 0 && (
             <Link to="/housing">
-              <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
-                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm border" style={{ backgroundColor: '#F8717114', borderColor: '#F87171', color: '#F87171' }}>
+                <AlertTriangle className="w-4 h-4 shrink-0" />
                 <strong>{criticalIncidents} critical incident(s)</strong> require immediate attention
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </div>
@@ -109,8 +109,8 @@ export default function HOHAdminDashboard({ user }) {
           )}
           {reportingDueGrants > 0 && (
             <Link to="/grants">
-              <div className="flex items-center gap-3 px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-800">
-                <FileText className="w-4 h-4 text-orange-600 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm border" style={{ backgroundColor: '#FBBF2414', borderColor: '#FBBF24', color: '#FBBF24' }}>
+                <FileText className="w-4 h-4 shrink-0" />
                 <strong>{reportingDueGrants} grant report(s)</strong> are overdue
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </div>
@@ -118,8 +118,8 @@ export default function HOHAdminDashboard({ user }) {
           )}
           {grantDeadlines > 0 && (
             <Link to="/grants">
-              <div className="flex items-center gap-3 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-800">
-                <Calendar className="w-4 h-4 text-yellow-600 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm border" style={{ backgroundColor: '#FBBF2414', borderColor: '#FBBF24', color: '#FBBF24' }}>
+                <Calendar className="w-4 h-4 shrink-0" />
                 <strong>{grantDeadlines} grant deadline(s)</strong> approaching in 30 days
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </div>
@@ -127,8 +127,8 @@ export default function HOHAdminDashboard({ user }) {
           )}
           {pendingOnboarding > 0 && (
             <Link to="/admin/onboarding">
-              <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                <Users className="w-4 h-4 text-blue-600 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm border" style={{ backgroundColor: '#60A5FA14', borderColor: '#60A5FA', color: '#60A5FA' }}>
+                <Users className="w-4 h-4 shrink-0" />
                 <strong>{pendingOnboarding} onboarding request(s)</strong> awaiting approval
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </div>
@@ -139,7 +139,7 @@ export default function HOHAdminDashboard({ user }) {
 
       {/* Primary KPIs - Hero Section */}
       <div>
-        <h3 className="font-heading text-lg font-bold mb-4 text-foreground">Key Metrics</h3>
+        <h3 className="font-heading text-lg font-bold mb-4 text-white">Key Metrics</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           <StatCard title="Active Participants" value={activeResidents.length} sub={`${thisWeekIntake} new this week`} icon={Users} color="text-blue-600" bg="bg-blue-100" to="/residents" />
           <StatCard title="Residents Housed" value={occupiedBeds} sub={`${occupancyRate}% occupancy`} icon={BedDouble} color="text-emerald-600" bg="bg-emerald-100" to="/housing" />
@@ -179,13 +179,13 @@ export default function HOHAdminDashboard({ user }) {
                   return (
                     <div key={h.id}>
                       <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{h.name}</span>
-                          {hIncidents > 0 && <Badge className="bg-red-100 text-red-800 text-[10px]" variant="outline">{hIncidents} incident{hIncidents!==1?'s':''}</Badge>}
-                          <Badge className={h.compliance_status === 'compliant' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} variant="outline" style={{fontSize:'10px'}}>{h.compliance_status?.replace(/_/g,' ')}</Badge>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{hOcc}/{hTotal} beds · {pct}%</span>
-                      </div>
+                         <div className="flex items-center gap-2">
+                           <span className="text-sm font-medium text-white">{h.name}</span>
+                           {hIncidents > 0 && <Badge className="text-[10px]" style={{ backgroundColor: '#F8717114', color: '#F87171', border: '1px solid #F87171' }}>{hIncidents} incident{hIncidents!==1?'s':''}</Badge>}
+                           <Badge className="text-[10px]" style={{ backgroundColor: h.compliance_status === 'compliant' ? '#34D39914' : '#F8717114', color: h.compliance_status === 'compliant' ? '#34D399' : '#F87171', border: `1px solid ${h.compliance_status === 'compliant' ? '#34D399' : '#F87171'}` }}>{h.compliance_status?.replace(/_/g,' ')}</Badge>
+                         </div>
+                         <span className="text-xs" style={{ color: '#8B949E' }}>{hOcc}/{hTotal} beds · {pct}%</span>
+                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div className={`h-2 rounded-full ${pct>=90?'bg-red-500':pct>=70?'bg-amber-500':'bg-emerald-500'}`} style={{width:`${pct}%`}} />
                       </div>
@@ -236,7 +236,7 @@ export default function HOHAdminDashboard({ user }) {
 
       {/* Quick actions */}
       <div>
-        <h3 className="font-heading font-semibold text-sm mb-3">Quick Access</h3>
+        <h3 className="font-heading font-semibold text-sm mb-3 text-white">Quick Access</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {quickLinks.map((q) => (
             <Link key={q.to} to={q.to}>
@@ -268,17 +268,17 @@ export default function HOHAdminDashboard({ user }) {
             ) : (
               <div className="space-y-2">
                 {incidents.slice(0,5).map(inc => (
-                  <div key={inc.id} className="flex items-start gap-2.5 py-1.5 border-b last:border-0">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                      inc.severity==='critical'?'bg-red-500':inc.severity==='high'?'bg-orange-500':
-                      inc.severity==='medium'?'bg-yellow-400':'bg-slate-400'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium">{inc.incident_type?.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</p>
-                      <p className="text-[10px] text-muted-foreground">{inc.house_name || 'N/A'} · {inc.incident_date}</p>
-                    </div>
-                    <Badge className={inc.status==='resolved'?'bg-emerald-100 text-emerald-800':inc.status==='open'?'bg-red-100 text-red-800':'bg-yellow-100 text-yellow-800'} variant="outline" style={{fontSize:'10px'}}>{inc.status}</Badge>
-                  </div>
+                  <div key={inc.id} className="flex items-start gap-2.5 py-1.5 border-b last:border-0" style={{ borderColor: '#30363D' }}>
+                     <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                       inc.severity==='critical'?'bg-red-500':inc.severity==='high'?'bg-orange-500':
+                       inc.severity==='medium'?'bg-yellow-400':'bg-slate-400'
+                     }`} />
+                     <div className="flex-1 min-w-0">
+                       <p className="text-xs font-medium text-white">{inc.incident_type?.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</p>
+                       <p className="text-[10px]" style={{ color: '#8B949E' }}>{inc.house_name || 'N/A'} · {inc.incident_date}</p>
+                     </div>
+                     <Badge variant="outline" style={{fontSize:'10px', backgroundColor: inc.status==='resolved'?'#34D39914':inc.status==='open'?'#F8717114':'#FBBF2414', color: inc.status==='resolved'?'#34D399':inc.status==='open'?'#F87171':'#FBBF24', border: `1px solid ${inc.status==='resolved'?'#34D399':inc.status==='open'?'#F87171':'#FBBF24'}`}}>{inc.status}</Badge>
+                   </div>
                 ))}
               </div>
             )}
@@ -303,12 +303,12 @@ export default function HOHAdminDashboard({ user }) {
                 { label: 'Last Audit', value: auditStatus || 'Never run', status: auditStatus==='passed'?'ok':auditStatus==='warning'?'warn':auditStatus?'critical':'warn' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{item.label}</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium">{item.value}</span>
-                    <div className={`w-2 h-2 rounded-full ${item.status==='ok'?'bg-emerald-500':item.status==='warn'?'bg-yellow-400':'bg-red-500'}`} />
-                  </div>
-                </div>
+                   <span className="text-xs" style={{ color: '#8B949E' }}>{item.label}</span>
+                   <div className="flex items-center gap-1.5">
+                     <span className="text-xs font-bold text-white">{item.value}</span>
+                     <div className={`w-2 h-2 rounded-full ${item.status==='ok'?'bg-emerald-500':item.status==='warn'?'bg-yellow-400':'bg-red-500'}`} />
+                   </div>
+                 </div>
               ))}
             </div>
           </CardContent>
