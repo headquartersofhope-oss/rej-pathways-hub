@@ -479,28 +479,44 @@ export default function HousingOperations() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-        {[
-          { label: 'Total Houses', value: houses.length, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Total Beds', value: totalBeds, icon: BedDouble, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Occupied', value: occupiedBeds, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Available', value: availableBeds, icon: CheckCircle, color: 'text-teal-600', bg: 'bg-teal-50' },
-          { label: 'Needs Cleaning', value: needsCleaningBeds, icon: Sparkles, color: needsCleaningBeds > 0 ? 'text-purple-600' : 'text-slate-400', bg: needsCleaningBeds > 0 ? 'bg-purple-50' : 'bg-slate-50' },
-          { label: 'Open Incidents', value: openIncidents, icon: AlertTriangle, color: openIncidents > 0 ? 'text-red-600' : 'text-slate-400', bg: openIncidents > 0 ? 'bg-red-50' : 'bg-slate-50' },
-          { label: 'Pending Fees', value: pendingPayments, icon: DollarSign, color: pendingPayments > 0 ? 'text-orange-600' : 'text-slate-400', bg: pendingPayments > 0 ? 'bg-orange-50' : 'bg-slate-50' },
-        ].map((s, i) => (
-          <Card key={i}>
-            <CardContent className="p-4">
-              <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center mb-2`}>
-                <s.icon className={`w-4 h-4 ${s.color}`} />
-              </div>
-              <p className="font-heading text-2xl font-bold">{s.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Premium KPI Cards */}
+       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+         {[
+           { label: 'Total Houses', value: houses.length, icon: Building2, accentColor: '#6366F1', borderColor: 'border-indigo-500' },
+           { label: 'Total Beds', value: totalBeds, icon: BedDouble, accentColor: '#34D399', borderColor: 'border-emerald-500' },
+           { label: 'Occupied', value: occupiedBeds, icon: Users, accentColor: '#F87171', borderColor: 'border-rose-500' },
+           { label: 'Available', value: availableBeds, icon: CheckCircle, accentColor: '#10B981', borderColor: 'border-emerald-600' },
+           { label: 'Needs Cleaning', value: needsCleaningBeds, icon: Sparkles, accentColor: '#F59E0B', borderColor: 'border-amber-500' },
+           { label: 'Open Incidents', value: openIncidents, icon: AlertTriangle, accentColor: '#EF4444', borderColor: 'border-red-500' },
+           { label: 'Pending Fees', value: pendingPayments, icon: DollarSign, accentColor: '#FB923C', borderColor: 'border-orange-500' },
+         ].map((s, i) => {
+           const glowColor = s.accentColor.replace('#', '');
+           return (
+             <div key={i} className={`rounded-xl border-t-2 p-4 transition-all duration-300 hover:shadow-2xl`}
+               style={{
+                 backgroundColor: `${s.accentColor}14`,
+                 borderTopColor: s.accentColor,
+                 boxShadow: `0 0 20px ${s.accentColor}00`,
+                 cursor: 'pointer'
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.boxShadow = `0 0 30px ${s.accentColor}40, inset 0 0 20px ${s.accentColor}08`;
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.boxShadow = `0 0 20px ${s.accentColor}00`;
+               }}
+             >
+               <div className="flex items-center gap-2 mb-3">
+                 <div style={{ backgroundColor: `${s.accentColor}20` }} className="w-8 h-8 rounded-lg flex items-center justify-center">
+                   <s.icon className="w-4 h-4" style={{ color: s.accentColor }} />
+                 </div>
+               </div>
+               <p className="font-heading text-5xl font-bold text-white">{s.value}</p>
+               <p className="text-xs mt-2" style={{ color: '#8B949E' }}>{s.label}</p>
+             </div>
+           );
+         })}
+       </div>
 
       {/* Occupancy bar */}
       <Card>

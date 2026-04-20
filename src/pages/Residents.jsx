@@ -18,12 +18,14 @@ import ProgressStatusBadge from '@/components/shared/ProgressStatusBadge';
 import ResidentCard from '@/components/shared/ResidentCard';
 
 const statusColors = {
-  pre_intake: 'bg-slate-100 text-slate-700',
-  active: 'bg-blue-50 text-blue-700',
-  employed: 'bg-emerald-50 text-emerald-700',
-  graduated: 'bg-purple-50 text-purple-700',
-  exited: 'bg-amber-50 text-amber-700',
-  inactive: 'bg-red-50 text-red-700',
+  pre_intake: 'bg-slate-900/10 text-slate-300 border-l-4 border-slate-500',
+  active: 'bg-green-900/10 text-green-400 border-l-4 border-green-500',
+  housing_eligible: 'bg-blue-900/10 text-blue-400 border-l-4 border-blue-500',
+  housing_pending: 'bg-amber-900/10 text-amber-400 border-l-4 border-amber-500',
+  employed: 'bg-purple-900/10 text-purple-400 border-l-4 border-purple-500',
+  graduated: 'bg-cyan-900/10 text-cyan-400 border-l-4 border-cyan-500',
+  exited: 'bg-red-900/10 text-red-400 border-l-4 border-red-500',
+  inactive: 'bg-gray-900/10 text-gray-400 border-l-4 border-gray-500',
 };
 
 const riskColors = {
