@@ -44,9 +44,56 @@
     "related_entity": {
       "type": "string",
       "description": "e.g. resident:123 or appointment:456"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this message has been archived (e.g. on client exit)"
+    },
+    "archived_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the message was archived"
     }
   },
   "required": [
     "body"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "data.to_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.from_user_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
