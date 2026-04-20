@@ -4,9 +4,11 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { GraduationCap, CheckCircle2, Circle } from 'lucide-react';
 import TrainingOverlay from './TrainingOverlay';
+import { useTrainingMode } from '@/lib/useTrainingMode';
 
 export default function TrainingButton() {
   const { user } = useAuth();
+  const { trainingMode, toggleTrainingMode } = useTrainingMode();
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: trainings = [] } = useQuery({
@@ -32,31 +34,21 @@ export default function TrainingButton() {
     <>
       <div className="fixed bottom-6 right-6 z-40">
         <button
-          onClick={() => setIsOpen(true)}
-          className="relative w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-600 transition-colors shadow-lg flex items-center justify-center group"
-          title="Open Training"
+          onClick={toggleTrainingMode}
+          className={`relative w-14 h-14 rounded-full transition-colors shadow-lg flex items-center justify-center group ${
+            trainingMode ? 'bg-amber-600 hover:bg-amber-700' : 'bg-amber-500 hover:bg-amber-600'
+          }`}
+          title={trainingMode ? 'Exit Training Mode' : 'Enter Training Mode'}
         >
           <GraduationCap className="w-6 h-6 text-slate-900" />
-          {hasIncomplete && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></span>
-          )}
-          {isComplete && (
-            <CheckCircle2 className="absolute -top-1 -right-1 w-5 h-5 text-green-500 bg-background rounded-full" />
+          {trainingMode && (
+            <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-amber-600"></span>
           )}
           <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-            Open Training
+            {trainingMode ? 'Exit Training' : 'Start Training'}
           </div>
         </button>
       </div>
-
-      {isOpen && totalTrainings > 0 && (
-        <TrainingSelector
-          trainings={trainings}
-          progressRecords={progressRecords}
-          onClose={() => setIsOpen(false)}
-          userRole={user?.role}
-        />
-      )}
     </>
   );
 }

@@ -28,8 +28,13 @@ const ROLE_CAPABILITIES = {
   },
 };
 
-const buildSystemPrompt = (userRole, context) => {
+const buildSystemPrompt = (userRole, context, mode = 'assistant') => {
   const roleCapabilities = ROLE_CAPABILITIES[userRole] || {};
+  
+  // Training mode system prompt
+  if (mode === 'training') {
+    return buildTrainingPrompt(userRole, context);
+  }
   
   let basePrompt = `You are the HOH (Homes of Hope) Assistant, an embedded AI helper for the Pathways Hub platform. You provide role-appropriate guidance, answer questions about workflows, and surface relevant information.
 
@@ -56,6 +61,51 @@ CONVERSATION HISTORY:
 ${context.conversationHistory ? context.conversationHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n') : 'Start of conversation'}`;
 
   return basePrompt;
+};
+
+const buildTrainingPrompt = (userRole, context) => {
+  const currentPage = context.currentPage || 'Unknown Page';
+  const currentModule = context.currentModule || 'General Training';
+  const pageDescriptions = {
+    'Residents': 'Here you can view all residents, add new residents, update their status, and access their profiles.',
+    'Case Management': 'Manage service plans, track tasks, view appointments, and coordinate resident care.',
+    'Housing Referrals': 'Submit referrals to housing providers, track referral status, and manage placement pipeline.',
+    'Housing Operations': 'Assign beds, track occupancy, manage room assignments, and coordinate housing placements.',
+    'Intake Assessment': 'Complete intake assessments for new residents, identify barriers, and generate service plans.',
+    'Learning Center': 'Assign classes to residents, track attendance, record quiz scores, and issue certificates.',
+    'Job Matching': 'Create job matches between residents and positions, track placement pipeline, advance candidates.',
+    'Job Readiness': 'Track resume building, mock interviews, work preferences, and job readiness scores.',
+    'Reporting': 'View dashboard metrics, generate reports, track outcomes, and monitor KPIs.',
+  };
+
+  const pageInfo = pageDescriptions[currentPage] || 'You can perform various actions on this page.';
+
+  return `You are the HOH Training Coach - an encouraging, patient, and expert guide helping users learn the Pathways Hub platform.
+
+USER ROLE: ${userRole}
+CURRENT MODULE: ${currentModule}
+CURRENT PAGE: ${currentPage}
+
+PAGE CAPABILITIES:
+${pageInfo}
+
+TRAINING MODE INSTRUCTIONS:
+1. Be warm, encouraging, and patient - this is a learning environment
+2. Guide users through REAL ACTIONS in the app right now, not hypothetical scenarios
+3. When the user navigates to a new page, acknowledge it and explain what they can do there
+4. When the user completes an action (like submitting a form), congratulate them and suggest the next step
+5. Provide context-specific suggestions - don't generic advice
+6. Use simple language and break down complex processes into small steps
+7. If a user is confused, ask clarifying questions rather than making assumptions
+8. When appropriate, indicate completion of training milestones by saying "✅ Great job! You've completed [action]"
+
+ROLE-SPECIFIC CONTEXT:
+${formatRoleContext(context, userRole)}
+
+CHAT HISTORY:
+${context.chatHistory ? context.chatHistory.map(msg => `${msg.sender === 'user' ? 'User' : 'Coach'}: ${msg.text}`).join('\n') : 'Start of conversation'}
+
+Remember: You are their personal training coach, not a general assistant. Focus exclusively on training them to use this specific page and module effectively.`;
 };
 
 const formatSystemHealth = (health, userRole) => {
@@ -147,17 +197,19 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { userMessage, userRole, context = {} } = body;
+    const { mode = 'assistant', userRole, context = {}, userMessage } = body;
 
-    if (!userMessage || !userRole) {
+    if (!userMessage) {
       return Response.json(
-        { error: 'Missing userMessage or userRole' },
+        { error: 'Missing userMessage' },
         { status: 400 }
       );
     }
 
-    // Build system prompt with role-aware context
-    const systemPrompt = buildSystemPrompt(userRole, context);
+    const role = userRole || user.role;
+
+    // Build system prompt with role and mode
+    const systemPrompt = buildSystemPrompt(role, context, mode);
 
     // Call Claude API
     const aiResponse = await callClaude(userMessage, systemPrompt);

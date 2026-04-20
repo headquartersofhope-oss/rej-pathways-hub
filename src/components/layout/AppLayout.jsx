@@ -6,10 +6,14 @@ import Sidebar from './Sidebar';
 import { useAuth } from '@/lib/AuthContext';
 import GlobalSearchBar from '@/components/shared/GlobalSearchBar';
 import TrainingButton from '@/components/training/TrainingButton';
+import TrainingCoach from '@/components/training/TrainingCoach';
+import TrainingModeBanner from '@/components/training/TrainingModeBanner';
 import AppAssistant from '@/components/ai/AppAssistant';
+import { useTrainingMode } from '@/lib/useTrainingMode';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
+  const { trainingMode, currentModule } = useTrainingMode();
 
   const { data: userProfiles = [] } = useQuery({
     queryKey: ['userProfile', user?.id, user?.email],
@@ -76,23 +80,25 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar user={user} />
-      <main className="flex-1 overflow-y-auto flex flex-col bg-background">
+      <TrainingModeBanner trainingMode={trainingMode} currentModule={currentModule} />
+      <TrainingCoach />
+      <main className={`flex-1 overflow-y-auto flex flex-col bg-background ${trainingMode ? 'ml-80' : ''}`}>
          {/* Top bar with global search */}
          <div className="hidden lg:flex items-center gap-3 px-6 py-4 border-b sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
           <GlobalSearchBar />
-        </div>
-        <div className="flex-1 animate-in fade-in duration-300">
-           <Outlet context={{ user }} />
          </div>
-        </main>
-        <TrainingButton />
-        <AppAssistant 
-          userRole={user?.role || 'resident'} 
-          userName={user?.full_name || 'User'}
-          userProfile={userProfile}
-          appName="Pathways Hub"
-          organizationId={userProfile?.organization_id}
-        />
-        </div>
-        );
-        }
+         <div className="flex-1 animate-in fade-in duration-300">
+            <Outlet context={{ user }} />
+          </div>
+         </main>
+         <TrainingButton />
+         <AppAssistant 
+           userRole={user?.role || 'resident'} 
+           userName={user?.full_name || 'User'}
+           userProfile={userProfile}
+           appName="Pathways Hub"
+           organizationId={userProfile?.organization_id}
+         />
+         </div>
+         );
+         }
