@@ -181,7 +181,8 @@ export default function AppAssistant({
     }
   };
 
-  const roleColor = ROLE_COLORS[userRole] || appColor;
+  const displayRole = userProfile?.app_role || userRole;
+  const roleColor = ROLE_COLORS[displayRole] || appColor;
   const userInitials = userName
     .split(' ')
     .map(n => n[0])
@@ -228,7 +229,7 @@ export default function AppAssistant({
               bottom: '20px',
               right: '20px',
               width: '400px',
-              maxHeight: '700px',
+              maxHeight: '90vh',
               backgroundColor: '#161B22',
               border: '1px solid #30363D',
               borderRadius: '1rem',
@@ -260,7 +261,7 @@ export default function AppAssistant({
                     border: `1px solid ${roleColor}`,
                   }}
                 >
-                  {userRole}
+                  {displayRole}
                 </Badge>
                 <Button
                   size="icon"
