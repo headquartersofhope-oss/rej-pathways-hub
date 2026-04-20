@@ -106,6 +106,8 @@
       "enum": [
         "pre_intake",
         "active",
+        "housing_eligible",
+        "housing_pending",
         "employed",
         "graduated",
         "exited",
