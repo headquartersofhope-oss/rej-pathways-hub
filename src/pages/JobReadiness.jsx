@@ -148,27 +148,25 @@ export default function JobReadiness() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Nearly Ready */}
-        <div>
-          <PremiumSectionHeader title={`Nearly Job-Ready (${nearlyReady.length})`} icon={CheckCircle2} />
-          <div className="mt-3">
-          {nearlyReady.length === 0 ? (
-            <Card className="p-4 text-center text-sm text-muted-foreground">No residents at 70%+ yet.</Card>
-          ) : (
-            <div className="space-y-2">{nearlyReady.map(r => <ResidentCard key={r.id} r={r} />)}</div>
-          )}
-        </div>
+         <div>
+           <PremiumSectionHeader title={`Nearly Job-Ready (${nearlyReady.length})`} icon={CheckCircle2} />
+           {nearlyReady.length === 0 ? (
+             <Card className="p-4 text-center text-sm text-muted-foreground">No residents at 70%+ yet.</Card>
+           ) : (
+             <div className="space-y-2 mt-3">{nearlyReady.map(r => <ResidentCard key={r.id} r={r} />)}</div>
+           )}
+         </div>
 
-        {/* Needs Work */}
-        <div>
-          <PremiumSectionHeader title={`Needs Work (${needsWork.length})`} icon={AlertCircle} />
-          <div className="mt-3">
-          {needsWork.length === 0 ? (
-            <Card className="p-4 text-center text-sm text-muted-foreground">All residents are nearly ready!</Card>
-          ) : (
-            <div className="space-y-2">{needsWork.map(r => <ResidentCard key={r.id} r={r} />)}</div>
-          )}
+         {/* Needs Work */}
+         <div>
+           <PremiumSectionHeader title={`Needs Work (${needsWork.length})`} icon={AlertCircle} />
+           {needsWork.length === 0 ? (
+             <Card className="p-4 text-center text-sm text-muted-foreground">All residents are nearly ready!</Card>
+           ) : (
+             <div className="space-y-2 mt-3">{needsWork.map(r => <ResidentCard key={r.id} r={r} />)}</div>
+           )}
+         </div>
         </div>
-      </div>
     </div>
   );
 }
