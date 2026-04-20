@@ -51,6 +51,7 @@ import GrantTracker from '@/pages/GrantTracker';
 import TransportationHub from '@/pages/TransportationHub';
 import ManagerPortal from '@/pages/ManagerPortal';
 import SystemHealth from '@/pages/admin/SystemHealth';
+import OperationalDashboard from '@/pages/OperationalDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -131,6 +132,7 @@ const AuthenticatedApp = () => {
         <Route path="/manager-portal" element={<ManagerPortal />} />
         <Route path="/admin/my-access" element={<MyAccessVerification />} />
         <Route path="/admin/system-health" element={<SystemHealth />} />
+        <Route path="/dashboard/operations" element={<OperationalDashboard />} />
         <Route path="/training" element={<Training />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
