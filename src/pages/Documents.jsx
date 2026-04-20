@@ -41,7 +41,7 @@ export default function Documents() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {docs.map((doc) => (
-            <Card key={doc.id} className="p-5 hover:shadow-md transition-shadow">
+            <Card key={doc.id} className="p-5 hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <FileText className="w-5 h-5 text-primary" />
