@@ -83,7 +83,29 @@ export default function AppAssistant({
     return `PATHWAYS HUB LIVE SYSTEM REPORT\nTimestamp: ${timestamp}\n\n${JSON.stringify(systemSnapshot, null, 2)}`;
   };
 
-  const handleBriefClaude = () => {
+  const ensureSnapshotLoaded = async () => {
+    if (!systemSnapshot && !snapshotLoading) {
+      setSnapshotLoading(true);
+      try {
+        const response = await base44.functions.invoke('getSystemSnapshot', {});
+        setSystemSnapshot(response.data?.snapshot || {});
+      } catch (error) {
+        console.error('Failed to load snapshot:', error);
+        toast.error('Failed to load system snapshot');
+      } finally {
+        setSnapshotLoading(false);
+      }
+    }
+    // Wait for snapshot to be available
+    let attempts = 0;
+    while (!systemSnapshot && attempts < 30) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+  };
+
+  const handleBriefClaude = async () => {
+    await ensureSnapshotLoaded();
     const report = getSystemReport();
     const message = `I am ${userName}, super admin of ${appName}. Here is my live system report. Please analyze this and tell me what needs attention.\n\n${report}`;
     const encodedMessage = encodeURIComponent(message);
@@ -93,6 +115,7 @@ export default function AppAssistant({
   };
 
   const handleCopyBrief = async () => {
+    await ensureSnapshotLoaded();
     const report = getSystemReport();
     const message = `I am ${userName}, super admin of ${appName}. Here is my live system report. Please analyze this and tell me what needs attention.\n\n${report}`;
     try {
@@ -106,6 +129,7 @@ export default function AppAssistant({
   };
 
   const handleExportClaude = async () => {
+    await ensureSnapshotLoaded();
     const report = getSystemReport();
     try {
       await navigator.clipboard.writeText(report);

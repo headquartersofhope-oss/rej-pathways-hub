@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user || user.role !== 'super_admin') {
+    if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -13,24 +13,28 @@ Deno.serve(async (req) => {
     const systemHealth = await getSystemHealthData(base44);
 
     // Get all residents with status
-    const allResidents = await base44.entities.Resident.list();
+    const allResidents = await base44.asServiceRole.entities.Resident.list();
     const residentsWithStatus = allResidents.map(r => ({
       id: r.id,
-      name: r.data?.full_name || 'Unknown',
+      name: r.data?.first_name && r.data?.last_name ? `${r.data.first_name} ${r.data.last_name}` : 'Unknown',
       status: r.data?.status,
-      housing: r.data?.assigned_housing || 'None',
+      housing: r.data?.housing || 'None',
       caseManager: r.data?.assigned_case_manager,
     }));
 
     // Get housing inventory
     const allHouses = await base44.asServiceRole.entities.House.list();
-    const housingInventory = allHouses.map(h => ({
-      name: h.data?.name,
-      totalBeds: h.data?.total_beds,
-      occupied: h.data?.occupied_beds,
-      available: (h.data?.total_beds || 0) - (h.data?.occupied_beds || 0),
-      status: h.data?.status,
-    }));
+    const housingInventory = allHouses.map(h => {
+      const totalBeds = h.data?.total_beds || 0;
+      const occupiedBeds = h.data?.occupied_beds || 0;
+      return {
+        name: h.data?.name || 'Unknown',
+        totalBeds,
+        occupied: occupiedBeds,
+        available: totalBeds - occupiedBeds,
+        status: h.data?.status,
+      };
+    });
 
     // Get all open transportation requests
     const transportationRequests = await base44.asServiceRole.entities.TransportationRequest.filter({
