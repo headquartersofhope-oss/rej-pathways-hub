@@ -274,39 +274,42 @@ export default function TeamManagement() {
                 </tr>
               </thead>
               <tbody>
-                {teamMembers.map(member => (
-                  <tr key={member.id} style={{ borderBottom: '1px solid #30363D' }}>
-                    <td className="py-3 px-4">{member.data.full_name}</td>
-                    <td className="py-3 px-4">{member.data.email}</td>
-                    <td className="py-3 px-4">
-                      <Badge style={{
-                        backgroundColor: ROLE_COLOR_MAP[member.data.app_role] + '20',
-                        color: ROLE_COLOR_MAP[member.data.app_role],
-                        border: `1px solid ${ROLE_COLOR_MAP[member.data.app_role]}`
-                      }}>
-                        {member.data.app_role}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge className={member.data.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
-                        {member.data.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 space-x-2">
-                      <Button size="icon" variant="ghost" className="h-8 w-8">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-red-500 hover:text-red-600"
-                        onClick={() => handleRemoveUser(member.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {teamMembers.map(member => {
+                  const memberData = member.data || {};
+                  return (
+                    <tr key={member.id} style={{ borderBottom: '1px solid #30363D' }}>
+                      <td className="py-3 px-4">{memberData.full_name || 'N/A'}</td>
+                      <td className="py-3 px-4">{memberData.email || 'N/A'}</td>
+                      <td className="py-3 px-4">
+                        <Badge style={{
+                          backgroundColor: (ROLE_COLOR_MAP[memberData.app_role] || '#94A3B8') + '20',
+                          color: ROLE_COLOR_MAP[memberData.app_role] || '#94A3B8',
+                          border: `1px solid ${ROLE_COLOR_MAP[memberData.app_role] || '#94A3B8'}`
+                        }}>
+                          {memberData.app_role || 'unknown'}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge className={memberData.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
+                          {memberData.status || 'inactive'}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 space-x-2">
+                        <Button size="icon" variant="ghost" className="h-8 w-8">
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-red-500 hover:text-red-600"
+                          onClick={() => handleRemoveUser(member.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -366,23 +369,26 @@ export default function TeamManagement() {
         <CardContent>
           <div className="space-y-3">
             {teamMembers
-              .filter(m => m.data.app_role === 'admin' || m.data.app_role === 'super_admin')
-              .map(member => (
-                <div key={member.id} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#21262D' }}>
-                  <div>
-                    <p className="font-medium" style={{ color: '#FFFFFF' }}>{member.data.full_name}</p>
-                    <p className="text-xs" style={{ color: '#8B949E' }}>{member.data.email}</p>
+              .filter(m => (m.data?.app_role === 'admin' || m.data?.app_role === 'super_admin'))
+              .map(member => {
+                const memberData = member.data || {};
+                return (
+                  <div key={member.id} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#21262D' }}>
+                    <div>
+                      <p className="font-medium" style={{ color: '#FFFFFF' }}>{memberData.full_name || 'N/A'}</p>
+                      <p className="text-xs" style={{ color: '#8B949E' }}>{memberData.email || 'N/A'}</p>
+                    </div>
+                    {memberData.app_role === 'super_admin' ? (
+                      <Badge style={{ backgroundColor: '#F59E0B20', color: '#F59E0B', border: '1px solid #F59E0B' }}>Always Enabled</Badge>
+                    ) : (
+                      <Switch
+                        checked={adminToggleState[member.id] || false}
+                        onCheckedChange={(checked) => handleToggleAdminRoleAssignment(member.id, memberData.app_role, checked)}
+                      />
+                    )}
                   </div>
-                  {member.data.app_role === 'super_admin' ? (
-                    <Badge style={{ backgroundColor: '#F59E0B20', color: '#F59E0B', border: '1px solid #F59E0B' }}>Always Enabled</Badge>
-                  ) : (
-                    <Switch
-                      checked={adminToggleState[member.id] || false}
-                      onCheckedChange={(checked) => handleToggleAdminRoleAssignment(member.id, member.data.app_role, checked)}
-                    />
-                  )}
-                </div>
-              ))}
+                );
+              })}
           </div>
         </CardContent>
       </Card>
