@@ -97,11 +97,26 @@ Deno.serve(async (req) => {
     log.push(`HousingReferral ${referral.id} updated → status: approved, housing_decision_status: placed`);
 
     // ── 8. Create HousingPlacement ────────────────────────────────────────────
+    // Try to find matching internal House record by name; fall back to external ID
+    let resolvedHouseId = `LEGACY-${house_name.replace(/\s+/g, '-').toUpperCase()}`;
+    try {
+      const matchingHouses = await base44.asServiceRole.entities.House.filter({ name: house_name });
+      if (matchingHouses && matchingHouses.length > 0) {
+        resolvedHouseId = matchingHouses[0].id;
+        log.push(`Matched internal House record: ${resolvedHouseId}`);
+      } else {
+        log.push(`No internal House match for "${house_name}" — using external ID: ${resolvedHouseId}`);
+      }
+    } catch (e) {
+      log.push(`House lookup failed, using external ID: ${resolvedHouseId}`);
+    }
+
     const placement = await base44.asServiceRole.entities.HousingPlacement.create({
       resident_id,
       global_resident_id,
       organization_id,
       referral_id: referral.id,
+      house_id: resolvedHouseId,
       house_name,
       room_name: room_name || null,
       bed_label,
