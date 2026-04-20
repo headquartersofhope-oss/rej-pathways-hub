@@ -9,33 +9,37 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // FIX 4: Always fetch fresh data with cache buster - bypass any stale state
+    const timestamp = Date.now();
+    const cacheParam = `_t=${timestamp}`;
+
     // Get system health
     const systemHealth = await getSystemHealthData(base44);
 
-    // Get all residents with status
+    // Get all residents with status (FIX 1: Use correct schema fields - first_name + last_name)
     const allResidents = await base44.asServiceRole.entities.Resident.list();
     const residentsWithStatus = allResidents.map(r => {
-      const firstName = r.data?.first_name || r.first_name;
-      const lastName = r.data?.last_name || r.last_name;
+      const firstName = r.first_name;
+      const lastName = r.last_name;
       return {
         id: r.id,
         name: firstName && lastName ? `${firstName} ${lastName}` : 'Unknown',
-        status: r.data?.status || r.status,
-        caseManager: r.data?.assigned_case_manager || r.assigned_case_manager,
+        status: r.status,
+        caseManager: r.assigned_case_manager,
       };
     });
 
-    // Get housing inventory
+    // Get housing inventory (FIX 2: Use correct schema fields - name, total_beds, occupied_beds)
     const allHouses = await base44.asServiceRole.entities.House.list();
     const housingInventory = allHouses.map(h => {
-      const totalBeds = h.data?.total_beds || 0;
-      const occupiedBeds = h.data?.occupied_beds || 0;
+      const totalBeds = h.total_beds || 0;
+      const occupiedBeds = h.occupied_beds || 0;
       return {
-        name: h.data?.name || 'Unknown',
+        name: h.name || 'Unknown',
         totalBeds,
         occupied: occupiedBeds,
         available: totalBeds - occupiedBeds,
-        status: h.data?.status,
+        status: h.status,
       };
     });
 
@@ -70,14 +74,14 @@ Deno.serve(async (req) => {
       caseManagerWorkload[cm.data?.full_name || 'Unknown'] = assignedCount;
     }
 
-    // Get bed occupancy
+    // Get bed occupancy (FIX 3: Query all Beds and count by status field values)
     const allBeds = await base44.asServiceRole.entities.Bed.list();
     const bedOccupancy = {
       total: allBeds.length,
-      occupied: allBeds.filter(b => b.data?.status === 'occupied').length,
-      available: allBeds.filter(b => b.data?.status === 'available').length,
-      reserved: allBeds.filter(b => b.data?.status === 'reserved').length,
-      maintenance: allBeds.filter(b => b.data?.status === 'maintenance').length,
+      occupied: allBeds.filter(b => b.status === 'occupied').length,
+      available: allBeds.filter(b => b.status === 'available').length,
+      reserved: allBeds.filter(b => b.status === 'reserved').length,
+      maintenance: allBeds.filter(b => b.status === 'maintenance').length,
     };
 
     const snapshot = {
