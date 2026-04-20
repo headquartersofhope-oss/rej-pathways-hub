@@ -41,9 +41,9 @@ export default function AdminControlCenter() {
       </div>
 
       {/* Tabs */}
-      <div className="flex-1 overflow-hidden">
-        <Tabs defaultValue="overview" className="flex flex-col h-full">
-          <div className="border-b bg-card px-6">
+       <div className="flex-1 overflow-hidden">
+         <Tabs defaultValue="overview" className="flex flex-col h-full">
+           <div className="border-b px-6" style={{ backgroundColor: '#1C2128' }}>
             <TabsList className="h-10 bg-transparent gap-1 p-0">
               {[
                 { value: 'overview', label: 'Overview', icon: LayoutDashboard },
