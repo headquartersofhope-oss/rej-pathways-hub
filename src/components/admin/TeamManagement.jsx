@@ -8,18 +8,31 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useQuery } from '@tanstack/react-query';
 import { Mail, Phone, Users, Shield, CheckCircle2, X, Edit2, Trash2 } from 'lucide-react';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
 
 const AVAILABLE_ROLES = [
-  { value: 'super_admin', label: 'Super Admin' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'case_manager', label: 'Case Manager' },
-  { value: 'housing_staff', label: 'Housing Staff' },
-  { value: 'employment_staff', label: 'Employment Staff' },
-  { value: 'probation_officer', label: 'Probation Officer' },
-  { value: 'employer', label: 'Employer' },
-  { value: 'resident', label: 'Resident' },
+  { value: 'super_admin', label: 'Super Admin', color: '#F59E0B' },
+  { value: 'admin', label: 'Admin', color: '#60A5FA' },
+  { value: 'manager', label: 'Manager', color: '#A78BFA' },
+  { value: 'case_manager', label: 'Case Manager', color: '#34D399' },
+  { value: 'housing_staff', label: 'Housing Staff', color: '#2DD4BF' },
+  { value: 'employment_staff', label: 'Employment Staff', color: '#8B5CF6' },
+  { value: 'probation_officer', label: 'Probation Officer', color: '#F87171' },
+  { value: 'employer', label: 'Employer', color: '#FB923C' },
+  { value: 'resident', label: 'Resident', color: '#94A3B8' },
 ];
+
+const ROLE_COLOR_MAP = {
+  super_admin: '#F59E0B',
+  admin: '#60A5FA',
+  manager: '#A78BFA',
+  case_manager: '#34D399',
+  housing_staff: '#2DD4BF',
+  employment_staff: '#8B5CF6',
+  probation_officer: '#F87171',
+  employer: '#FB923C',
+  resident: '#94A3B8',
+};
 
 const ROLE_PERMISSIONS = {
   super_admin: {
@@ -184,14 +197,16 @@ export default function TeamManagement() {
 
   return (
     <div className="space-y-8">
+      <PremiumPageHeader title="Team Management" subtitle="Invite staff, assign roles, and control permissions." icon={Shield} />
+
       {/* Invite Section */}
-      <Card className="border-border" style={{ backgroundColor: '#161B22' }}>
+      <Card className="border-2" style={{ backgroundColor: '#161B22', borderColor: '#30363D', borderTopColor: '#34D399', borderTopWidth: '4px' }}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
             <Users className="w-5 h-5" />
             Invite New Team Member
           </CardTitle>
-          <CardDescription>Add a new user to the Pathways system</CardDescription>
+          <CardDescription style={{ color: '#8B949E' }}>Add a new user to the Pathways system</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -200,6 +215,8 @@ export default function TeamManagement() {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               style={{ backgroundColor: '#21262D', borderColor: '#30363D', color: '#E6EDF3' }}
+              onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+              onBlur={(e) => e.target.style.borderColor = '#30363D'}
             />
             <Input
               placeholder="Email"
@@ -207,15 +224,19 @@ export default function TeamManagement() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               style={{ backgroundColor: '#21262D', borderColor: '#30363D', color: '#E6EDF3' }}
+              onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+              onBlur={(e) => e.target.style.borderColor = '#30363D'}
             />
             <Input
               placeholder="Phone (optional)"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               style={{ backgroundColor: '#21262D', borderColor: '#30363D', color: '#E6EDF3' }}
+              onFocus={(e) => e.target.style.borderColor = '#F59E0B'}
+              onBlur={(e) => e.target.style.borderColor = '#30363D'}
             />
             <Select value={formData.role} onValueChange={(role) => setFormData({ ...formData, role })}>
-              <SelectTrigger style={{ backgroundColor: '#21262D', borderColor: '#30363D' }}>
+              <SelectTrigger style={{ backgroundColor: '#21262D', borderColor: '#30363D', color: '#E6EDF3' }}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -232,24 +253,24 @@ export default function TeamManagement() {
       </Card>
 
       {/* Active Team Members */}
-      <Card className="border-border" style={{ backgroundColor: '#161B22' }}>
+      <Card className="border-border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
             <Shield className="w-5 h-5" />
             Active Team Members
           </CardTitle>
-          <CardDescription>{teamMembers.length} team members</CardDescription>
+          <CardDescription style={{ color: '#8B949E' }}>{teamMembers.length} team members</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm" style={{ color: '#CDD9E5' }}>
-              <thead>
+              <thead style={{ backgroundColor: '#21262D' }}>
                 <tr style={{ borderBottom: '1px solid #30363D' }}>
-                  <th className="text-left py-3 px-4" style={{ color: '#8B949E' }}>Name</th>
-                  <th className="text-left py-3 px-4" style={{ color: '#8B949E' }}>Email</th>
-                  <th className="text-left py-3 px-4" style={{ color: '#8B949E' }}>Role</th>
-                  <th className="text-left py-3 px-4" style={{ color: '#8B949E' }}>Status</th>
-                  <th className="text-left py-3 px-4" style={{ color: '#8B949E' }}>Actions</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Name</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Email</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Role</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Status</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -258,7 +279,13 @@ export default function TeamManagement() {
                     <td className="py-3 px-4">{member.data.full_name}</td>
                     <td className="py-3 px-4">{member.data.email}</td>
                     <td className="py-3 px-4">
-                      <Badge variant="outline">{member.data.app_role}</Badge>
+                      <Badge style={{
+                        backgroundColor: ROLE_COLOR_MAP[member.data.app_role] + '20',
+                        color: ROLE_COLOR_MAP[member.data.app_role],
+                        border: `1px solid ${ROLE_COLOR_MAP[member.data.app_role]}`
+                      }}>
+                        {member.data.app_role}
+                      </Badge>
                     </td>
                     <td className="py-3 px-4">
                       <Badge className={member.data.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
@@ -287,22 +314,22 @@ export default function TeamManagement() {
       </Card>
 
       {/* Role Permissions Matrix */}
-      <Card className="border-border" style={{ backgroundColor: '#161B22' }}>
+      <Card className="border-border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
             <CheckCircle2 className="w-5 h-5" />
             Role Permissions Matrix
           </CardTitle>
-          <CardDescription>View what each role can and cannot do</CardDescription>
+          <CardDescription style={{ color: '#8B949E' }}>View what each role can and cannot do</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-xs" style={{ color: '#CDD9E5' }}>
-              <thead>
+              <thead style={{ backgroundColor: '#21262D' }}>
                 <tr style={{ borderBottom: '1px solid #30363D' }}>
-                  <th className="text-left py-3 px-4 min-w-48" style={{ color: '#8B949E' }}>Permission</th>
+                  <th className="text-left py-3 px-4 min-w-48 text-xs font-semibold uppercase" style={{ color: '#8B949E' }}>Permission</th>
                   {AVAILABLE_ROLES.map(role => (
-                    <th key={role.value} className="text-center py-3 px-3 min-w-24" style={{ color: '#8B949E' }}>{role.label}</th>
+                    <th key={role.value} className="text-center py-3 px-3 min-w-24 text-xs font-semibold uppercase" style={{ color: role.color }}>{role.label}</th>
                   ))}
                 </tr>
               </thead>
@@ -313,9 +340,9 @@ export default function TeamManagement() {
                     {AVAILABLE_ROLES.map(role => (
                       <td key={`${permission}-${role.value}`} className="text-center py-3 px-3">
                         {ROLE_PERMISSIONS[role.value]?.[permission] ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
+                          <CheckCircle2 className="w-4 h-4 mx-auto" style={{ color: '#34D399' }} />
                         ) : (
-                          <X className="w-4 h-4 text-red-500 mx-auto" />
+                          <X className="w-4 h-4 mx-auto" style={{ color: '#F87171' }} />
                         )}
                       </td>
                     ))}
@@ -328,13 +355,13 @@ export default function TeamManagement() {
       </Card>
 
       {/* Admin Role Assignment Toggle */}
-      <Card className="border-border" style={{ backgroundColor: '#161B22' }}>
+      <Card className="border-border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2" style={{ color: '#FFFFFF' }}>
             <Shield className="w-5 h-5" />
             Admin Role Assignment Permissions
           </CardTitle>
-          <CardDescription>Enable/disable admin ability to assign roles to others</CardDescription>
+          <CardDescription style={{ color: '#8B949E' }}>Enable/disable admin ability to assign roles to others</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -343,11 +370,11 @@ export default function TeamManagement() {
               .map(member => (
                 <div key={member.id} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#21262D' }}>
                   <div>
-                    <p className="font-medium">{member.data.full_name}</p>
+                    <p className="font-medium" style={{ color: '#FFFFFF' }}>{member.data.full_name}</p>
                     <p className="text-xs" style={{ color: '#8B949E' }}>{member.data.email}</p>
                   </div>
                   {member.data.app_role === 'super_admin' ? (
-                    <Badge className="bg-amber-500/20 text-amber-400">Always Enabled</Badge>
+                    <Badge style={{ backgroundColor: '#F59E0B20', color: '#F59E0B', border: '1px solid #F59E0B' }}>Always Enabled</Badge>
                   ) : (
                     <Switch
                       checked={adminToggleState[member.id] || false}
