@@ -51,9 +51,8 @@ export default function HOHAdminDashboard({ user }) {
     const d = new Date(r.created_date); const w = new Date(); w.setDate(w.getDate()-7);
     return d >= w;
   }).length;
-  const totalBeds = 14;
-  const housingPlacedOccupied = placements.filter(p => p.placement_status === 'placed' && p.occupancy_status === 'occupied').length;
-  const occupiedBeds = housingPlacedOccupied;
+  const totalBeds = beds.length > 0 ? beds.length : 14;
+  const occupiedBeds = beds.filter(b => b.status === 'occupied').length;
   const availableBeds = beds.filter(b => b.status === 'available').length;
   const openIncidents = incidents.filter(i => i.status === 'open' || i.status === 'under_review').length;
   const criticalIncidents = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved').length;
