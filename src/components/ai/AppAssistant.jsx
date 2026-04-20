@@ -48,15 +48,8 @@ export default function AppAssistant({
   const [showRawContext, setShowRawContext] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Hardcode fallback: if userProfile is null or app_role not set, check for Rodney Jones
   let isSuperAdmin = userProfile?.app_role === 'super_admin';
   let effectiveDisplayRole = userProfile?.app_role;
-  
-  if (!isSuperAdmin && !userProfile?.app_role && userName === 'Rodney Jones') {
-    console.log('AppAssistant: HARDCODE FALLBACK ACTIVATED - Rodney Jones detected, forcing super_admin');
-    isSuperAdmin = true;
-    effectiveDisplayRole = 'super_admin';
-  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
