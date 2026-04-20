@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
   // ══════════════════════════════════════════════════════════════════════════
   // 1. PATHWAYS STATUS
   // ══════════════════════════════════════════════════════════════════════════
-  const activeResidents = residents.filter(r => r.status === 'active' || r.status === 'employed');
+  const activeResidents = residents.filter(r => ['active', 'housing_eligible', 'housing_pending', 'employed'].includes(r.status));
   const noCaseManager = activeResidents.filter(r => !r.assigned_case_manager_id);
 
   const ms48h = 48 * 60 * 60 * 1000;
