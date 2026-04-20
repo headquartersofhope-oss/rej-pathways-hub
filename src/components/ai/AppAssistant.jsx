@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, X, Send, Trash2 } from 'lucide-react';
+import { Sparkles, X, Send, Trash2, ExternalLink, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const ROLE_COLORS = {
   admin: '#F59E0B',
@@ -50,6 +51,8 @@ export default function AppAssistant({ userRole }) {
   const [loading, setLoading] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const [lastContext, setLastContext] = useState(null);
+  const [systemSnapshot, setSystemSnapshot] = useState(null);
+  const [bridgeButtonState, setBridgeButtonState] = useState({ export: false, copy: false, brief: false });
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -59,6 +62,114 @@ export default function AppAssistant({ userRole }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-load system snapshot for super admin on panel open
+  useEffect(() => {
+    if (isOpen && userRole === 'super_admin' && !systemSnapshot) {
+      loadSystemSnapshot();
+    }
+  }, [isOpen]);
+
+  const loadSystemSnapshot = async () => {
+    try {
+      const response = await base44.functions.invoke('getSystemSnapshot', {});
+      if (response.data.success) {
+        setSystemSnapshot(response.data.snapshot);
+      }
+    } catch (error) {
+      console.error('Error loading system snapshot:', error);
+    }
+  };
+
+  const formatSystemReport = () => {
+    if (!systemSnapshot) return '';
+
+    const snap = systemSnapshot;
+    const timestamp = new Date(snap.timestamp).toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+    });
+
+    const sections = [
+      `PATHWAYS HUB LIVE SYSTEM REPORT`,
+      `Date & Time: ${timestamp}`,
+      ``,
+      `SYSTEM HEALTH STATUS`,
+      `Status: ${snap.systemHealth?.systemStatus || 'Unknown'}`,
+      `Last Sync: ${snap.systemHealth?.lastSync || 'N/A'}`,
+      ``,
+      `RESIDENT OVERVIEW`,
+      `Total Active Residents: ${snap.residentsCount}`,
+      `Status Distribution:`,
+      snap.residents ? `- Active: ${snap.residents.filter(r => r.status === 'active').length}` : '- No data',
+      snap.residents ? `- Housing Eligible: ${snap.residents.filter(r => r.status === 'housing_eligible').length}` : '',
+      snap.residents ? `- Employed: ${snap.residents.filter(r => r.status === 'employed').length}` : '',
+      snap.residents ? `- Graduated: ${snap.residents.filter(r => r.status === 'graduated').length}` : '',
+      ``,
+      `HOUSING INVENTORY`,
+      `${snap.housingInventory?.map(h => `${h.name}: ${h.occupied}/${h.totalBeds} beds occupied (${h.available} available)`).join('\n')}`,
+      `Total Bed Occupancy: ${snap.bedOccupancy?.occupied}/${snap.bedOccupancy?.total} (${snap.bedOccupancy?.reserved} reserved, ${snap.bedOccupancy?.maintenance} maintenance)`,
+      ``,
+      `OPERATIONAL STATUS`,
+      `Open Transportation Requests: ${snap.openTransportationRequests}`,
+      `Overdue Tasks (7+ days): ${snap.overdueTasksCount}`,
+      `Pending Housing Referrals: ${snap.pendingReferralsCount}`,
+      ``,
+      `CASE MANAGER WORKLOAD`,
+      Object.entries(snap.caseManagerWorkload || {})
+        .map(([name, count]) => `${name}: ${count} residents`)
+        .join('\n'),
+      ``,
+      `ALERTS & ANOMALIES`,
+      snap.overdueTasksCount > 10 ? '⚠️ HIGH: More than 10 overdue tasks detected' : '✓ Task aging normal',
+      snap.bedOccupancy?.available === 0 ? '⚠️ CRITICAL: No available beds' : `✓ ${snap.bedOccupancy?.available} beds available`,
+      snap.openTransportationRequests > 20 ? '⚠️ HIGH: Unusual transportation request volume' : '✓ Transportation requests normal',
+    ];
+
+    return sections.filter(s => s).join('\n');
+  };
+
+  const handleExportToClipboard = async () => {
+    const report = formatSystemReport();
+    try {
+      await navigator.clipboard.writeText(report);
+      toast.success('System report copied to clipboard');
+      setBridgeButtonState(prev => ({ ...prev, export: true }));
+      setTimeout(() => setBridgeButtonState(prev => ({ ...prev, export: false })), 2000);
+    } catch (error) {
+      toast.error('Failed to copy report');
+    }
+  };
+
+  const handleBriefClaude = () => {
+    const report = formatSystemReport();
+    const timestamp = new Date().toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+    });
+    const message = `I am Rodney Jones, super admin of Headquarters of Hope. Here is my live system report as of ${timestamp}. Please analyze this and tell me what needs attention.\n\n${report}`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://claude.ai?message=${encodedMessage}`, '_blank');
+    
+    setBridgeButtonState(prev => ({ ...prev, brief: true }));
+    setTimeout(() => setBridgeButtonState(prev => ({ ...prev, brief: false })), 2000);
+  };
+
+  const handleCopyFullBrief = async () => {
+    const report = formatSystemReport();
+    const timestamp = new Date().toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+    });
+    const message = `I am Rodney Jones, super admin of Headquarters of Hope. Here is my live system report as of ${timestamp}. Please analyze this and tell me what needs attention.\n\n${report}`;
+    
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success('Full brief copied to clipboard');
+      setBridgeButtonState(prev => ({ ...prev, copy: true }));
+      setTimeout(() => setBridgeButtonState(prev => ({ ...prev, copy: false })), 2000);
+    } catch (error) {
+      toast.error('Failed to copy brief');
+    }
+  };
 
   const buildContext = () => {
     const context = {
@@ -418,24 +529,101 @@ export default function AppAssistant({ userRole }) {
               )}
             </div>
 
-            {/* Dev Mode (Super Admin Only) */}
+            {/* Claude Bridge Mode (Super Admin Only) */}
             {userRole === 'super_admin' && (
               <div
                 style={{
                   padding: '8px 12px',
                   borderTop: '1px solid #30363D',
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: 'column',
                   gap: '8px',
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={devMode}
-                  onChange={(e) => setDevMode(e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '12px', color: '#8B949E' }}>Developer Mode</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={devMode}
+                    onChange={(e) => setDevMode(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#8B949E' }}>Developer Mode</span>
+                </div>
+                
+                {/* Claude Bridge Buttons */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <Button
+                    size="sm"
+                    onClick={handleBriefClaude}
+                    className="text-xs"
+                    style={{
+                      backgroundColor: bridgeButtonState.brief ? '#34D399' : '#F59E0B',
+                      color: '#0D1117',
+                      padding: '4px 8px',
+                      height: 'auto',
+                      fontSize: '11px',
+                    }}
+                  >
+                    {bridgeButtonState.brief ? (
+                      <>
+                        <Check className="w-3 h-3 mr-1" />
+                        Done
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Brief Claude
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    onClick={handleCopyFullBrief}
+                    className="text-xs"
+                    style={{
+                      backgroundColor: bridgeButtonState.copy ? '#34D399' : '#60A5FA',
+                      color: '#0D1117',
+                      padding: '4px 8px',
+                      height: 'auto',
+                      fontSize: '11px',
+                    }}
+                  >
+                    {bridgeButtonState.copy ? (
+                      <>
+                        <Check className="w-3 h-3 mr-1" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 mr-1" />
+                        Copy Brief
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    onClick={handleExportToClipboard}
+                    className="text-xs"
+                    style={{
+                      backgroundColor: bridgeButtonState.export ? '#34D399' : '#8B5CF6',
+                      color: '#FFFFFF',
+                      padding: '4px 8px',
+                      height: 'auto',
+                      fontSize: '11px',
+                    }}
+                  >
+                    {bridgeButtonState.export ? (
+                      <>
+                        <Check className="w-3 h-3 mr-1" />
+                        Exported
+                      </>
+                    ) : (
+                      'Export'
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
 
