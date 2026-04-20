@@ -28,6 +28,7 @@ import ResidentJobMatchTab from '@/components/jobmatching/ResidentJobMatchTab';
 import HousingEligibilityPanel from '@/components/resident/HousingEligibilityPanel';
 import UnifiedWorkflowPanel from '@/components/casemanagement/UnifiedWorkflowPanel';
 import WorkflowStatusBanner from '@/components/casemanagement/WorkflowStatusBanner';
+import OnboardingWorkflow from '@/components/onboarding/OnboardingWorkflow';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700 border border-slate-200',
@@ -210,6 +211,13 @@ export default function ResidentProfile() {
             </div>
           )}
         </div>
+
+        {/* Onboarding Workflow Card */}
+        {perms.canManageIntake && (
+          <div className="mt-4 p-4 rounded-lg border" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+            <OnboardingWorkflow resident={resident} tasks={tasks} />
+          </div>
+        )}
 
         {/* Quick stats row */}
          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mt-6">
