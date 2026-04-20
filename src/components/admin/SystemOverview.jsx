@@ -11,32 +11,31 @@ export default function SystemOverview() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [residents, users, onboarding, servicePlans, enrollments, auditLogs, housingReferrals, casenotes] = await Promise.all([
-      base44.entities.Resident.list('-created_date', 500),
-      base44.entities.User.list('-created_date', 200),
-      base44.entities.OnboardingRequest.filter({ status: 'pending' }),
-      base44.entities.ServicePlan.list('-created_date', 200).catch(() => []),
+    const [residents, onboarding, userProfiles, servicePlans, enrollments, auditLogs, housingReferrals, casenotes] = await Promise.all([
+      base44.entities.Resident.filter({ status: { $in: ['active', 'housing_eligible', 'housing_pending', 'employed'] } }).catch(() => []),
+      base44.entities.OnboardingRequest.filter({ status: 'pending' }).catch(() => []),
+      base44.entities.UserProfile.list('-created_date', 500).catch(() => []),
+      base44.entities.ServicePlan.filter({ status: { $in: ['active', 'open'] } }).catch(() => []),
       base44.entities.LearningAssignment.filter({ status: 'assigned' }).catch(() => []),
       base44.entities.AuditLog.list('-created_date', 20).catch(() => []),
-      base44.entities.HousingReferral.filter({ status: 'submitted' }).catch(() => []),
+      base44.entities.HousingReferral.filter({ status: { $in: ['submitted', 'under_review'] } }).catch(() => []),
       base44.entities.CaseNote.list('-created_date', 5).catch(() => []),
     ]);
 
-    const activeResidents = residents.filter(r => r.status === 'active' || r.status === 'employed');
-    const caseManagers = users.filter(u => u.role === 'case_manager');
-    const staff = users.filter(u => u.role === 'staff');
-    const probOfficers = users.filter(u => u.role === 'probation_officer');
-    const employers = users.filter(u => u.role === 'employer');
+    const caseManagers = userProfiles.filter(u => u.app_role === 'case_manager' && u.status === 'active');
+    const staff = userProfiles.filter(u => (u.app_role === 'staff' || u.app_role === 'housing_staff') && u.status === 'active');
+    const probOfficers = userProfiles.filter(u => u.app_role === 'probation_officer' && u.status === 'active');
+    const employers = userProfiles.filter(u => u.app_role === 'employer' && u.status === 'active');
 
     setData({
       totalResidents: residents.length,
-      activeResidents: activeResidents.length,
+      activeResidents: residents.length,
       pendingOnboarding: onboarding.length,
       caseManagers: caseManagers.length,
       staff: staff.length,
       probOfficers: probOfficers.length,
       employers: employers.length,
-      openServicePlans: servicePlans.filter(s => s.status === 'active').length,
+      openServicePlans: servicePlans.length,
       pendingEnrollments: enrollments.length,
       pendingReferrals: housingReferrals.length,
       recentActivity: auditLogs,
