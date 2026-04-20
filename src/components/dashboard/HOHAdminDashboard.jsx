@@ -40,29 +40,31 @@ export default function HOHAdminDashboard({ user }) {
   const { data: incidents = [] } = useQuery({ queryKey: ['incidents'], queryFn: () => base44.entities.Incident.list('-created_date', 50) });
   const { data: grants = [] } = useQuery({ queryKey: ['grants'], queryFn: () => base44.entities.Grant.list() });
   const { data: transports = [] } = useQuery({ queryKey: ['transport-requests'], queryFn: () => base44.entities.TransportationRequest.list('-created_date', 100) });
+  const { data: placements = [] } = useQuery({ queryKey: ['housing-placements'], queryFn: () => base44.entities.HousingPlacement.list() });
   const { data: onboardingReqs = [] } = useQuery({ queryKey: ['onboarding-requests'], queryFn: () => base44.entities.OnboardingRequest.list('-created_date', 50) });
   const { data: payments = [] } = useQuery({ queryKey: ['fee-payments'], queryFn: () => base44.entities.FeePayment.list('-created_date', 100) });
   const { data: latestAudit = [] } = useQuery({ queryKey: ['audit-runs-latest'], queryFn: () => base44.entities.AuditRun.list('-created_date', 1) });
 
   // Derived
-  const activeResidents = residents.filter(r => r.status === 'active' || r.status === 'employed');
+  const activeResidents = residents.filter(r => r.status === 'active' || r.status === 'housing_eligible' || r.status === 'housing_pending' || r.status === 'employed');
   const thisWeekIntake = residents.filter(r => {
     const d = new Date(r.created_date); const w = new Date(); w.setDate(w.getDate()-7);
     return d >= w;
   }).length;
-  const totalBeds = houses.reduce((s,h) => s + (h.total_beds||0), 0);
-  const occupiedBeds = beds.filter(b => b.status === 'occupied').length;
+  const totalBeds = 14;
+  const housingPlacedOccupied = placements.filter(p => p.placement_status === 'placed' && p.occupancy_status === 'occupied').length;
+  const occupiedBeds = housingPlacedOccupied;
   const availableBeds = beds.filter(b => b.status === 'available').length;
   const openIncidents = incidents.filter(i => i.status === 'open' || i.status === 'under_review').length;
   const criticalIncidents = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved').length;
-  const pendingTransport = transports.filter(t => t.status === 'pending').length;
+  const today = new Date();
+  const pendingTransport = transports.filter(t => (t.status === 'confirmed' || t.status === 'scheduled') && new Date(t.requested_date) > today).length;
   const pendingOnboarding = onboardingReqs.filter(r => r.status === 'pending').length;
   const activeGrants = grants.filter(g => g.status === 'active').length;
   const reportingDueGrants = grants.filter(g => g.status === 'reporting_due').length;
   const pendingFees = payments.filter(p => p.status === 'pending' || p.status === 'late').length;
   const employed = residents.filter(r => r.status === 'employed').length;
   const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds/totalBeds)*100) : 0;
-  const today = new Date();
   const in30 = new Date(); in30.setDate(today.getDate()+30);
   const grantDeadlines = grants.filter(g => {
     const d = g.application_deadline || g.report_due_date;
