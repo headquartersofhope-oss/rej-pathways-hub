@@ -9,6 +9,8 @@ import {
   TrendingUp, CheckCircle, ClipboardList, Briefcase, BarChart2,
   Calendar, FileText, Shield, ChevronRight, Plus, Activity
 } from 'lucide-react';
+import PremiumCard from '@/components/premium/PremiumCard';
+import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
 
 function StatCard({ title, value, sub, icon: Icon, color, bg, to, alert }) {
   const content = (
@@ -82,11 +84,11 @@ export default function HOHAdminDashboard({ user }) {
 
   return (
     <div className="space-y-8">
-      {/* Hero Header */}
-       <div className="border rounded-2xl p-8" style={{ backgroundColor: '#21262D', borderColor: '#30363D' }}>
+      {/* Hero Header - Premium */}
+       <div className="rounded-2xl p-8 border" style={{ backgroundColor: 'linear-gradient(135deg, #1C2128 0%, #161B22 100%)', borderColor: '#30363D' }}>
          <div className="flex items-start justify-between">
            <div>
-             <h1 className="font-heading text-3xl font-bold text-white">Pathways Command Center</h1>
+             <h1 className="font-heading text-4xl font-bold text-white">Pathways Command Center</h1>
              <p className="text-sm mt-2" style={{ color: '#8B949E' }}>Executive dashboard · {new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</p>
            </div>
            <Link to="/intake">
@@ -137,18 +139,21 @@ export default function HOHAdminDashboard({ user }) {
         </div>
       )}
 
-      {/* Primary KPIs - Hero Section */}
+      {/* Primary KPIs - Premium */}
       <div>
-        <h3 className="font-heading text-lg font-bold mb-4 text-white">Key Metrics</h3>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-6 rounded-full" style={{ backgroundColor: '#F59E0B' }} />
+          <h3 className="font-heading text-sm font-semibold uppercase tracking-widest" style={{ color: '#8B949E' }}>Key Metrics</h3>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          <StatCard title="Active Participants" value={activeResidents.length} sub={`${thisWeekIntake} new this week`} icon={Users} color="text-blue-600" bg="bg-blue-100" to="/residents" />
-          <StatCard title="Residents Housed" value={occupiedBeds} sub={`${occupancyRate}% occupancy`} icon={BedDouble} color="text-emerald-600" bg="bg-emerald-100" to="/housing" />
-          <StatCard title="Available Beds" value={availableBeds} sub={`of ${totalBeds} total`} icon={Home} color="text-green-600" bg="bg-green-100" to="/housing" />
-          <StatCard title="Employed" value={employed} sub="current placements" icon={Briefcase} color="text-amber-600" bg="bg-amber-100" to="/job-matching" />
-          <StatCard title="Transport Pending" value={pendingTransport} sub="needs scheduling" icon={Car} color={pendingTransport>0?"text-orange-600":"text-slate-500"} bg={pendingTransport>0?"bg-orange-100":"bg-slate-100"} to="/transportation" alert={pendingTransport>3} />
-          <StatCard title="Open Incidents" value={openIncidents} sub={criticalIncidents > 0 ? `${criticalIncidents} critical` : 'across all houses'} icon={AlertTriangle} color={openIncidents>0?"text-destructive":"text-slate-500"} bg={openIncidents>0?"bg-red-100":"bg-slate-100"} to="/housing" alert={criticalIncidents>0} />
-          <StatCard title="Active Grants" value={activeGrants} sub={`${reportingDueGrants} reports due`} icon={DollarSign} color="text-violet-600" bg="bg-violet-100" to="/grants" alert={reportingDueGrants>0} />
-          <StatCard title="Fees Pending" value={pendingFees} sub="payments outstanding" icon={TrendingUp} color={pendingFees>0?"text-warning":"text-slate-500"} bg={pendingFees>0?"bg-yellow-100":"bg-slate-100"} to="/housing" />
+          <PremiumCard title="Active Participants" value={activeResidents.length} subtitle={`${thisWeekIntake} new this week`} icon={Users} accentColor="#60A5FA" trend={`${thisWeekIntake} new`} trendPositive={thisWeekIntake > 0} />
+          <PremiumCard title="Residents Housed" value={occupiedBeds} subtitle={`${occupancyRate}% occupancy`} icon={BedDouble} accentColor="#34D399" trend={`${occupancyRate}%`} trendPositive={occupancyRate >= 70} />
+          <PremiumCard title="Available Beds" value={availableBeds} subtitle={`of ${totalBeds} total`} icon={Home} accentColor="#2DD4BF" trend={availableBeds > 5 ? "Healthy" : "Low"} trendPositive={availableBeds > 5} />
+          <PremiumCard title="Employed" value={employed} subtitle="current placements" icon={Briefcase} accentColor="#A78BFA" trend={employed > 0 ? "↑" : "—"} trendPositive={employed > 0} />
+          <PremiumCard title="Transport Pending" value={pendingTransport} subtitle="needs scheduling" icon={Car} accentColor="#F59E0B" trend={pendingTransport > 0 ? `${pendingTransport} pending` : "Clear"} trendPositive={pendingTransport === 0} />
+          <PremiumCard title="Open Incidents" value={openIncidents} subtitle={criticalIncidents > 0 ? `${criticalIncidents} critical` : 'healthy'} icon={AlertTriangle} accentColor={criticalIncidents > 0 ? "#F87171" : "#34D399"} trend={criticalIncidents > 0 ? "Alert" : "Clear"} trendPositive={criticalIncidents === 0} />
+          <PremiumCard title="Active Grants" value={activeGrants} subtitle={`${reportingDueGrants} due`} icon={DollarSign} accentColor="#F59E0B" trend={reportingDueGrants > 0 ? "Action" : "Healthy"} trendPositive={reportingDueGrants === 0} />
+          <PremiumCard title="Fees Pending" value={pendingFees} subtitle="payments outstanding" icon={TrendingUp} accentColor="#FBBF24" trend={pendingFees > 0 ? "Follow up" : "Clear"} trendPositive={pendingFees === 0} />
         </div>
       </div>
 

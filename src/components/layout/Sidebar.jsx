@@ -150,29 +150,29 @@ export default function Sidebar({ user }) {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 py-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-heading font-bold text-xs">HOH</span>
-          </div>
-          <div>
-            <h1 className="font-heading font-bold text-base text-sidebar-foreground leading-tight">
-              Pathways
-            </h1>
-            <p className="text-[10px] text-sidebar-foreground/60 leading-tight mt-0.5">
-              {ROLE_LABELS[role] || 'User'}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col h-full" style={{ background: 'linear-gradient(180deg, #0F172A 0%, #0A1628 100%)' }}>
+       {/* Logo - Premium */}
+       <div className="px-5 py-6 border-b" style={{ borderColor: '#1a2848' }}>
+         <div className="flex items-center gap-3">
+           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
+             <span className="text-slate-900 font-heading font-bold text-xs">HOH</span>
+           </div>
+           <div>
+             <h1 className="font-heading font-bold text-base text-white leading-tight">
+               Pathways
+             </h1>
+             <p className="text-[10px] leading-tight mt-0.5" style={{ color: '#8B949E' }}>
+               {ROLE_LABELS[role] || 'User'}
+             </p>
+           </div>
+         </div>
+       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Premium */}
       <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-5">
         {sections.map((section) => (
           <div key={section.label}>
-            <p className="px-2 mb-1.5 text-[10px] uppercase tracking-widest font-semibold text-sidebar-foreground/40">
+            <p className="px-2 mb-1.5 text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#3a4d7a' }}>
               {section.label}
             </p>
             <div className="space-y-0.5">
@@ -185,13 +185,15 @@ export default function Sidebar({ user }) {
                     to={item.path}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-smooth border-l-3 border-transparent',
+                      'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-smooth relative',
                       active
-                        ? 'bg-sidebar-accent/20 text-sidebar-primary border-l-sidebar-primary font-medium'
-                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/10 hover:text-sidebar-foreground'
+                        ? 'text-amber-400 font-medium'
+                        : 'text-slate-400 hover:text-white'
                     )}
+                    style={active ? { boxShadow: '0 0 12px rgba(245, 158, 11, 0.3)' } : {}}
                   >
-                    <Icon className={cn('w-4 h-4 flex-shrink-0 transition-smooth', active ? 'text-sidebar-primary' : '')} />
+                    {active && <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full" style={{ backgroundColor: '#F59E0B' }} />}
+                    <Icon className={cn('w-4 h-4 flex-shrink-0 transition-smooth', active ? '' : '')} style={{ color: active ? '#F59E0B' : 'inherit' }} />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -245,8 +247,8 @@ export default function Sidebar({ user }) {
         )}
       </nav>
 
-      {/* User footer */}
-      <div className="px-4 py-4 border-t border-sidebar-border/50 bg-sidebar-accent/5">
+      {/* User footer - Premium */}
+      <div className="px-4 py-4 border-t" style={{ borderColor: '#1a2848' }}>
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center text-sidebar-primary-foreground text-xs font-semibold">
             {user?.full_name?.[0]?.toUpperCase() || 'U'}
