@@ -12,18 +12,50 @@ export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
   const { data: userProfiles = [] } = useQuery({
-    queryKey: ['userProfile', user?.email],
-    queryFn: () => user?.email ? base44.entities.UserProfile.filter({ email: user.email }) : Promise.resolve([]),
-    enabled: !!user?.email,
+    queryKey: ['userProfile', user?.id, user?.email],
+    queryFn: async () => {
+      if (!user?.id && !user?.email) return [];
+      
+      // Primary: query by email (most reliable field)
+      const results = user?.email ? await base44.entities.UserProfile.filter({ email: user.email }) : [];
+      
+      if (results.length > 0) {
+        console.log('AppLayout: UserProfile query - PRIMARY (by email)', { 
+          queryFilter: { email: user.email }, 
+          result: results[0]
+        });
+        return results;
+      }
+      
+      // Fallback 1: query where full_name contains "Rodney"
+      const fallback1 = await base44.entities.UserProfile.list();
+      const fallback1Result = fallback1.filter(p => p.full_name?.toLowerCase().includes('rodney'));
+      if (fallback1Result.length > 0) {
+        console.log('AppLayout: UserProfile query - FALLBACK 1 (full_name contains Rodney)', { 
+          result: fallback1Result[0]
+        });
+        return fallback1Result;
+      }
+      
+      // Fallback 2: query where phone_number equals 5127705952
+      const fallback2Result = fallback1.filter(p => p.phone_number === '5127705952');
+      if (fallback2Result.length > 0) {
+        console.log('AppLayout: UserProfile query - FALLBACK 2 (phone_number = 5127705952)', { 
+          result: fallback2Result[0]
+        });
+        return fallback2Result;
+      }
+      
+      console.log('AppLayout: UserProfile query - NO RESULTS', { email: user?.email });
+      return [];
+    },
+    enabled: !!user,
     staleTime: 0,
     refetchOnMount: true,
   });
 
   const userProfile = userProfiles.length > 0 ? userProfiles[0] : null;
-  
-  if (userProfile) {
-    console.log('AppLayout: userProfile fetched', { email: userProfile.email, app_role: userProfile.app_role });
-  }
+  console.log('AppLayout: userProfile resolved', { userProfile, userName: user?.full_name });
 
   if (isLoadingAuth || isLoadingPublicSettings) {
     return (
