@@ -26,9 +26,9 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar user={user} />
-      <main className="flex-1 overflow-y-auto flex flex-col bg-gradient-to-b from-background to-background/98">
-        {/* Top bar with global search */}
-        <div className="hidden lg:flex items-center gap-3 px-6 py-3 border-b border-border bg-card/40 backdrop-blur-sm sticky top-0 z-20 shadow-sm">
+      <main className="flex-1 overflow-y-auto flex flex-col bg-background">
+         {/* Top bar with global search */}
+         <div className="hidden lg:flex items-center gap-3 px-6 py-4 border-b sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
           <GlobalSearchBar />
         </div>
         <div className="flex-1 animate-in fade-in duration-300">
