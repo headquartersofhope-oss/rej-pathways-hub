@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, X, Send, Trash2 } from 'lucide-react';
+import { Sparkles, X, Send, Trash2, ExternalLink, Copy, CheckCircle, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -31,6 +31,7 @@ export default function AppAssistant({
   appColor = '#F59E0B',
   userRole = 'resident',
   userName = 'User',
+  userProfile = null,
   systemContextFn = null,
   organizationId = null,
   floatingButtonPosition = { bottom: '100px', right: '20px' },
@@ -40,7 +41,14 @@ export default function AppAssistant({
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
+  const [systemSnapshot, setSystemSnapshot] = useState(null);
+  const [snapshotLoading, setSnapshotLoading] = useState(false);
+  const [buttonStates, setButtonStates] = useState({ brief: false, copy: false, export: false, debug: false });
+  const [showRawContext, setShowRawContext] = useState(false);
   const messagesEndRef = useRef(null);
+
+  const isSuperAdmin = userProfile?.app_role === 'super_admin';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -49,6 +57,77 @@ export default function AppAssistant({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (isOpen && isSuperAdmin && !systemSnapshot && !snapshotLoading) {
+      loadSystemSnapshot();
+    }
+  }, [isOpen, isSuperAdmin]);
+
+  const loadSystemSnapshot = async () => {
+    setSnapshotLoading(true);
+    try {
+      const response = await base44.functions.invoke('getSystemSnapshot', {});
+      setSystemSnapshot(response.data);
+    } catch (error) {
+      console.error('Failed to load system snapshot:', error);
+    } finally {
+      setSnapshotLoading(false);
+    }
+  };
+
+  const getSystemReport = () => {
+    if (!systemSnapshot) return '';
+    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' });
+    return `PATHWAYS HUB LIVE SYSTEM REPORT\nTimestamp: ${timestamp}\n\n${JSON.stringify(systemSnapshot, null, 2)}`;
+  };
+
+  const handleBriefClaude = () => {
+    const report = getSystemReport();
+    const message = `I am ${userName}, super admin of ${appName}. Here is my live system report. Please analyze this and tell me what needs attention.\n\n${report}`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://claude.ai?message=${encodedMessage}`, '_blank');
+    setButtonStates(prev => ({ ...prev, brief: true }));
+    setTimeout(() => setButtonStates(prev => ({ ...prev, brief: false })), 2000);
+  };
+
+  const handleCopyBrief = async () => {
+    const report = getSystemReport();
+    const message = `I am ${userName}, super admin of ${appName}. Here is my live system report. Please analyze this and tell me what needs attention.\n\n${report}`;
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success('Brief copied to clipboard');
+      setButtonStates(prev => ({ ...prev, copy: true }));
+      setTimeout(() => setButtonStates(prev => ({ ...prev, copy: false })), 2000);
+    } catch (error) {
+      toast.error('Failed to copy brief');
+    }
+  };
+
+  const handleExportClaude = async () => {
+    const report = getSystemReport();
+    try {
+      await navigator.clipboard.writeText(report);
+      toast.success('Report exported to clipboard');
+      setButtonStates(prev => ({ ...prev, export: true }));
+      setTimeout(() => setButtonStates(prev => ({ ...prev, export: false })), 2000);
+    } catch (error) {
+      toast.error('Failed to export report');
+    }
+  };
+
+  const handleGenerateDebug = async () => {
+    try {
+      const response = await base44.functions.invoke('generateDebugPackage', {});
+      const debugReport = JSON.stringify(response.data, null, 2);
+      await navigator.clipboard.writeText(debugReport);
+      toast.success('Debug package generated and copied');
+      setButtonStates(prev => ({ ...prev, debug: true }));
+      setTimeout(() => setButtonStates(prev => ({ ...prev, debug: false })), 2000);
+    } catch (error) {
+      toast.error('Failed to generate debug package');
+    }
+  };
 
   const handleSendMessage = async (message = input) => {
     if (!message.trim()) return;
@@ -149,7 +228,7 @@ export default function AppAssistant({
               bottom: '20px',
               right: '20px',
               width: '400px',
-              height: '600px',
+              maxHeight: '700px',
               backgroundColor: '#161B22',
               border: '1px solid #30363D',
               borderRadius: '1rem',
@@ -364,6 +443,217 @@ export default function AppAssistant({
                 <Send className="w-4 h-4" />
               </Button>
             </div>
+
+            {/* Developer Mode Section */}
+            {isSuperAdmin && (
+              <div style={{ borderTop: '1px solid #30363D' }}>
+                <div
+                  style={{
+                    padding: '12px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: '#0D1117',
+                  }}
+                >
+                  <span style={{ color: '#8B949E', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase' }}>
+                    Developer Mode
+                  </span>
+                  <motion.div
+                    animate={{ rotate: isDeveloperMode ? 180 : 0 }}
+                    onClick={() => setIsDeveloperMode(!isDeveloperMode)}
+                    style={{
+                      width: '40px',
+                      height: '20px',
+                      borderRadius: '10px',
+                      backgroundColor: isDeveloperMode ? '#F59E0B' : '#30363D',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '2px',
+                    }}
+                  >
+                    <motion.div
+                      animate={{ x: isDeveloperMode ? 20 : 0 }}
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        backgroundColor: '#FFFFFF',
+                      }}
+                    />
+                  </motion.div>
+                </div>
+
+                {isDeveloperMode && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{ backgroundColor: '#0D1117', overflow: 'hidden' }}
+                  >
+                    <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {/* Developer Buttons Row 1 */}
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        <Button
+                          size="sm"
+                          onClick={handleBriefClaude}
+                          className="text-xs"
+                          style={{
+                            backgroundColor: buttonStates.brief ? '#34D399' : '#F59E0B',
+                            color: '#0D1117',
+                            padding: '4px 8px',
+                            height: 'auto',
+                            fontSize: '10px',
+                            flex: 1,
+                            minWidth: '100px',
+                          }}
+                          disabled={snapshotLoading}
+                        >
+                          {buttonStates.brief ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Done
+                            </>
+                          ) : (
+                            <>
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              Brief Claude
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleCopyBrief}
+                          className="text-xs"
+                          style={{
+                            backgroundColor: buttonStates.copy ? '#34D399' : '#60A5FA',
+                            color: '#0D1117',
+                            padding: '4px 8px',
+                            height: 'auto',
+                            fontSize: '10px',
+                            flex: 1,
+                            minWidth: '100px',
+                          }}
+                          disabled={snapshotLoading}
+                        >
+                          {buttonStates.copy ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3 mr-1" />
+                              Copy Brief
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {/* Developer Buttons Row 2 */}
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        <Button
+                          size="sm"
+                          onClick={handleExportClaude}
+                          className="text-xs"
+                          style={{
+                            backgroundColor: buttonStates.export ? '#34D399' : '#94A3B8',
+                            color: '#0D1117',
+                            padding: '4px 8px',
+                            height: 'auto',
+                            fontSize: '10px',
+                            flex: 1,
+                            minWidth: '100px',
+                          }}
+                          disabled={snapshotLoading}
+                        >
+                          {buttonStates.export ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Exported
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3 mr-1" />
+                              Export Report
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleGenerateDebug}
+                          className="text-xs"
+                          style={{
+                            backgroundColor: buttonStates.debug ? '#34D399' : '#64748B',
+                            color: '#0D1117',
+                            padding: '4px 8px',
+                            height: 'auto',
+                            fontSize: '10px',
+                            flex: 1,
+                            minWidth: '100px',
+                          }}
+                        >
+                          {buttonStates.debug ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Generated
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3 mr-1" />
+                              Debug Package
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {/* Raw Context Collapsible */}
+                      <div
+                        onClick={() => setShowRawContext(!showRawContext)}
+                        style={{
+                          backgroundColor: '#161B22',
+                          border: '1px solid #30363D',
+                          borderRadius: '4px',
+                          padding: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <motion.div animate={{ rotate: showRawContext ? 90 : 0 }}>
+                          <ChevronDown className="w-3 h-3" style={{ color: '#34D399' }} />
+                        </motion.div>
+                        <span style={{ color: '#34D399', fontSize: '10px', fontWeight: '600' }}>
+                          Raw System Context
+                        </span>
+                      </div>
+
+                      {showRawContext && systemSnapshot && (
+                        <div
+                          style={{
+                            backgroundColor: '#0D1117',
+                            border: '1px solid #30363D',
+                            borderRadius: '4px',
+                            padding: '8px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            fontFamily: 'monospace',
+                            fontSize: '9px',
+                            color: '#34D399',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {JSON.stringify(systemSnapshot, null, 2)}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

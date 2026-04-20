@@ -1,5 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/lib/AuthContext';
 import GlobalSearchBar from '@/components/shared/GlobalSearchBar';
@@ -8,6 +10,14 @@ import AppAssistant from '@/components/ai/AppAssistant';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
+
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ['userProfile', user?.email],
+    queryFn: () => user?.email ? base44.entities.UserProfile.filter({ email: user.email }) : Promise.resolve([]),
+    enabled: !!user?.email,
+  });
+
+  const userProfile = userProfiles.length > 0 ? userProfiles[0].data : null;
 
   if (isLoadingAuth || isLoadingPublicSettings) {
     return (
@@ -38,7 +48,13 @@ export default function AppLayout() {
          </div>
         </main>
         <TrainingButton />
-        <AppAssistant userRole={user?.role || 'resident'} />
+        <AppAssistant 
+          userRole={user?.role || 'resident'} 
+          userName={user?.full_name || 'User'}
+          userProfile={userProfile}
+          appName="Pathways Hub"
+          organizationId={userProfile?.organization_id}
+        />
         </div>
         );
         }
