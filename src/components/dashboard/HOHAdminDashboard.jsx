@@ -12,19 +12,19 @@ import {
 
 function StatCard({ title, value, sub, icon: Icon, color, bg, to, alert }) {
   const content = (
-    <Card className={`hover:shadow-md transition-shadow cursor-pointer ${alert ? 'border-red-200' : ''}`}>
-      <CardContent className="p-4">
+    <Card className={`metric-card border ${alert ? 'border-destructive/30 bg-destructive/5' : 'border-border'} hover:shadow-lg transition-smooth group`}>
+      <CardContent className="p-5">
         <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">{title}</p>
-            <p className={`font-heading text-2xl font-bold mt-1 ${alert ? 'text-red-600' : 'text-foreground'}`}>{value}</p>
-            {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{title}</p>
+            <p className={`font-heading text-3xl font-bold mt-2 ${alert ? 'text-destructive' : 'text-foreground'}`}>{value}</p>
+            {sub && <p className="text-xs text-muted-foreground mt-1.5">{sub}</p>}
           </div>
-          <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center`}>
-            <Icon className={`w-4 h-4 ${color}`} />
+          <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-smooth`}>
+            <Icon className={`w-5 h-5 ${color}`} />
           </div>
         </div>
-        {to && <div className="flex items-center gap-1 mt-3 text-xs text-primary font-medium">View Details <ChevronRight className="w-3 h-3" /></div>}
+        {to && <div className="flex items-center gap-1 mt-4 text-xs text-primary font-semibold group-hover:gap-2 transition-smooth">View Details <ChevronRight className="w-3 h-3" /></div>}
       </CardContent>
     </Card>
   );
@@ -81,16 +81,18 @@ export default function HOHAdminDashboard({ user }) {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="font-heading text-2xl font-bold">HOH Command Center</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Headquarters of Hope · Executive Overview · {new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</p>
+    <div className="space-y-8">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border border-primary/10 rounded-2xl p-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="font-heading text-3xl font-bold text-foreground">Pathways Command Center</h1>
+            <p className="text-sm text-muted-foreground mt-2">Executive dashboard · {new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</p>
+          </div>
+          <Link to="/intake">
+            <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"><Plus className="w-4 h-4" />New Intake</Button>
+          </Link>
         </div>
-        <Link to="/intake">
-          <Button className="gap-2"><Plus className="w-4 h-4" />New Intake</Button>
-        </Link>
       </div>
 
       {/* Alerts bar */}
@@ -135,16 +137,19 @@ export default function HOHAdminDashboard({ user }) {
         </div>
       )}
 
-      {/* Primary KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        <StatCard title="Active Participants" value={activeResidents.length} sub={`${thisWeekIntake} new this week`} icon={Users} color="text-blue-600" bg="bg-blue-50" to="/residents" />
-        <StatCard title="Residents Housed" value={occupiedBeds} sub={`${occupancyRate}% occupancy`} icon={BedDouble} color="text-indigo-600" bg="bg-indigo-50" to="/housing" />
-        <StatCard title="Available Beds" value={availableBeds} sub={`of ${totalBeds} total`} icon={Home} color="text-emerald-600" bg="bg-emerald-50" to="/housing" />
-        <StatCard title="Employed" value={employed} sub="current placements" icon={Briefcase} color="text-teal-600" bg="bg-teal-50" to="/job-matching" />
-        <StatCard title="Transport Pending" value={pendingTransport} sub="needs scheduling" icon={Car} color={pendingTransport>0?"text-orange-600":"text-slate-400"} bg={pendingTransport>0?"bg-orange-50":"bg-slate-50"} to="/transportation" alert={pendingTransport>3} />
-        <StatCard title="Open Incidents" value={openIncidents} sub={criticalIncidents > 0 ? `${criticalIncidents} critical` : 'across all houses'} icon={AlertTriangle} color={openIncidents>0?"text-red-600":"text-slate-400"} bg={openIncidents>0?"bg-red-50":"bg-slate-50"} to="/housing" alert={criticalIncidents>0} />
-        <StatCard title="Active Grants" value={activeGrants} sub={`${reportingDueGrants} reports due`} icon={DollarSign} color="text-violet-600" bg="bg-violet-50" to="/grants" alert={reportingDueGrants>0} />
-        <StatCard title="Fees Pending" value={pendingFees} sub="payments outstanding" icon={TrendingUp} color={pendingFees>0?"text-amber-600":"text-slate-400"} bg={pendingFees>0?"bg-amber-50":"bg-slate-50"} to="/housing" />
+      {/* Primary KPIs - Hero Section */}
+      <div>
+        <h3 className="font-heading text-lg font-bold mb-4 text-foreground">Key Metrics</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <StatCard title="Active Participants" value={activeResidents.length} sub={`${thisWeekIntake} new this week`} icon={Users} color="text-blue-600" bg="bg-blue-100" to="/residents" />
+          <StatCard title="Residents Housed" value={occupiedBeds} sub={`${occupancyRate}% occupancy`} icon={BedDouble} color="text-emerald-600" bg="bg-emerald-100" to="/housing" />
+          <StatCard title="Available Beds" value={availableBeds} sub={`of ${totalBeds} total`} icon={Home} color="text-green-600" bg="bg-green-100" to="/housing" />
+          <StatCard title="Employed" value={employed} sub="current placements" icon={Briefcase} color="text-amber-600" bg="bg-amber-100" to="/job-matching" />
+          <StatCard title="Transport Pending" value={pendingTransport} sub="needs scheduling" icon={Car} color={pendingTransport>0?"text-orange-600":"text-slate-500"} bg={pendingTransport>0?"bg-orange-100":"bg-slate-100"} to="/transportation" alert={pendingTransport>3} />
+          <StatCard title="Open Incidents" value={openIncidents} sub={criticalIncidents > 0 ? `${criticalIncidents} critical` : 'across all houses'} icon={AlertTriangle} color={openIncidents>0?"text-destructive":"text-slate-500"} bg={openIncidents>0?"bg-red-100":"bg-slate-100"} to="/housing" alert={criticalIncidents>0} />
+          <StatCard title="Active Grants" value={activeGrants} sub={`${reportingDueGrants} reports due`} icon={DollarSign} color="text-violet-600" bg="bg-violet-100" to="/grants" alert={reportingDueGrants>0} />
+          <StatCard title="Fees Pending" value={pendingFees} sub="payments outstanding" icon={TrendingUp} color={pendingFees>0?"text-warning":"text-slate-500"} bg={pendingFees>0?"bg-yellow-100":"bg-slate-100"} to="/housing" />
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">

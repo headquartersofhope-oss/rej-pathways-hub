@@ -30,18 +30,19 @@ import UnifiedWorkflowPanel from '@/components/casemanagement/UnifiedWorkflowPan
 import WorkflowStatusBanner from '@/components/casemanagement/WorkflowStatusBanner';
 
 const statusColors = {
-  pre_intake: 'bg-slate-100 text-slate-700',
-  active: 'bg-blue-50 text-blue-700',
-  employed: 'bg-emerald-50 text-emerald-700',
-  graduated: 'bg-purple-50 text-purple-700',
-  exited: 'bg-amber-50 text-amber-700',
-  inactive: 'bg-red-50 text-red-700',
+  pre_intake: 'bg-slate-100 text-slate-700 border border-slate-200',
+  active: 'bg-green-100 text-green-800 border border-green-200',
+  housing_pending: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  employed: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+  graduated: 'bg-blue-100 text-blue-800 border border-blue-200',
+  exited: 'bg-red-100 text-red-800 border border-red-200',
+  inactive: 'bg-slate-100 text-slate-700 border border-slate-200',
 };
 
 const riskColors = {
-  low: 'bg-emerald-50 text-emerald-700',
-  medium: 'bg-amber-50 text-amber-700',
-  high: 'bg-red-50 text-red-700',
+  low: 'bg-green-100 text-green-800 border border-green-200',
+  medium: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  high: 'bg-red-100 text-red-800 border border-red-200',
 };
 
 export default function ResidentProfile() {
@@ -104,10 +105,13 @@ export default function ResidentProfile() {
 
   if (!resident) {
     return (
-      <div className="p-6 pt-14 lg:pt-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-48" />
-          <div className="h-24 bg-muted rounded" />
+      <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
+        <div className="space-y-6 animate-in fade-in">
+          <div className="skeleton h-10 w-56" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-24" />)}
+          </div>
+          <div className="skeleton h-64" />
         </div>
       </div>
     );
@@ -164,14 +168,14 @@ export default function ResidentProfile() {
                 {resident.preferred_name || resident.first_name} {resident.last_name}
               </h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <Badge className={`text-xs ${statusColors[resident.status] || ''}`}>
-                  {(resident.status || 'active').replace(/_/g, ' ')}
-                </Badge>
-                {resident.risk_level && (
-                  <Badge className={`text-xs ${riskColors[resident.risk_level] || ''}`}>
-                    {resident.risk_level} risk
+                <Badge className={`text-xs font-semibold ${statusColors[resident.status] || statusColors.active}`}>
+                    {(resident.status || 'active').replace(/_/g, ' ')}
                   </Badge>
-                )}
+                  {resident.risk_level && (
+                    <Badge className={`text-xs font-semibold ${riskColors[resident.risk_level] || ''}`}>
+                      Risk: {resident.risk_level}
+                    </Badge>
+                  )}
                 <ProgressStatusBadge resident={resident} barriers={barriers} tasks={tasks} variant="badge" />
                 {resident.population && (
                   <Badge variant="outline" className="text-xs capitalize">
@@ -208,28 +212,28 @@ export default function ResidentProfile() {
         </div>
 
         {/* Quick stats row */}
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="font-heading font-bold text-lg">{resident.job_readiness_score || 0}%</p>
-            <p className="text-[10px] text-muted-foreground">Job Readiness</p>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mt-6">
+          <div className="metric-card flex flex-col items-center">
+            <p className="font-heading font-bold text-2xl text-primary">{resident.job_readiness_score || 0}%</p>
+            <p className="text-xs text-muted-foreground mt-2 font-medium">Job Readiness</p>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="font-heading font-bold text-lg">{activeBarriersCount}</p>
-            <p className="text-[10px] text-muted-foreground">Active Barriers</p>
+          <div className="metric-card flex flex-col items-center">
+            <p className="font-heading font-bold text-2xl text-primary">{activeBarriersCount}</p>
+            <p className="text-xs text-muted-foreground mt-2 font-medium">Active Barriers</p>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="font-heading font-bold text-lg">{openTasks}</p>
-            <p className="text-[10px] text-muted-foreground">Open Tasks</p>
+          <div className="metric-card flex flex-col items-center">
+            <p className="font-heading font-bold text-2xl text-primary">{openTasks}</p>
+            <p className="text-xs text-muted-foreground mt-2 font-medium">Open Tasks</p>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-center hidden sm:block">
+          <div className="metric-card flex flex-col items-center hidden sm:flex">
             {intakeStatus === 'completed'
-              ? <p className="font-heading font-bold text-lg text-emerald-600">✓</p>
-              : <p className="font-heading font-bold text-lg text-muted-foreground">—</p>}
-            <p className="text-[10px] text-muted-foreground">Intake Done</p>
+              ? <p className="font-heading font-bold text-2xl text-success">✓</p>
+              : <p className="font-heading font-bold text-2xl text-muted-foreground">—</p>}
+            <p className="text-xs text-muted-foreground mt-2 font-medium">Intake Done</p>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-center hidden sm:block">
-            <p className="font-heading font-bold text-lg capitalize">{resident.population?.replace(/_/g, ' ').split(' ')[0] || '—'}</p>
-            <p className="text-[10px] text-muted-foreground">Population</p>
+          <div className="metric-card flex flex-col items-center hidden sm:flex">
+            <p className="font-heading font-bold text-base text-primary capitalize">{resident.population?.replace(/_/g, ' ').split(' ')[0] || '—'}</p>
+            <p className="text-xs text-muted-foreground mt-2 font-medium">Population</p>
           </div>
         </div>
 

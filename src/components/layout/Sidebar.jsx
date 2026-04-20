@@ -152,16 +152,16 @@ export default function Sidebar({ user }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-sidebar-border">
+      <div className="px-5 py-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
-            <span className="text-secondary-foreground font-heading font-bold text-xs">HOH</span>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center">
+            <span className="text-sidebar-primary-foreground font-heading font-bold text-xs">HOH</span>
           </div>
           <div>
-            <h1 className="font-heading font-bold text-sm text-sidebar-foreground leading-tight">
-              HOH OS
+            <h1 className="font-heading font-bold text-base text-sidebar-foreground leading-tight">
+              Pathways
             </h1>
-            <p className="text-[11px] text-sidebar-foreground/50 leading-tight">
+            <p className="text-[10px] text-sidebar-foreground/60 leading-tight mt-0.5">
               {ROLE_LABELS[role] || 'User'}
             </p>
           </div>
@@ -185,13 +185,13 @@ export default function Sidebar({ user }) {
                     to={item.path}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
+                      'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-smooth border-l-3 border-transparent',
                       active
-                        ? 'bg-sidebar-accent text-sidebar-primary font-medium'
-                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                        ? 'bg-sidebar-accent/20 text-sidebar-primary border-l-sidebar-primary font-medium'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/10 hover:text-sidebar-foreground'
                     )}
                   >
-                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <Icon className={cn('w-4 h-4 flex-shrink-0 transition-smooth', active ? 'text-sidebar-primary' : '')} />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -228,13 +228,13 @@ export default function Sidebar({ user }) {
                       to={path}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
+                        'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-smooth border-l-3 border-transparent',
                         active
-                          ? 'bg-sidebar-accent text-sidebar-primary font-medium'
-                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                          ? 'bg-sidebar-accent/20 text-sidebar-primary border-l-sidebar-primary font-medium'
+                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/10 hover:text-sidebar-foreground'
                       )}
                     >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <Icon className={cn('w-4 h-4 flex-shrink-0 transition-smooth', active ? 'text-sidebar-primary' : '')} />
                       <span>{mod.name}</span>
                     </Link>
                   );
@@ -246,20 +246,20 @@ export default function Sidebar({ user }) {
       </nav>
 
       {/* User footer */}
-      <div className="px-4 py-4 border-t border-sidebar-border">
+      <div className="px-4 py-4 border-t border-sidebar-border/50 bg-sidebar-accent/5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground text-xs font-semibold">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center text-sidebar-primary-foreground text-xs font-semibold">
             {user?.full_name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-sidebar-foreground truncate">
               {user?.full_name || 'User'}
             </p>
-            <p className="text-[10px] text-sidebar-foreground/50 truncate">
+            <p className="text-[10px] text-sidebar-foreground/60 truncate">
               {user?.email}
             </p>
           </div>
-          <button onClick={handleLogout} className="text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors">
+          <button onClick={handleLogout} className="text-sidebar-foreground/50 hover:text-sidebar-primary transition-smooth hover:scale-110">
             <LogOut className="w-4 h-4" />
           </button>
         </div>
