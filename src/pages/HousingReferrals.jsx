@@ -36,9 +36,10 @@ export default function HousingReferrals() {
   const [selectedResident, setSelectedResident] = useState(null);
   const [residentSearch, setResidentSearch] = useState('');
   const [tab, setTab] = useState('referrals');
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const fetchData = async () => {
-    setLoading(true);
+    setIsLoadingData(true);
     const [r, res, prov] = await Promise.all([
       base44.entities.HousingReferral.list('-referral_date', 100),
       base44.entities.Resident.list('-created_date', 200),
@@ -47,8 +48,8 @@ export default function HousingReferrals() {
     setReferrals(r);
     setResidents(res);
     setProviders(prov);
-    setLoading(false);
-  };
+    setIsLoadingData(false);
+    };
 
   useEffect(() => { fetchData(); }, []);
 
@@ -100,22 +101,23 @@ export default function HousingReferrals() {
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b px-6 py-4 bg-card">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Hero Header */}
+      <div className="border-b px-6 py-6 bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border-primary/10">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Home className="w-5 h-5 text-primary" />
+            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center">
+              <Home className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-heading font-bold text-lg">Housing Referrals</h1>
-              <p className="text-xs text-muted-foreground">Referral-ready · Not housing operations</p>
+              <h1 className="font-heading font-bold text-xl">Housing Referrals</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">Manage external housing referrals · {statusGroups.active + statusGroups.decided} total</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>{statusGroups.active} active</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>{statusGroups.decided} decided</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex gap-4 text-xs">
+              <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span className="text-muted-foreground">{statusGroups.active} active</span></div>
+              <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span className="text-muted-foreground">{statusGroups.decided} decided</span></div>
+              <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span className="text-muted-foreground">{statusGroups.closed} closed</span></div>
             </div>
           </div>
         </div>
@@ -165,9 +167,11 @@ export default function HousingReferrals() {
               </div>
 
               {/* Referral List */}
-              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5">
-                {loading ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
+                {isLoadingData ? (
+                  <div className="space-y-2 py-3">
+                    {[...Array(5)].map((_, i) => <div key={i} className="skeleton h-20" />)}
+                  </div>
                 ) : filtered.length === 0 ? (
                   <div className="text-center py-10 text-muted-foreground">
                     <Home className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -178,7 +182,7 @@ export default function HousingReferrals() {
                   <button
                     key={r.id}
                     onClick={() => handleSelectReferral(r)}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover:shadow-sm ${selectedReferral?.id === r.id ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-muted/30'}`}
+                    className={`w-full text-left p-3.5 rounded-lg border transition-smooth ${selectedReferral?.id === r.id ? 'border-primary bg-primary/8 shadow-sm' : 'border-border bg-card hover:bg-muted/40 hover:shadow-sm'}`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <span className="font-medium text-sm truncate">{r.participant_name}</span>

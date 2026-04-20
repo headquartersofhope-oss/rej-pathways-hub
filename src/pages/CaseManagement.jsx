@@ -14,10 +14,10 @@ import { filterResidentsByAccess } from '@/lib/rbac';
 import { format, isPast, isToday, parseISO } from 'date-fns';
 
 const severityColors = {
-  low: 'bg-slate-100 text-slate-600',
-  medium: 'bg-amber-50 text-amber-700',
-  high: 'bg-red-50 text-red-700',
-  critical: 'bg-red-100 text-red-800',
+  low: 'bg-slate-100 text-slate-700 border border-slate-200',
+  medium: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  high: 'bg-orange-100 text-orange-800 border border-orange-200',
+  critical: 'bg-red-100 text-red-800 border border-red-200',
 };
 
 export default function CaseManagement() {
@@ -71,19 +71,21 @@ export default function CaseManagement() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-2xl font-bold">Case Management</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {accessibleResidents.length} participant{accessibleResidents.length !== 1 ? 's' : ''} in your caseload
-          </p>
-        </div>
-        <Link to="/intake">
-          <Button className="gap-2"><Users className="w-4 h-4" />New Intake</Button>
-        </Link>
-      </div>
+     <div className="space-y-8">
+       {/* Hero Header */}
+       <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border border-primary/10 rounded-2xl p-8">
+         <div className="flex items-center justify-between flex-wrap gap-4">
+           <div>
+             <h1 className="font-heading text-3xl font-bold">Case Management</h1>
+             <p className="text-sm text-muted-foreground mt-2">
+               {accessibleResidents.length} participant{accessibleResidents.length !== 1 ? 's' : ''} · Manage caseload and workflow
+             </p>
+           </div>
+           <Link to="/intake">
+             <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"><Users className="w-4 h-4" />New Intake</Button>
+           </Link>
+         </div>
+       </div>
 
       {/* Alerts */}
       {overdueTasks.length > 0 && (
@@ -94,32 +96,63 @@ export default function CaseManagement() {
         </div>
       )}
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4">
-            <p className="font-heading font-bold text-2xl text-destructive">{overdueTasks.length}</p>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Overdue Tasks</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="font-heading font-bold text-2xl text-primary">{todayApts.length}</p>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Calendar className="w-3 h-3" /> Today's Appointments</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="font-heading font-bold text-2xl text-amber-600">{openIncidents.length}</p>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Open Incidents</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="font-heading font-bold text-2xl text-accent">{allNotes.length}</p>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Case Notes</p>
-          </CardContent>
-        </Card>
+      {/* Summary cards - Metric Cards */}
+      <div>
+        <h3 className="font-heading text-lg font-bold mb-4 text-foreground">Quick Snapshot</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="metric-card border hover:shadow-lg transition-smooth">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Overdue Tasks</p>
+                  <p className="font-heading text-3xl font-bold mt-2 text-destructive">{overdueTasks.length}</p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-destructive" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="metric-card border hover:shadow-lg transition-smooth">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Today's Appts</p>
+                  <p className="font-heading text-3xl font-bold mt-2 text-primary">{todayApts.length}</p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="metric-card border hover:shadow-lg transition-smooth">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Open Incidents</p>
+                  <p className="font-heading text-3xl font-bold mt-2 text-warning">{openIncidents.length}</p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-warning" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="metric-card border hover:shadow-lg transition-smooth">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Case Notes</p>
+                  <p className="font-heading text-3xl font-bold mt-2 text-success">{allNotes.length}</p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-success" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Tabs defaultValue="residents">
@@ -130,20 +163,20 @@ export default function CaseManagement() {
           <TabsTrigger value="incidents">Incidents ({openIncidents.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="residents" className="mt-4">
-          <div className="mb-3">
+        <TabsContent value="residents" className="mt-6">
+          <div className="mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search participants..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+              <Input placeholder="Search participants..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-10" />
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredResidents.map(r => {
               const residentTasks = allTasks.filter(t => t.resident_id === r.id && t.status !== 'completed');
               const residentApts = allAppointments.filter(a => a.resident_id === r.id && ['scheduled', 'confirmed'].includes(a.status));
               return (
                 <Link key={r.id} to={`/residents/${r.id}`}>
-                  <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                  <Card className="metric-card p-5 hover:shadow-lg transition-smooth cursor-pointer border">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                         {r.first_name?.[0]}{r.last_name?.[0]}

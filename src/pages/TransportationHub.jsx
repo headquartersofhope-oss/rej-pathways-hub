@@ -111,8 +111,8 @@ export default function TransportationHub() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Modals */}
+     <div className="space-y-8">
+       {/* Modals */}
       {rideModal !== null && (
         <RideRequestModal
           req={rideModal === 'new' ? null : rideModal}
@@ -145,40 +145,45 @@ export default function TransportationHub() {
         />
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="font-heading text-2xl font-bold">Transportation Hub</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Dispatch · Drivers · Fleet · Recurring Rides · {activeDrivers} drivers · {activeVehicles} vehicles</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => setVehicleModal('new')}><Truck className="w-4 h-4 mr-1.5" />Add Vehicle</Button>
-          <Button variant="outline" size="sm" onClick={() => setDriverModal('new')}><User className="w-4 h-4 mr-1.5" />Add Driver</Button>
-          <Button variant="outline" size="sm" onClick={() => setRecurringModal('new')}><Repeat className="w-4 h-4 mr-1.5" />Recurring Ride</Button>
-          <Button size="sm" onClick={() => setRideModal('new')}><Plus className="w-4 h-4 mr-1.5" />New Request</Button>
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 border border-primary/10 rounded-2xl p-8">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="font-heading text-3xl font-bold">Transportation Hub</h1>
+            <p className="text-sm text-muted-foreground mt-2">{activeDrivers} drivers · {activeVehicles} vehicles · {activeRecurring} recurring rides</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" className="transition-smooth hover:shadow-sm" onClick={() => setVehicleModal('new')}><Truck className="w-4 h-4 mr-1.5" />Add Vehicle</Button>
+            <Button variant="outline" size="sm" className="transition-smooth hover:shadow-sm" onClick={() => setDriverModal('new')}><User className="w-4 h-4 mr-1.5" />Add Driver</Button>
+            <Button variant="outline" size="sm" className="transition-smooth hover:shadow-sm" onClick={() => setRecurringModal('new')}><Repeat className="w-4 h-4 mr-1.5" />Recurring Ride</Button>
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-smooth" onClick={() => setRideModal('new')}><Plus className="w-4 h-4 mr-1.5" />New Request</Button>
+          </div>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-        {[
-          { label: 'Today', value: todayTrips, color: 'text-blue-600', bg: 'bg-blue-50', icon: Calendar },
-          { label: 'Pending', value: pending, color: pending > 0 ? 'text-yellow-600' : 'text-slate-400', bg: pending > 0 ? 'bg-yellow-50' : 'bg-slate-50', icon: Clock },
-          { label: 'Unassigned', value: unassigned, color: unassigned > 0 ? 'text-orange-600' : 'text-slate-400', bg: unassigned > 0 ? 'bg-orange-50' : 'bg-slate-50', icon: AlertTriangle },
-          { label: 'This Month', value: completedThisMonth, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: CheckCircle },
-          { label: 'No-Shows', value: noShowCount, color: noShowCount > 0 ? 'text-red-600' : 'text-slate-400', bg: noShowCount > 0 ? 'bg-red-50' : 'bg-slate-50', icon: AlertTriangle },
-          { label: 'Drivers', value: activeDrivers, color: 'text-indigo-600', bg: 'bg-indigo-50', icon: Users },
-          { label: 'Vehicles', value: activeVehicles, color: 'text-teal-600', bg: 'bg-teal-50', icon: Car },
-          { label: 'Recurring', value: activeRecurring, color: 'text-purple-600', bg: 'bg-purple-50', icon: Repeat },
-        ].map((s, i) => (
-          <Card key={i}><CardContent className="p-3">
-            <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center mb-1.5`}>
-              <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
-            </div>
-            <p className={`font-heading text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-muted-foreground">{s.label}</p>
-          </CardContent></Card>
-        ))}
+      {/* KPIs - Metric Cards */}
+      <div>
+        <h3 className="font-heading text-lg font-bold mb-4 text-foreground">Fleet Status</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3">
+          {[
+            { label: 'Today', value: todayTrips, color: 'text-blue-600', bg: 'bg-blue-100', icon: Calendar },
+            { label: 'Pending', value: pending, color: pending > 0 ? 'text-yellow-600' : 'text-slate-500', bg: pending > 0 ? 'bg-yellow-100' : 'bg-slate-100', icon: Clock },
+            { label: 'Unassigned', value: unassigned, color: unassigned > 0 ? 'text-orange-600' : 'text-slate-500', bg: unassigned > 0 ? 'bg-orange-100' : 'bg-slate-100', icon: AlertTriangle },
+            { label: 'This Month', value: completedThisMonth, color: 'text-emerald-600', bg: 'bg-emerald-100', icon: CheckCircle },
+            { label: 'No-Shows', value: noShowCount, color: noShowCount > 0 ? 'text-red-600' : 'text-slate-500', bg: noShowCount > 0 ? 'bg-red-100' : 'bg-slate-100', icon: AlertTriangle },
+            { label: 'Drivers', value: activeDrivers, color: 'text-indigo-600', bg: 'bg-indigo-100', icon: Users },
+            { label: 'Vehicles', value: activeVehicles, color: 'text-teal-600', bg: 'bg-teal-100', icon: Car },
+            { label: 'Recurring', value: activeRecurring, color: 'text-purple-600', bg: 'bg-purple-100', icon: Repeat },
+          ].map((s, i) => (
+            <Card key={i} className="metric-card border hover:shadow-lg transition-smooth"><CardContent className="p-5">
+              <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
+                <s.icon className={`w-4 h-4 ${s.color}`} />
+              </div>
+              <p className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-xs text-muted-foreground font-medium mt-1">{s.label}</p>
+            </CardContent></Card>
+          ))}
+        </div>
       </div>
 
       {/* Compliance warning */}
@@ -231,9 +236,9 @@ export default function TransportationHub() {
               <p className="text-sm text-muted-foreground">No rides match this filter.</p>
             </CardContent></Card>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {filteredRequests.map(r => (
-                <Card key={r.id} className={`hover:shadow-sm transition-shadow ${r.incident_noted ? 'border-red-200' : ''}`}>
+                <Card key={r.id} className={`metric-card border hover:shadow-lg transition-smooth ${r.incident_noted ? 'border-red-200 bg-red-50/30' : ''}`}>
                   <CardContent className="p-4 flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -274,9 +279,9 @@ export default function TransportationHub() {
               <Button size="sm" onClick={() => setRecurringModal('new')}><Plus className="w-4 h-4 mr-1.5" />New Plan</Button>
             </CardContent></Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {recurringRides.map(r => (
-                <Card key={r.id} className={r.status === 'paused' ? 'opacity-60' : ''}>
+                <Card key={r.id} className={`metric-card border hover:shadow-lg transition-smooth ${r.status === 'paused' ? 'opacity-60' : ''}`}>
                   <CardContent className="p-4 flex items-start gap-3">
                     <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
                       <Repeat className="w-4 h-4 text-purple-600" />
@@ -327,7 +332,7 @@ export default function TransportationHub() {
                 const licenseExpiring = d.license_expiry && d.license_expiry <= new Date(Date.now() + 30*86400000).toISOString().split('T')[0];
                 const todayRides = requests.filter(r => r.assigned_driver_id === d.id && r.requested_date === today).length;
                 return (
-                  <Card key={d.id} className={`hover:shadow-md transition-shadow ${licenseExpiring ? 'border-orange-200' : ''}`}>
+                  <Card key={d.id} className={`metric-card border hover:shadow-lg transition-smooth ${licenseExpiring ? 'border-orange-200 bg-orange-50/30' : ''}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -387,7 +392,7 @@ export default function TransportationHub() {
                 const regWarn = v.registration_expiry && new Date(v.registration_expiry) <= in30_;
                 const todayRides = requests.filter(r => r.assigned_vehicle_id === v.id && r.requested_date === today).length;
                 return (
-                  <Card key={v.id} className={`hover:shadow-md transition-shadow ${(insuranceWarn || regWarn) ? 'border-orange-200' : ''}`}>
+                  <Card key={v.id} className={`metric-card border hover:shadow-lg transition-smooth ${(insuranceWarn || regWarn) ? 'border-orange-200 bg-orange-50/30' : ''}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
