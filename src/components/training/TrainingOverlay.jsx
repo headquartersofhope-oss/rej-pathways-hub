@@ -36,15 +36,6 @@ export default function TrainingOverlay({ training, onClose, userRole, onStepCom
   const progress = ((currentStep + 1) / steps.length) * 100;
   const isLastStep = currentStep === steps.length - 1;
 
-  const handleMouseDown = (e) => {
-    if (e.target.closest('[data-no-drag]')) return;
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
-    });
-  };
-
   useEffect(() => {
     if (!isDragging) return;
     const handleMouseMove = (e) => {
@@ -61,6 +52,15 @@ export default function TrainingOverlay({ training, onClose, userRole, onStepCom
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, dragOffset]);
+
+  const handleMouseDown = (e) => {
+    if (e.target.closest('[data-no-drag]')) return;
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
 
   const handleNext = () => {
     if (step.action_type === 'quiz' && selectedQuizAnswer === null) {
