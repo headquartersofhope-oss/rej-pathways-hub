@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2, Eye, Zap as ZapAuto } from 'lucide-react';
+import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2, Eye, Zap as ZapAuto, Users } from 'lucide-react';
 import SystemOverview from '@/components/admin/SystemOverview';
 import QueueCenter from '@/components/admin/QueueCenter';
 import NotesOversight from '@/components/admin/NotesOversight';
@@ -11,6 +11,7 @@ import DiagnosticsPanel from '@/components/admin/DiagnosticsPanel';
 import ModuleQuickAccess from '@/components/admin/ModuleQuickAccess';
 import RolePreviewPanel from '@/components/admin/RolePreviewPanel';
 import AutoAssignmentControl from '@/components/admin/AutoAssignmentControl';
+import TeamManagement from '@/components/admin/TeamManagement';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminControlCenter() {
@@ -47,6 +48,7 @@ export default function AdminControlCenter() {
             <TabsList className="h-10 bg-transparent gap-1 p-0">
               {[
                 { value: 'overview', label: 'Overview', icon: LayoutDashboard },
+                { value: 'team', label: 'Team Management', icon: Users },
                 { value: 'queues', label: 'Queues', icon: Inbox },
                 { value: 'notes', label: 'Notes', icon: FileText },
                 { value: 'ai-ops', label: 'AI Ops', icon: Zap },
@@ -69,6 +71,9 @@ export default function AdminControlCenter() {
           <div className="flex-1 overflow-y-auto">
             <TabsContent value="overview" className="m-0 p-6">
               <SystemOverview />
+            </TabsContent>
+            <TabsContent value="team" className="m-0 p-6">
+              <TeamManagement />
             </TabsContent>
             <TabsContent value="queues" className="m-0 p-6">
               <QueueCenter />
