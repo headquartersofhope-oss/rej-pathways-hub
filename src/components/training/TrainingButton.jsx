@@ -96,9 +96,10 @@ function TrainingSelector({ trainings, progressRecords, onClose, userRole }) {
            const progress = progressMap[trainingData?.training_id];
            const isCompleted = progress?.status === 'completed';
 
-           // Get steps array from either module.steps or module.data.steps
+           // Get steps array with proper validation
            const stepsArray = Array.isArray(trainingData?.steps) ? trainingData.steps : [];
-           const completedSteps = Array.isArray(progress?.steps_completed) ? progress.steps_completed.length : 0;
+           const completedSteps = progress?.steps_completed && Array.isArray(progress.steps_completed) ? progress.steps_completed.length : 0;
+           const totalSteps = stepsArray.length;
 
            return (
              <button
@@ -118,7 +119,7 @@ function TrainingSelector({ trainings, progressRecords, onClose, userRole }) {
                  <div className="flex-1">
                    <p className="font-semibold text-sm text-foreground">{trainingData?.module_title}</p>
                    <p className="text-xs text-muted-foreground mt-1">
-                     {completedSteps} / {stepsArray.length} steps
+                     {completedSteps} / {totalSteps} steps
                    </p>
                  </div>
                </div>

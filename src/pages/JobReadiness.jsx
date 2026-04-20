@@ -80,7 +80,7 @@ export default function JobReadiness() {
     const blockerCount = (!hasResume ? 1 : 0) + (!hasInterview ? 1 : 0) + missing.length;
 
     return (
-      <Link to={`/residents/${r.id}?tab=job-readiness`}>
+      <Link to={`/residents/${r.id}?tab=job-readiness`} className="block" style={{ pointerEvents: 'auto' }}>
         <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">

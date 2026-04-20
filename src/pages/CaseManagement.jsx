@@ -126,7 +126,7 @@ export default function CaseManagement() {
               const residentTasks = allTasks.filter(t => t.resident_id === r.id && t.status !== 'completed');
               const residentApts = allAppointments.filter(a => a.resident_id === r.id && ['scheduled', 'confirmed'].includes(a.status));
               return (
-                <Link key={r.id} to={`/residents/${r.id}`}>
+                <Link key={r.id} to={`/residents/${r.id}`} className="block" style={{ pointerEvents: 'auto' }}>
                   <Card className="metric-card p-5 hover:shadow-lg transition-smooth cursor-pointer border">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">

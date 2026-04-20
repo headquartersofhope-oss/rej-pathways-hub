@@ -292,7 +292,7 @@ export default function JobMatching() {
                             <span className={`font-bold text-sm ${scoreColor}`}>{m.match_score ?? '?'}</span>
                           </div>
                           <div className="min-w-0 flex-1">
-                            <Link to={`/residents/${m.resident_id}?tab=job-matching`} className="hover:underline">
+                            <Link to={`/residents/${m.resident_id}?tab=job-matching`} className="hover:underline block" style={{ pointerEvents: 'auto' }}>
                               <p className="text-xs font-semibold truncate">{residentName}</p>
                             </Link>
                             <p className="text-[11px] text-muted-foreground truncate">{m.job_title}</p>

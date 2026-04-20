@@ -202,7 +202,7 @@ export default function Residents() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
            {filtered.map((r) => (
-             <Link key={r.id} to={`/residents/${r.id}`}>
+             <Link key={r.id} to={`/residents/${r.id}`} className="block" style={{ pointerEvents: 'auto' }}>
                <ResidentCard
                  resident={r}
                  variant="summary"
