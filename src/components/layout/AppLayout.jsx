@@ -15,9 +15,15 @@ export default function AppLayout() {
     queryKey: ['userProfile', user?.email],
     queryFn: () => user?.email ? base44.entities.UserProfile.filter({ email: user.email }) : Promise.resolve([]),
     enabled: !!user?.email,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
-  const userProfile = userProfiles.length > 0 ? userProfiles[0].data : null;
+  const userProfile = userProfiles.length > 0 ? userProfiles[0] : null;
+  
+  if (userProfile) {
+    console.log('AppLayout: userProfile fetched', { email: userProfile.email, app_role: userProfile.app_role });
+  }
 
   if (isLoadingAuth || isLoadingPublicSettings) {
     return (
