@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import { useAuth } from '@/lib/AuthContext';
 import GlobalSearchBar from '@/components/shared/GlobalSearchBar';
 import TrainingButton from '@/components/training/TrainingButton';
+import AppAssistant from '@/components/ai/AppAssistant';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -37,6 +38,7 @@ export default function AppLayout() {
          </div>
         </main>
         <TrainingButton />
+        <AppAssistant userRole={user?.role || 'resident'} />
         </div>
         );
         }
