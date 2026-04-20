@@ -148,7 +148,7 @@ export default function TeamManagement() {
   useEffect(() => {
     const toggleState = {};
     teamMembers.forEach(member => {
-      if (member.data.app_role === 'admin') {
+      if (member.data?.app_role === 'admin') {
         toggleState[member.id] = true;
       }
     });
