@@ -62,65 +62,70 @@ export default function TrainingButton() {
 }
 
 function TrainingSelector({ trainings, progressRecords, onClose, userRole }) {
-  const [selectedTraining, setSelectedTraining] = useState(null);
-  const progressMap = {};
-  progressRecords.forEach((p) => {
-    progressMap[p.data?.training_id] = p.data;
-  });
+   const [selectedTraining, setSelectedTraining] = useState(null);
+   const progressMap = {};
+   progressRecords.forEach((p) => {
+     progressMap[p.data?.training_id] = p.data;
+   });
 
-  if (selectedTraining) {
-    return (
-      <TrainingOverlay
-        training={selectedTraining.data}
-        userRole={userRole}
-        onClose={() => {
-          setSelectedTraining(null);
-          onClose();
-        }}
-        onStepComplete={() => {}}
-      />
-    );
-  }
+   if (selectedTraining) {
+     return (
+       <TrainingOverlay
+         training={selectedTraining.data}
+         userRole={userRole}
+         onClose={() => {
+           setSelectedTraining(null);
+           onClose();
+         }}
+         onStepComplete={() => {}}
+       />
+     );
+   }
 
-  return (
-    <div
-      className="fixed bottom-24 right-6 w-80 rounded-2xl shadow-2xl overflow-hidden z-40"
-      style={{ backgroundColor: '#1C2128', borderColor: '#30363D', border: '1px solid #30363D' }}
-    >
-      <div className="p-4 border-b" style={{ borderColor: '#30363D' }}>
-        <h3 className="font-bold text-foreground">Your Training Modules</h3>
-      </div>
-      <div className="max-h-96 overflow-y-auto">
-        {trainings.map((training) => {
-          const progress = progressMap[training.data?.training_id];
-          const isCompleted = progress?.status === 'completed';
+   return (
+     <div
+       className="fixed bottom-24 right-6 w-80 rounded-2xl shadow-2xl overflow-hidden z-40"
+       style={{ backgroundColor: '#1C2128', borderColor: '#30363D', border: '1px solid #30363D' }}
+     >
+       <div className="p-4 border-b" style={{ borderColor: '#30363D' }}>
+         <h3 className="font-bold text-foreground">Your Training Modules</h3>
+       </div>
+       <div className="max-h-96 overflow-y-auto">
+         {trainings.map((training) => {
+           const trainingData = training.data;
+           const progress = progressMap[trainingData?.training_id];
+           const isCompleted = progress?.status === 'completed';
 
-          return (
-            <button
-              key={training.id}
-              onClick={() => setSelectedTraining(training)}
-              className="w-full text-left p-3 border-b hover:bg-muted transition-colors"
-              style={{ borderColor: '#30363D' }}
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-foreground">{training.data?.module_title}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {progress?.steps_completed?.length || 0} / {training.data?.steps?.length || 0} steps
-                  </p>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+           // Get steps array from either module.steps or module.data.steps
+           const stepsArray = Array.isArray(trainingData?.steps) ? trainingData.steps : [];
+           const completedSteps = Array.isArray(progress?.steps_completed) ? progress.steps_completed.length : 0;
+
+           return (
+             <button
+               key={training.id}
+               onClick={() => setSelectedTraining(training)}
+               className="w-full text-left p-3 border-b hover:bg-muted transition-colors"
+               style={{ borderColor: '#30363D' }}
+             >
+               <div className="flex items-start gap-3">
+                 <div className="mt-1">
+                   {isCompleted ? (
+                     <CheckCircle2 className="w-4 h-4 text-green-500" />
+                   ) : (
+                     <Circle className="w-4 h-4 text-muted-foreground" />
+                   )}
+                 </div>
+                 <div className="flex-1">
+                   <p className="font-semibold text-sm text-foreground">{trainingData?.module_title}</p>
+                   <p className="text-xs text-muted-foreground mt-1">
+                     {completedSteps} / {stepsArray.length} steps
+                   </p>
+                 </div>
+               </div>
+             </button>
+           );
+         })}
+       </div>
+     </div>
+   );
 }
