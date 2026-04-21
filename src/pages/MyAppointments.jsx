@@ -1,5 +1,4 @@
 import React from 'react';
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -53,7 +52,6 @@ export default function MyAppointments() {
     enabled: !!myResident?.id,
   });
 
-  // Check if a video meeting is within 15 min of starting
   const isJoinable = (meeting) => {
     if (!meeting.scheduled_at) return false;
     const now = new Date();
@@ -64,7 +62,6 @@ export default function MyAppointments() {
 
   const residentQuerySettled = myResident !== undefined;
 
-  // Guard: if resident is loaded but not linked, show clear message
   if (!myResident && residentQuerySettled && !isLoading) {
     return (
       <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-3xl mx-auto">
@@ -91,7 +88,7 @@ export default function MyAppointments() {
         </div>
       )}
 
-      {!isLoading && appointments.length === 0 && (
+      {!isLoading && appointments.length === 0 && videoMeetings.length === 0 && (
         <Card className="p-10 text-center text-muted-foreground">
           <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
           <p className="text-sm">No appointments scheduled yet.</p>
@@ -99,7 +96,6 @@ export default function MyAppointments() {
         </Card>
       )}
 
-      {/* Video Sessions */}
       {videoMeetings.filter(m => m.status !== 'completed' && m.status !== 'cancelled').length > 0 && (
         <div>
           <h3 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2 text-blue-400">
