@@ -29,6 +29,7 @@ import HousingEligibilityPanel from '@/components/resident/HousingEligibilityPan
 import UnifiedWorkflowPanel from '@/components/casemanagement/UnifiedWorkflowPanel';
 import WorkflowStatusBanner from '@/components/casemanagement/WorkflowStatusBanner';
 import OnboardingWorkflow from '@/components/onboarding/OnboardingWorkflow';
+import LifeSkillsProgress from '@/components/lifeskills/LifeSkillsProgress';
 
 const statusColors = {
   pre_intake: 'bg-slate-100 text-slate-700 border border-slate-200',
@@ -284,6 +285,7 @@ export default function ResidentProfile() {
           <TabsTrigger value="tasks" style={{ color: '#E6EDF3' }}>Tasks</TabsTrigger>
           <TabsTrigger value="appointments" style={{ color: '#E6EDF3' }}>Appointments</TabsTrigger>
           {!perms.isProbationOfficer && <TabsTrigger value="learning" style={{ color: '#E6EDF3' }}>Learning</TabsTrigger>}
+          {!perms.isProbationOfficer && <TabsTrigger value="life-skills" style={{ color: '#E6EDF3' }}>🎓 Life Skills</TabsTrigger>}
           <TabsTrigger value="job-readiness" style={{ color: '#E6EDF3' }}>Job Readiness</TabsTrigger>
           {!perms.isProbationOfficer && <TabsTrigger value="job-matching" style={{ color: '#E6EDF3' }}>Job Matching</TabsTrigger>}
           {!perms.isProbationOfficer && <TabsTrigger value="documents" style={{ color: '#E6EDF3' }}>Documents</TabsTrigger>}
@@ -323,6 +325,14 @@ export default function ResidentProfile() {
         {!perms.isProbationOfficer && (
           <TabsContent value="learning">
             <ResidentLearningTab resident={resident} user={user} perms={perms} />
+          </TabsContent>
+        )}
+
+        {!perms.isProbationOfficer && (
+          <TabsContent value="life-skills">
+            <div className="rounded-xl border p-5" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
+              <LifeSkillsProgress residentId={residentId} globalResidentId={resident.global_resident_id} />
+            </div>
           </TabsContent>
         )}
 

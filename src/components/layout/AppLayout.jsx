@@ -10,6 +10,7 @@ import TrainingCoach from '@/components/training/TrainingCoach';
 import TrainingModeBanner from '@/components/training/TrainingModeBanner';
 import AppAssistant from '@/components/ai/AppAssistant';
 import { useTrainingMode } from '@/lib/useTrainingMode';
+import LiveMeetingIndicator from '@/components/videohub/LiveMeetingIndicator';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -86,6 +87,9 @@ export default function AppLayout() {
          {/* Top bar with global search */}
          <div className="hidden lg:flex items-center gap-3 px-6 py-4 border-b sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}>
           <GlobalSearchBar />
+          <div className="ml-auto">
+            <LiveMeetingIndicator userId={user?.id} />
+          </div>
          </div>
          <div className="flex-1 animate-in fade-in duration-300">
             <Outlet context={{ user }} />

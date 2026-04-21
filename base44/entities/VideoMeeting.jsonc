@@ -1,0 +1,161 @@
+{
+  "name": "VideoMeeting",
+  "type": "object",
+  "description": "A video meeting session created via Daily.co",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "host_id": {
+      "type": "string"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "meeting_type": {
+      "type": "string",
+      "enum": [
+        "staff_meeting",
+        "resident_session",
+        "employer_interview",
+        "partner_meeting",
+        "group_class"
+      ],
+      "default": "staff_meeting"
+    },
+    "room_name": {
+      "type": "string"
+    },
+    "room_url": {
+      "type": "string"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_minutes": {
+      "type": "integer",
+      "default": 60
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "live",
+        "completed",
+        "cancelled"
+      ],
+      "default": "scheduled"
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "join_time": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "recording_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "employer_id": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "title",
+    "host_id",
+    "meeting_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        },
+        {
+          "data.host_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.host_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

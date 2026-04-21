@@ -52,6 +52,9 @@ import TransportationHub from '@/pages/TransportationHub';
 import ManagerPortal from '@/pages/ManagerPortal';
 import SystemHealth from '@/pages/admin/SystemHealth';
 import OperationalDashboard from '@/pages/OperationalDashboard';
+import VideoHub from '@/pages/VideoHub';
+import VideoRoom from '@/pages/VideoRoom';
+import VideoHistory from '@/pages/VideoHistory';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -134,6 +137,9 @@ const AuthenticatedApp = () => {
         <Route path="/admin/system-health" element={<SystemHealth />} />
         <Route path="/dashboard/operations" element={<OperationalDashboard />} />
         <Route path="/training" element={<Training />} />
+        <Route path="/video-hub" element={<VideoHub />} />
+        <Route path="/video-hub/room/:roomName" element={<VideoRoom />} />
+        <Route path="/video-hub/history" element={<VideoHistory />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

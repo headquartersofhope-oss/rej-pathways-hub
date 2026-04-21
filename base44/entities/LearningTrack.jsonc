@@ -1,0 +1,90 @@
+{
+  "name": "LearningTrack",
+  "type": "object",
+  "description": "A curated learning track grouping related classes for Life Skills Academy",
+  "properties": {
+    "track_id": {
+      "type": "string",
+      "description": "Unique track identifier e.g. track_01"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji or icon name"
+    },
+    "color": {
+      "type": "string",
+      "description": "Hex accent color"
+    },
+    "order": {
+      "type": "integer"
+    },
+    "target_populations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "reentry",
+          "recovery",
+          "veteran",
+          "homeless",
+          "at_risk",
+          "all"
+        ]
+      }
+    },
+    "is_baseline": {
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-assigned to all residents"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "track_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

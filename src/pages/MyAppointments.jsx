@@ -1,10 +1,11 @@
 import React from 'react';
-import { useOutletContext } from 'react-router-dom';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, Video } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 
 const STATUS_COLORS = {
@@ -46,6 +47,21 @@ export default function MyAppointments() {
     enabled: !!myResident?.id,
   });
 
+  const { data: videoMeetings = [] } = useQuery({
+    queryKey: ['my-video-meetings', myResident?.id],
+    queryFn: () => base44.entities.VideoMeeting.filter({ resident_id: myResident.id }),
+    enabled: !!myResident?.id,
+  });
+
+  // Check if a video meeting is within 15 min of starting
+  const isJoinable = (meeting) => {
+    if (!meeting.scheduled_at) return false;
+    const now = new Date();
+    const scheduled = new Date(meeting.scheduled_at);
+    const diffMs = scheduled - now;
+    return diffMs <= 15 * 60 * 1000 && diffMs > -2 * 60 * 60 * 1000 && meeting.status !== 'completed' && meeting.status !== 'cancelled';
+  };
+
   const residentQuerySettled = myResident !== undefined;
 
   // Guard: if resident is loaded but not linked, show clear message
@@ -81,6 +97,40 @@ export default function MyAppointments() {
           <p className="text-sm">No appointments scheduled yet.</p>
           <p className="text-xs mt-1">Your case manager will schedule appointments for you.</p>
         </Card>
+      )}
+
+      {/* Video Sessions */}
+      {videoMeetings.filter(m => m.status !== 'completed' && m.status !== 'cancelled').length > 0 && (
+        <div>
+          <h3 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2 text-blue-400">
+            <Video className="w-4 h-4" /> Video Sessions
+          </h3>
+          <div className="space-y-3">
+            {videoMeetings.filter(m => m.status !== 'completed' && m.status !== 'cancelled').map(meeting => (
+              <Card key={meeting.id} className="p-4 border-l-4" style={{ borderLeftColor: '#3B82F6' }}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-sm">{meeting.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Video Session with {meeting.host_name}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-blue-400" />
+                        {meeting.scheduled_at ? new Date(meeting.scheduled_at).toLocaleString() : '—'}
+                      </span>
+                    </div>
+                  </div>
+                  {isJoinable(meeting) && meeting.room_url && (
+                    <a href={meeting.room_url} target="_blank" rel="noreferrer">
+                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold" style={{ backgroundColor: '#3B82F6', color: 'white' }}>
+                        <Video className="w-3.5 h-3.5" /> Join Session
+                      </button>
+                    </a>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
 
       {upcoming.length > 0 && (

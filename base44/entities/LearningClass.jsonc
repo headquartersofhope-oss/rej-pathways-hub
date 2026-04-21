@@ -3,6 +3,14 @@
   "type": "object",
   "description": "Educational class/course in the Learning Center. Designed for beginner-friendly education with multiple literacy levels.",
   "properties": {
+    "track_id": {
+      "type": "string",
+      "description": "LearningTrack.track_id this class belongs to (e.g. track_01)"
+    },
+    "order": {
+      "type": "integer",
+      "description": "Sort order within the track"
+    },
     "category": {
       "type": "string",
       "enum": [
@@ -30,20 +38,52 @@
       "type": "number",
       "description": "Estimated time to complete (in minutes)"
     },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
+      "default": "beginner"
+    },
+    "target_populations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "reentry",
+          "recovery",
+          "veteran",
+          "homeless",
+          "at_risk",
+          "all"
+        ]
+      }
+    },
+    "completion_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of class IDs that must be completed first"
+    },
     "learning_objectives": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "What learner will be able to do after completing (plain language)"
+      "description": "What learner will be able to do after completing"
     },
     "youtube_url": {
-      "type": "string",
-      "description": "Primary YouTube video URL"
+      "type": "string"
     },
     "youtube_search_phrase": {
-      "type": "string",
-      "description": "Search phrase to find related YouTube videos if direct link not available"
+      "type": "string"
     },
     "additional_videos": {
       "type": "array",
@@ -57,8 +97,7 @@
             "type": "string"
           }
         }
-      },
-      "description": "Optional additional video resources (title + URL each)"
+      }
     },
     "difficulty_level": {
       "type": "string",
@@ -67,31 +106,26 @@
         "basic",
         "intermediate"
       ],
-      "default": "beginner",
-      "description": "Course difficulty"
+      "default": "beginner"
     },
     "literacy_level_support": {
       "type": "string",
       "enum": [
         "low",
         "standard"
-      ],
-      "description": "Designed for low-literacy or standard literacy."
+      ]
     },
     "passing_score": {
       "type": "number",
-      "default": 70,
-      "description": "Minimum percentage to pass quiz (0-100)"
+      "default": 70
     },
     "is_required": {
       "type": "boolean",
-      "default": false,
-      "description": "Must be completed by residents"
+      "default": false
     },
     "is_active": {
       "type": "boolean",
-      "default": true,
-      "description": "Available for assignment and enrollment"
+      "default": true
     },
     "status": {
       "type": "string",
@@ -100,12 +134,10 @@
         "published",
         "archived"
       ],
-      "default": "draft",
-      "description": "Publication status"
+      "default": "draft"
     },
     "reflection_prompt": {
-      "type": "string",
-      "description": "Optional reflection question shown to resident after completing the class"
+      "type": "string"
     },
     "content_outline": {
       "type": "array",
@@ -122,8 +154,7 @@
             }
           }
         }
-      },
-      "description": "Outline of class content (optional)"
+      }
     },
     "quiz_questions": {
       "type": "array",
@@ -146,15 +177,13 @@
             "type": "string"
           }
         }
-      },
-      "description": "Quiz questions (plain language, multiple choice)"
+      }
     },
     "tags": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Search tags"
+      }
     },
     "created_by": {
       "type": "string"
@@ -167,5 +196,59 @@
     "title",
     "category",
     "description"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "resident"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
