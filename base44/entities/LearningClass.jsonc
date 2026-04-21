@@ -80,7 +80,36 @@
       "description": "What learner will be able to do after completing"
     },
     "youtube_url": {
-      "type": "string"
+      "type": "string",
+      "description": "Primary YouTube or external video URL"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Primary video URL (YouTube, Vimeo, or external)"
+    },
+    "video_type": {
+      "type": "string",
+      "enum": [
+        "youtube",
+        "vimeo",
+        "external",
+        "uploaded",
+        "article",
+        "interactive"
+      ],
+      "description": "Type of video/content resource"
+    },
+    "video_duration_minutes": {
+      "type": "integer",
+      "description": "Length of the video in minutes"
+    },
+    "content_html": {
+      "type": "string",
+      "description": "Rich text content displayed below the video"
+    },
+    "external_resource_url": {
+      "type": "string",
+      "description": "URL to an additional external resource or article"
     },
     "youtube_search_phrase": {
       "type": "string"
