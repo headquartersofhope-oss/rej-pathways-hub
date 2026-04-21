@@ -61,7 +61,7 @@ export default function ClassDetailView({ open, onOpenChange, cls, enrollment, r
   const isEnrolled = !!enrollment;
   const isCompleted = enrollment?.status === 'completed';
   const hasQuiz = cls.quiz_questions && cls.quiz_questions.length > 0;
-  const embedUrl = getYouTubeEmbedUrl(cls.youtube_url);
+  const embedUrl = getYouTubeEmbedUrl(cls.video_url || cls.youtube_url);
   const catColor = categoryColors[cls.category] || 'bg-muted text-muted-foreground';
   const catLabel = CATEGORY_LABELS[cls.category] || cls.category;
 

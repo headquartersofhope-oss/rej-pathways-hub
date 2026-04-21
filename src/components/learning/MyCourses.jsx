@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GraduationCap, Award, Calendar, CheckCircle2, Clock, BookOpen, Search, Star, ChevronRight } from 'lucide-react';
 import LearningPathways from './LearningPathways';
+import ClassViewer from './ClassViewer';
 import { format, parseISO, isAfter } from 'date-fns';
 
 const CATEGORIES = [
