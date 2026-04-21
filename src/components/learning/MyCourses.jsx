@@ -86,7 +86,8 @@ export default function MyCourses({ user }) {
   const queryClient = useQueryClient();
   const [catalogSearch, setCatalogSearch] = useState('');
   const [catalogCat, setCatalogCat] = useState('all');
-  const [openClassId, setOpenClassId] = useState(null); // track by class id only
+  const [openClassId, setOpenClassId] = useState(null);
+  const [viewerMode, setViewerMode] = useState(false); // true = full ClassViewer, false = dialog
 
   const { data: myResident } = useQuery({
     queryKey: ['my-resident', user?.id],
@@ -244,7 +245,7 @@ export default function MyCourses({ user }) {
         enrollments={enrollments}
         certificates={certificates}
         isStaff={false}
-        onClassClick={(cls) => setOpenClassId(cls.id)}
+        onClassClick={(cls) => { setOpenClassId(cls.id); setViewerMode(!!(cls.video_url || cls.youtube_url) && !!enrollmentMap[cls.id]); }}
       />
 
       {/* My Enrollments — split into active and completed */}
@@ -264,11 +265,12 @@ export default function MyCourses({ user }) {
               if (!cls) return null;
               const conf = statusConfig[enr.status] || statusConfig.enrolled;
               const isInProgress = enr.status === 'in_progress';
+              const hasVideo = !!(cls.video_url || cls.youtube_url);
               return (
                 <Card
                   key={enr.id}
                   className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow border-l-4 border-l-primary/40"
-                  onClick={() => setOpenClassId(cls.id)}
+                  onClick={() => { setOpenClassId(cls.id); setViewerMode(hasVideo); }}
                 >
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <GraduationCap className="w-5 h-5 text-primary" />
@@ -305,7 +307,7 @@ export default function MyCourses({ user }) {
                     <Card
                       key={enr.id}
                       className="p-4 flex items-center gap-4 cursor-pointer hover:shadow-sm transition-shadow border-l-4 border-l-emerald-400 mb-2"
-                      onClick={() => setOpenClassId(cls.id)}
+                      onClick={() => { setOpenClassId(cls.id); setViewerMode(!!(cls.video_url || cls.youtube_url)); }}
                     >
                       <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
                         <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -363,8 +365,26 @@ export default function MyCourses({ user }) {
         onClassClick={(cls) => setOpenClassId(cls.id)}
       />
 
-      {/* Class Detail Modal — enrollment derived from live query so it auto-refreshes after quiz */}
-      {openClass?.cls && (
+      {/* Full-screen ClassViewer for enrolled classes with video */}
+      {openClass?.cls && viewerMode && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <ClassViewer
+            cls={openClass.cls}
+            enrollment={openClass.enrollment}
+            trackName={openClass.cls.track_id ? classes.find(c => c.track_id === openClass.cls.track_id && c.id !== openClass.cls.id)?.track_id : null}
+            resident={myResident}
+            allEnrollments={enrollments}
+            allClasses={classes}
+            onBack={() => { setViewerMode(false); setOpenClassId(null); }}
+            onCompleted={() => {
+              queryClient.invalidateQueries({ queryKey: ['my-enrollments', myResident?.id] });
+            }}
+          />
+        </div>
+      )}
+
+      {/* Dialog for non-enrolled / catalog preview */}
+      {openClass?.cls && !viewerMode && (
         <ClassDetailView
           open={!!openClass}
           onOpenChange={(v) => !v && setOpenClassId(null)}
