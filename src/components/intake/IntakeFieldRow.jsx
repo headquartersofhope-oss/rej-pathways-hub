@@ -32,6 +32,8 @@ export function TextField({ label, value, onChange, placeholder, type = 'text', 
         onChange={e => onChange(e.target.value)} 
         placeholder={placeholder}
         maxLength={maxLength}
+        className="h-11 text-base"
+        style={{ fontSize: '16px' }}
       />
     </div>
   );
@@ -42,7 +44,7 @@ export function SelectField({ label, value, onChange, options, placeholder }) {
     <div className="space-y-1.5">
       <Label className="text-sm">{label}</Label>
       <Select value={value || ''} onValueChange={onChange}>
-        <SelectTrigger>
+        <SelectTrigger className="h-11 text-base" style={{ fontSize: '16px' }}>
           <SelectValue placeholder={placeholder || 'Select...'} />
         </SelectTrigger>
         <SelectContent>
@@ -73,7 +75,7 @@ export function MultiSelectField({ label, value = [], onChange, options }) {
             key={opt.value}
             type="button"
             onClick={() => toggle(opt.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+            className={`px-3 py-2 rounded-full text-sm font-medium border transition-colors ${
               selected.includes(opt.value)
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-background text-foreground border-border hover:bg-muted'

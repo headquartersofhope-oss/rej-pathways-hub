@@ -43,7 +43,7 @@ export default function Home() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto pb-24 md:pb-8">
       {renderDashboard()}
     </div>
   );

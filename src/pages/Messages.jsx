@@ -25,7 +25,7 @@ export default function Messages() {
   });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 pt-14 lg:pt-6 max-w-7xl mx-auto pb-24 md:pb-8">
       <PageHeader
         title="Messages"
         subtitle="Alerts, reminders, and direct messages"
