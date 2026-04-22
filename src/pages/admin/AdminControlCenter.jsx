@@ -3,7 +3,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2, Eye, Zap as ZapAuto, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Shield, LayoutDashboard, Inbox, FileText, Zap, Wrench, Calendar, BarChart2, Eye, Zap as ZapAuto, Users, Radio, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import SystemOverview from '@/components/admin/SystemOverview';
 import QueueCenter from '@/components/admin/QueueCenter';
@@ -19,6 +20,29 @@ import { useNavigate } from 'react-router-dom';
 export default function AdminControlCenter() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [govTestStatus, setGovTestStatus] = useState(null); // null | 'loading' | 'success' | 'error'
+  const [govTestMessage, setGovTestMessage] = useState('');
+
+  const handleGovernanceTest = async () => {
+    setGovTestStatus('loading');
+    setGovTestMessage('');
+    try {
+      const res = await base44.functions.invoke('sendGovernanceWebhook', {
+        event_type: 'connection_test',
+        event_data: { tested_by: user?.email, timestamp: new Date().toISOString() },
+      });
+      if (res.data?.success) {
+        setGovTestStatus('success');
+        setGovTestMessage(`Connected — Governance OS responded ${res.data.status}`);
+      } else {
+        setGovTestStatus('error');
+        setGovTestMessage(res.data?.response?.raw || res.data?.error || 'Unexpected response');
+      }
+    } catch (err) {
+      setGovTestStatus('error');
+      setGovTestMessage(err.message || 'Request failed');
+    }
+  };
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['user_profiles'],
@@ -39,13 +63,41 @@ export default function AdminControlCenter() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary-foreground" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Shield className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="font-heading font-bold text-xl">Admin Control Center</h1>
+              <p className="text-xs text-muted-foreground">Full operational visibility · Admin only</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-heading font-bold text-xl">Admin Control Center</h1>
-            <p className="text-xs text-muted-foreground">Full operational visibility · Admin only</p>
+          {/* Governance OS Connection Test */}
+          <div className="flex items-center gap-3">
+            {govTestStatus === 'success' && (
+              <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+                <CheckCircle2 className="w-4 h-4" /> {govTestMessage}
+              </span>
+            )}
+            {govTestStatus === 'error' && (
+              <span className="flex items-center gap-1.5 text-xs text-red-400">
+                <AlertCircle className="w-4 h-4" /> {govTestMessage}
+              </span>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGovernanceTest}
+              disabled={govTestStatus === 'loading'}
+              className="gap-2 border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+            >
+              {govTestStatus === 'loading'
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Radio className="w-3.5 h-3.5" />
+              }
+              Send Test to Governance OS
+            </Button>
           </div>
         </div>
       </div>

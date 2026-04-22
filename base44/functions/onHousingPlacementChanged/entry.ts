@@ -56,6 +56,29 @@ Deno.serve(async (req) => {
       new_house_name: house_name,
     });
 
+    // Fire governance webhook for new placements (lease_created)
+    if (event?.type === 'create') {
+      try {
+        await base44.asServiceRole.functions.invoke('sendGovernanceWebhook', {
+          event_type: 'lease_created',
+          event_data: {
+            resident_id: data.resident_id,
+            global_resident_id: data.global_resident_id,
+            house_id: data.house_id,
+            house_name: data.house_name,
+            bed_id: data.bed_id,
+            bed_label: data.bed_label,
+            move_in_date: data.move_in_date,
+            placement_status: data.placement_status,
+            housing_model: data.housing_model,
+          },
+        });
+        console.log('[onHousingPlacementChanged] Governance webhook sent: lease_created');
+      } catch (webhookErr) {
+        console.warn('[onHousingPlacementChanged] Governance webhook failed (non-fatal):', webhookErr.message);
+      }
+    }
+
     return Response.json({
       success: true,
       event_type: event?.type,

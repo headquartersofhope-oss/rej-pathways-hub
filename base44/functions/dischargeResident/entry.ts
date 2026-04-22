@@ -155,6 +155,25 @@ Deno.serve(async (req) => {
       console.warn('[dischargeResident] AuditLog write failed:', e.message);
     }
 
+    // Fire governance webhook: resident_exited
+    try {
+      await base44.asServiceRole.functions.invoke('sendGovernanceWebhook', {
+        event_type: 'resident_exited',
+        event_data: {
+          resident_id,
+          global_resident_id: resident.global_resident_id,
+          organization_id: resident.organization_id,
+          exit_date: exitDate,
+          discharge_reason,
+          placements_closed: activePlacements.length,
+          beds_released: stillOccupied.length,
+        },
+      });
+      console.log('[dischargeResident] Governance webhook sent: resident_exited');
+    } catch (webhookErr) {
+      console.warn('[dischargeResident] Governance webhook failed (non-fatal):', webhookErr.message);
+    }
+
     return Response.json({
       success: true,
       resident_id,
