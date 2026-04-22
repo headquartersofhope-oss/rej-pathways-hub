@@ -26,6 +26,7 @@ import CaseManagement from '@/pages/CaseManagement';
 import Learning from '@/pages/Learning';
 import JobReadiness from '@/pages/JobReadiness';
 import OutcomesReport from '@/pages/OutcomesReport';
+import OutcomesEngine from '@/pages/OutcomesEngine';
 import Alumni from '@/pages/Alumni';
 import ResourceInventory from '@/pages/ResourceInventory';
 import JobMatching from '@/pages/JobMatching';
@@ -121,6 +122,7 @@ const AuthenticatedApp = () => {
         <Route path="/resources" element={<ResourceInventory />} />
         <Route path="/job-matching" element={<JobMatching />} />
         <Route path="/reporting" element={<Reporting />} />
+        <Route path="/outcomes-engine" element={<OutcomesEngine />} />
         <Route path="/resident-outcomes" element={<ResidentOutcomes />} />
         <Route path="/employer-outcomes" element={<EmployerOutcomes />} />
         <Route path="/employer-portal" element={<EmployerPortal />} />

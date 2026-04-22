@@ -1,0 +1,148 @@
+{
+  "name": "OutcomesReport",
+  "type": "object",
+  "description": "Generated outcomes report for grant funding, VA contracts, and government partnerships",
+  "properties": {
+    "report_name": {
+      "type": "string",
+      "description": "Name of the report"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "annual",
+        "funder_specific"
+      ],
+      "default": "monthly"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "description": "All computed outcome metrics",
+      "properties": {
+        "total_clients_served": {
+          "type": "integer"
+        },
+        "clients_housed": {
+          "type": "integer"
+        },
+        "average_days_intake_to_housing": {
+          "type": "number"
+        },
+        "employment_placements": {
+          "type": "integer"
+        },
+        "employment_90_day_retention": {
+          "type": "integer"
+        },
+        "life_skills_classes_completed": {
+          "type": "integer"
+        },
+        "average_life_skills_completion_rate": {
+          "type": "number"
+        },
+        "transport_rides_completed": {
+          "type": "integer"
+        },
+        "transport_barrier_flags": {
+          "type": "integer"
+        },
+        "referrals_submitted": {
+          "type": "integer"
+        },
+        "referrals_approved": {
+          "type": "integer"
+        },
+        "average_days_referral_to_placement": {
+          "type": "number"
+        },
+        "active_residents_end_of_period": {
+          "type": "integer"
+        },
+        "exits_successful": {
+          "type": "integer"
+        },
+        "exits_unsuccessful": {
+          "type": "integer"
+        },
+        "recidivism_unknown": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "report_name",
+    "report_type",
+    "period_start",
+    "period_end"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

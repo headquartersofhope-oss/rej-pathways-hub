@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch, Video
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch, Video, BarChart3
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -80,6 +80,7 @@ const navSections = (role) => {
         { label: 'Core Metrics', path: '/reporting', icon: BarChart2 },
         { label: 'Participant Outcomes', path: '/resident-outcomes', icon: Users },
         { label: 'Employer Outcomes', path: '/employer-outcomes', icon: Briefcase },
+        ...(isAdmin(role) ? [{ label: '📊 Outcomes Engine', path: '/outcomes-engine', icon: BarChart3 }] : []),
       ],
     });
   }
