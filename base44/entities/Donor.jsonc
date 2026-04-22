@@ -1,0 +1,128 @@
+{
+  "name": "Donor",
+  "type": "object",
+  "description": "Donor profile and giving history for Headquarters of Hope Foundation",
+  "properties": {
+    "donor_name": {
+      "type": "string"
+    },
+    "donor_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "corporation",
+        "foundation",
+        "government",
+        "organization"
+      ]
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "total_given": {
+      "type": "integer",
+      "description": "Total lifetime giving in dollars"
+    },
+    "first_gift_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_gift_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "gifts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "lapsed",
+        "prospect",
+        "major_donor",
+        "recurring"
+      ],
+      "default": "prospect"
+    },
+    "communication_preference": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "donor_name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
