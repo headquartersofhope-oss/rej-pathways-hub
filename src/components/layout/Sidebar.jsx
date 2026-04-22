@@ -53,7 +53,6 @@ const navSections = (role) => {
         { label: 'Intake & Assessment', path: '/intake', icon: ClipboardList },
         { label: 'Case Management', path: '/case-management', icon: FolderOpen },
         { label: 'Job Readiness', path: '/job-readiness', icon: Star },
-        { label: 'Job Matching', path: '/job-matching', icon: Zap },
         { label: 'Alumni', path: '/alumni', icon: Award },
       ],
     });
@@ -65,8 +64,20 @@ const navSections = (role) => {
         { label: 'Transportation Hub', path: '/transportation', icon: Car },
         { label: 'Resource Inventory', path: '/resources', icon: Package },
         { label: 'Partner Agencies', path: '/partners', icon: Handshake },
-        { label: 'Employers', path: '/employers', icon: Briefcase },
         { label: 'Housing Referrals', path: '/housing-referrals', icon: Home },
+      ],
+    });
+  }
+
+  // Employment section (staff+)
+  if (isStaff(role)) {
+    sections.push({
+      label: 'Employment',
+      items: [
+        { label: 'Employer Directory', path: '/employer-directory', icon: Building2 },
+        { label: 'Job Board', path: '/job-board', icon: Briefcase },
+        { label: 'Placement Tracker', path: '/placements', icon: TrendingUp },
+        { label: 'Job Matching', path: '/job-matching', icon: Zap },
       ],
     });
   }

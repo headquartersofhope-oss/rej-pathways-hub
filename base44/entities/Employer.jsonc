@@ -8,19 +8,32 @@
     "company_name": {
       "type": "string"
     },
+    "company_logo_url": {
+      "type": "string"
+    },
     "industry": {
       "type": "string"
     },
-    "contact_name": {
+    "industries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "company_size": {
+      "type": "string",
+      "enum": [
+        "1-10",
+        "11-50",
+        "51-200",
+        "201-500",
+        "500+"
+      ]
+    },
+    "headquarters_city": {
       "type": "string"
     },
-    "contact_title": {
-      "type": "string"
-    },
-    "contact_email": {
-      "type": "string"
-    },
-    "contact_phone": {
+    "headquarters_state": {
       "type": "string"
     },
     "address": {
@@ -38,25 +51,84 @@
     "website": {
       "type": "string"
     },
-    "logo_url": {
+    "contact_name": {
       "type": "string"
     },
-    "hiring_preferences": {
+    "contact_title": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "hiring_contact_name": {
+      "type": "string"
+    },
+    "hiring_contact_photo_url": {
+      "type": "string"
+    },
+    "hiring_contact_email": {
+      "type": "string"
+    },
+    "hiring_contact_phone": {
       "type": "string"
     },
     "second_chance_friendly": {
       "type": "boolean",
       "default": false
     },
+    "is_second_chance_employer": {
+      "type": "boolean",
+      "default": false
+    },
+    "second_chance_policy_description": {
+      "type": "string"
+    },
     "veteran_friendly": {
       "type": "boolean",
       "default": false
     },
-    "open_positions": {
+    "transportation_accessible": {
+      "type": "boolean",
+      "default": false
+    },
+    "bus_route_nearby": {
+      "type": "string"
+    },
+    "onsite_parking": {
+      "type": "boolean",
+      "default": false
+    },
+    "benefits_offered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "background_check_policy": {
+      "type": "string"
+    },
+    "drug_test_policy": {
+      "type": "string"
+    },
+    "hiring_preferences": {
+      "type": "string"
+    },
+    "reliability_rating": {
       "type": "number",
-      "default": 0
+      "description": "0-5 stars"
     },
     "total_placements": {
+      "type": "integer",
+      "default": 0
+    },
+    "active_job_listings": {
+      "type": "integer",
+      "default": 0
+    },
+    "open_positions": {
       "type": "number",
       "default": 0
     },
@@ -70,14 +142,80 @@
       "default": "pending_review"
     },
     "user_id": {
-      "type": "string",
-      "description": "Linked user account"
+      "type": "string"
     },
     "notes": {
+      "type": "string"
+    },
+    "self_signup": {
+      "type": "boolean",
+      "default": false
+    },
+    "signup_message": {
       "type": "string"
     }
   },
   "required": [
     "company_name"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

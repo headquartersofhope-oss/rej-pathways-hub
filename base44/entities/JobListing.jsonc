@@ -1,48 +1,75 @@
 {
   "name": "JobListing",
   "type": "object",
-  "description": "A job opportunity available for resident matching. Can come from employers, internal staff, staffing partners, or workforce boards.",
+  "description": "A job opportunity posted by an employer or staff.",
   "properties": {
     "organization_id": {
+      "type": "string"
+    },
+    "employer_id": {
+      "type": "string"
+    },
+    "employer_name": {
+      "type": "string"
+    },
+    "employer_logo_url": {
       "type": "string"
     },
     "title": {
       "type": "string"
     },
-    "employer_id": {
-      "type": "string",
-      "description": "Links to Employer entity if employer-sourced"
-    },
-    "employer_name": {
+    "job_title": {
       "type": "string"
     },
-    "source": {
+    "job_type": {
       "type": "string",
       "enum": [
-        "employer_direct",
-        "internal",
-        "staffing_partner",
-        "workforce_board",
-        "external_board"
+        "full_time",
+        "part_time",
+        "temporary",
+        "contract",
+        "seasonal"
       ],
-      "default": "internal"
+      "default": "full_time"
     },
-    "source_label": {
+    "schedule_type": {
       "type": "string",
-      "description": "Display label for the source (e.g. partner agency name)"
+      "enum": [
+        "full_time",
+        "part_time",
+        "contract",
+        "seasonal",
+        "flexible"
+      ],
+      "default": "full_time"
     },
-    "location": {
+    "shift_details": {
       "type": "string"
     },
-    "city": {
+    "shifts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "afternoon",
+          "evening",
+          "overnight",
+          "weekends",
+          "flexible"
+        ]
+      }
+    },
+    "pay_rate": {
       "type": "string"
     },
-    "state": {
-      "type": "string"
-    },
-    "is_remote": {
-      "type": "boolean",
-      "default": false
+    "pay_type": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "salary"
+      ],
+      "default": "hourly"
     },
     "wage_min": {
       "type": "number"
@@ -60,30 +87,22 @@
       ],
       "default": "hourly"
     },
-    "schedule_type": {
-      "type": "string",
-      "enum": [
-        "full_time",
-        "part_time",
-        "contract",
-        "seasonal",
-        "flexible"
-      ],
-      "default": "full_time"
+    "location": {
+      "type": "string"
     },
-    "shifts": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "morning",
-          "afternoon",
-          "evening",
-          "overnight",
-          "weekends",
-          "flexible"
-        ]
-      }
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "is_remote": {
+      "type": "boolean",
+      "default": false
+    },
+    "transportation_accessible": {
+      "type": "boolean",
+      "default": true
     },
     "industry": {
       "type": "string"
@@ -92,10 +111,15 @@
       "type": "string"
     },
     "requirements": {
-      "type": "string",
-      "description": "Free-text job requirements"
+      "type": "string"
     },
-    "certifications_required": {
+    "required_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "preferred_skills": {
       "type": "array",
       "items": {
         "type": "string"
@@ -107,42 +131,32 @@
         "type": "string"
       }
     },
-    "transportation_accessible": {
-      "type": "boolean",
-      "default": true
+    "certifications_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
-    "max_commute_miles": {
-      "type": "number"
+    "required_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
-    "second_chance_friendly": {
-      "type": "boolean",
-      "default": false
+    "dress_code": {
+      "type": "string"
     },
-    "veteran_friendly": {
-      "type": "boolean",
-      "default": false
+    "positions_available": {
+      "type": "integer",
+      "default": 1
     },
-    "accommodations_available": {
-      "type": "boolean",
-      "default": false
+    "positions_filled": {
+      "type": "integer",
+      "default": 0
     },
-    "background_check_required": {
-      "type": "boolean",
-      "default": false
-    },
-    "drug_test_required": {
-      "type": "boolean",
-      "default": false
-    },
-    "status": {
+    "start_date": {
       "type": "string",
-      "enum": [
-        "active",
-        "inactive",
-        "filled",
-        "draft"
-      ],
-      "default": "active"
+      "format": "date"
     },
     "posted_date": {
       "type": "string",
@@ -152,6 +166,66 @@
       "type": "string",
       "format": "date"
     },
+    "second_chance_friendly": {
+      "type": "boolean",
+      "default": false
+    },
+    "veteran_friendly": {
+      "type": "boolean",
+      "default": false
+    },
+    "background_check_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "background_check_details": {
+      "type": "string"
+    },
+    "drug_test_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "accommodations_available": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "filled",
+        "paused",
+        "closed",
+        "inactive",
+        "draft"
+      ],
+      "default": "active"
+    },
+    "applications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of client IDs who applied"
+    },
+    "placements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of client IDs placed"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "employer_direct",
+        "internal",
+        "staffing_partner",
+        "workforce_board",
+        "external_board"
+      ],
+      "default": "employer_direct"
+    },
     "notes": {
       "type": "string"
     },
@@ -160,7 +234,71 @@
     }
   },
   "required": [
-    "title",
+    "job_title",
     "employer_name"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "employer"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "resident"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

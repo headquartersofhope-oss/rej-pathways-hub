@@ -50,6 +50,10 @@ import MyAccessVerification from '@/pages/admin/MyAccessVerification';
 import HousingOperations from '@/pages/HousingOperations';
 import GrantTracker from '@/pages/GrantTracker';
 import DonorDatabase from '@/pages/DonorDatabase';
+import EmployerDirectory from '@/pages/EmployerDirectory';
+import JobBoard from '@/pages/JobBoard';
+import PlacementTracker from '@/pages/PlacementTracker';
+import EmployerSignup from '@/pages/EmployerSignup';
 import TransportationHub from '@/pages/TransportationHub';
 import ManagerPortal from '@/pages/ManagerPortal';
 import SystemHealth from '@/pages/admin/SystemHealth';
@@ -93,6 +97,7 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      <Route path="/employer-signup" element={<EmployerSignup />} />
       <Route path="/auth/request-access" element={<RequestAccess />} />
       <Route path="/auth/activate" element={<ActivateAccount />} />
       <Route path="/admin/onboarding" element={<OnboardingQueue />} />
@@ -135,6 +140,9 @@ const AuthenticatedApp = () => {
         <Route path="/housing" element={<HousingOperations />} />
         <Route path="/grants" element={<GrantTracker />} />
         <Route path="/donors" element={<DonorDatabase />} />
+        <Route path="/employer-directory" element={<EmployerDirectory />} />
+        <Route path="/job-board" element={<JobBoard />} />
+        <Route path="/placements" element={<PlacementTracker />} />
         <Route path="/transportation" element={<TransportationHub />} />
         <Route path="/manager-portal" element={<ManagerPortal />} />
         <Route path="/admin/my-access" element={<MyAccessVerification />} />

@@ -1,340 +1,203 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X, Upload } from 'lucide-react';
 
-const EMPTY_FORM = {
-  company_name: '',
-  contact_name: '',
-  contact_title: '',
-  contact_email: '',
-  contact_phone: '',
-  industry: '',
-  address: '',
-  city: '',
-  state: '',
-  zip: '',
-  website: '',
-  hiring_preferences: '',
-  status: 'active',
-  notes: '',
-  second_chance_friendly: false,
-  veteran_friendly: false,
-  open_positions: '',
-  user_id: '',
-};
+const BENEFITS_OPTIONS = ['Health Insurance', 'Dental', 'Vision', '401k', 'PTO', 'Paid Training', 'Uniform Provided', 'Tool Allowance', 'Flexible Schedule', 'Remote Work'];
 
-const INDUSTRIES = [
-  'Construction', 'Healthcare', 'Warehouse & Logistics', 'Food Service',
-  'Retail', 'Transportation', 'Manufacturing', 'Technology',
-  'Hospitality', 'Landscaping', 'Cleaning & Maintenance', 'Security',
-  'Administrative', 'Education', 'Other',
-];
+export default function EmployerFormDialog({ employer, onClose, onSaved }) {
+  const e = employer;
+  const [form, setForm] = useState({
+    company_name: e?.company_name || '',
+    industry: e?.industry || '',
+    company_size: e?.company_size || '',
+    headquarters_city: e?.headquarters_city || e?.city || '',
+    headquarters_state: e?.headquarters_state || e?.state || '',
+    website: e?.website || '',
+    company_logo_url: e?.company_logo_url || e?.logo_url || '',
+    hiring_contact_name: e?.hiring_contact_name || e?.contact_name || '',
+    hiring_contact_email: e?.hiring_contact_email || e?.contact_email || '',
+    hiring_contact_phone: e?.hiring_contact_phone || e?.contact_phone || '',
+    is_second_chance_employer: e?.is_second_chance_employer || e?.second_chance_friendly || false,
+    second_chance_policy_description: e?.second_chance_policy_description || '',
+    transportation_accessible: e?.transportation_accessible || false,
+    bus_route_nearby: e?.bus_route_nearby || '',
+    onsite_parking: e?.onsite_parking || false,
+    benefits_offered: e?.benefits_offered || [],
+    background_check_policy: e?.background_check_policy || '',
+    drug_test_policy: e?.drug_test_policy || '',
+    reliability_rating: e?.reliability_rating || '',
+    status: e?.status || 'active',
+    notes: e?.notes || '',
+  });
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-const US_STATES = [
-  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
-  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
-  'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
-  'VA','WA','WV','WI','WY',
-];
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-export default function EmployerFormDialog({ open, onOpenChange, employer, onSaved }) {
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const isEditing = !!employer;
-  const [confirmClose, setConfirmClose] = useState(false);
-
-  const isDirty = () => {
-    if (!employer) {
-      // New form: dirty if any field has content
-      return Object.entries(form).some(([k, v]) => {
-        if (k === 'status') return v !== 'active';
-        if (k === 'second_chance_friendly' || k === 'veteran_friendly') return v === true;
-        if (typeof v === 'number') return v !== 0;
-        return v !== '' && v !== false;
-      });
-    }
-    // Edit form: dirty if any field differs from original
-    return Object.keys(EMPTY_FORM).some(k => String(form[k] ?? '') !== String(employer[k] ?? ''));
+  const handleLogoUpload = async (ev) => {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    set('company_logo_url', file_url);
+    setUploading(false);
   };
 
-  const handleOpenChange = (open) => {
-    if (!open && isDirty()) {
-      setConfirmClose(true);
-      return;
-    }
-    onOpenChange(open);
+  const toggleBenefit = (b) => {
+    const cur = form.benefits_offered;
+    set('benefits_offered', cur.includes(b) ? cur.filter(x => x !== b) : [...cur, b]);
   };
 
-  const handleConfirmDiscard = () => {
-    setConfirmClose(false);
-    onOpenChange(false);
-  };
-
-  useEffect(() => {
-    if (employer) {
-      setForm({
-        company_name: employer.company_name || '',
-        contact_name: employer.contact_name || '',
-        contact_title: employer.contact_title || '',
-        contact_email: employer.contact_email || '',
-        contact_phone: employer.contact_phone || '',
-        industry: employer.industry || '',
-        address: employer.address || '',
-        city: employer.city || '',
-        state: employer.state || '',
-        zip: employer.zip || '',
-        website: employer.website || '',
-        hiring_preferences: employer.hiring_preferences || '',
-        status: employer.status || 'active',
-        notes: employer.notes || '',
-        second_chance_friendly: employer.second_chance_friendly || false,
-        veteran_friendly: employer.veteran_friendly || false,
-        open_positions: employer.open_positions ?? '',
-        user_id: employer.user_id || '',
-      });
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
+    setLoading(true);
+    const data = { ...form, logo_url: form.company_logo_url, second_chance_friendly: form.is_second_chance_employer };
+    if (e?.id) {
+      await base44.entities.Employer.update(e.id, data);
     } else {
-      setForm(EMPTY_FORM);
+      await base44.entities.Employer.create(data);
     }
-    setErrors({});
-  }, [employer, open]);
-
-  const set = (key, val) => {
-    setForm(f => ({ ...f, [key]: val }));
-    if (errors[key]) setErrors(e => ({ ...e, [key]: null }));
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.company_name.trim()) errs.company_name = 'Company name is required.';
-    if (!form.contact_email.trim() && !form.contact_phone.trim()) {
-      errs.contact_email = 'At least one contact method (email or phone) is required.';
-    }
-    return errs;
-  };
-
-  const handleSave = async () => {
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-
-    setSaving(true);
-    const payload = {
-      ...form,
-      open_positions: form.open_positions !== '' ? Number(form.open_positions) : 0,
-      user_id: form.user_id?.trim() || null,
-    };
-
-    if (isEditing) {
-      await base44.entities.Employer.update(employer.id, payload);
-    } else {
-      await base44.entities.Employer.create(payload);
-    }
-
-    setSaving(false);
+    setLoading(false);
     onSaved();
-    onOpenChange(false);
   };
+
+  const cls = "w-full bg-[#21262D] border border-[#30363D] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50";
 
   return (
-    <>
-    <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Discard unsaved changes?</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">You have unsaved changes. If you close now, all entered data will be lost.</p>
-        <div className="flex gap-2 justify-end pt-2">
-          <Button variant="outline" onClick={() => setConfirmClose(false)}>Keep Editing</Button>
-          <Button variant="destructive" onClick={handleConfirmDiscard}>Discard Changes</Button>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-[#161B22] border border-[#30363D] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-[#30363D] sticky top-0 bg-[#161B22]">
+          <h2 className="font-bold text-white">{e ? 'Edit Employer' : 'Add Employer'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
-      </DialogContent>
-    </Dialog>
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Employer' : 'Onboard New Employer'}</DialogTitle>
-        </DialogHeader>
 
-        <div className="space-y-5 pt-2">
-          {/* Company Info */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Company Information</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <Label className="text-xs">Company / Organization Name <span className="text-destructive">*</span></Label>
-                <Input
-                  value={form.company_name}
-                  onChange={e => set('company_name', e.target.value)}
-                  placeholder="e.g. Acme Logistics Inc."
-                  className={errors.company_name ? 'border-destructive' : ''}
-                />
-                {errors.company_name && <p className="text-xs text-destructive mt-1">{errors.company_name}</p>}
+        <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Logo */}
+          <div className="flex items-center gap-4">
+            {form.company_logo_url ? (
+              <img src={form.company_logo_url} alt="" className="w-16 h-16 rounded-xl object-cover border border-[#30363D]" />
+            ) : (
+              <div className="w-16 h-16 rounded-xl bg-[#21262D] border border-[#30363D] flex items-center justify-center text-slate-500">
+                <Upload className="w-6 h-6" />
               </div>
-
-              <div>
-                <Label className="text-xs">Industry</Label>
-                <Select value={form.industry} onValueChange={v => set('industry', v)}>
-                  <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
-                  <SelectContent>
-                    {INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Status</Label>
-                <Select value={form.status} onValueChange={v => set('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending_review">Pending Review</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Website</Label>
-                <Input value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://" />
-              </div>
-
-              <div>
-                <Label className="text-xs">Open Positions</Label>
-                <Input type="number" min="0" value={form.open_positions} onChange={e => set('open_positions', e.target.value)} placeholder="0" />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Primary Contact</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Contact Name</Label>
-                <Input value={form.contact_name} onChange={e => set('contact_name', e.target.value)} placeholder="Full name" />
-              </div>
-              <div>
-                <Label className="text-xs">Contact Title</Label>
-                <Input value={form.contact_title} onChange={e => set('contact_title', e.target.value)} placeholder="e.g. HR Manager" />
-              </div>
-              <div>
-                <Label className="text-xs">Contact Email <span className="text-muted-foreground">(or phone required)</span></Label>
-                <Input
-                  type="email"
-                  value={form.contact_email}
-                  onChange={e => set('contact_email', e.target.value)}
-                  placeholder="email@company.com"
-                  className={errors.contact_email ? 'border-destructive' : ''}
-                />
-                {errors.contact_email && <p className="text-xs text-destructive mt-1">{errors.contact_email}</p>}
-              </div>
-              <div>
-                <Label className="text-xs">Contact Phone</Label>
-                <Input value={form.contact_phone} onChange={e => set('contact_phone', e.target.value)} placeholder="(555) 000-0000" />
-              </div>
-            </div>
-          </div>
-
-          {/* Address */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Address</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <Label className="text-xs">Street Address</Label>
-                <Input value={form.address} onChange={e => set('address', e.target.value)} placeholder="123 Main St" />
-              </div>
-              <div>
-                <Label className="text-xs">City</Label>
-                <Input value={form.city} onChange={e => set('city', e.target.value)} placeholder="City" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs">State</Label>
-                  <Select value={form.state} onValueChange={v => set('state', v)}>
-                    <SelectTrigger><SelectValue placeholder="ST" /></SelectTrigger>
-                    <SelectContent>
-                      {US_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs">ZIP</Label>
-                  <Input value={form.zip} onChange={e => set('zip', e.target.value)} placeholder="00000" maxLength={10} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Hiring Preferences & Flags */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Hiring Details</p>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-xs">Job Categories / Hiring Types</Label>
-                <Input value={form.hiring_preferences} onChange={e => set('hiring_preferences', e.target.value)} placeholder="e.g. Warehouse, Forklift, Driver" />
-                <p className="text-[10px] text-muted-foreground mt-0.5">Comma-separated list of roles or categories</p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.second_chance_friendly}
-                    onChange={e => set('second_chance_friendly', e.target.checked)}
-                    className="h-4 w-4 rounded border-border"
-                  />
-                  <span className="text-sm font-medium">Second-Chance Friendly</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.veteran_friendly}
-                    onChange={e => set('veteran_friendly', e.target.checked)}
-                    className="h-4 w-4 rounded border-border"
-                  />
-                  <span className="text-sm font-medium">Veteran Friendly</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Portal User Link */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Portal Access</p>
+            )}
             <div>
-              <Label className="text-xs">Linked User ID (Portal Login)</Label>
-              <Input
-                value={form.user_id}
-                onChange={e => set('user_id', e.target.value)}
-                placeholder="Paste the employer's User ID to link their portal login"
-              />
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                When set, this employer can log in and access their portal at /employer-portal. Find the User ID in User Management.
-              </p>
+              <label className="cursor-pointer text-xs text-amber-400 hover:text-amber-300 font-semibold">
+                {uploading ? 'Uploading...' : 'Upload Logo'}
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
+              </label>
+              <p className="text-xs text-slate-500 mt-0.5">PNG, JPG, SVG</p>
             </div>
           </div>
 
-          {/* Notes */}
-          <div>
-            <Label className="text-xs">Notes</Label>
-            <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} placeholder="Partnership notes, relationship history, special considerations..." />
+          {/* Basic Info */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Company Info</h3>
+            <input value={form.company_name} onChange={e => set('company_name', e.target.value)} required placeholder="Company Name *" className={cls} />
+            <div className="grid grid-cols-2 gap-3">
+              <input value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Industry" className={cls} />
+              <select value={form.company_size} onChange={e => set('company_size', e.target.value)} className={cls}>
+                <option value="">Company Size</option>
+                {['1-10','11-50','51-200','201-500','500+'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input value={form.headquarters_city} onChange={e => set('headquarters_city', e.target.value)} placeholder="City" className={cls} />
+              <input value={form.headquarters_state} onChange={e => set('headquarters_state', e.target.value)} placeholder="State" className={cls} />
+            </div>
+            <input value={form.website} onChange={e => set('website', e.target.value)} placeholder="Website URL" className={cls} />
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 border-t pt-4">
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Save Employer'}
-            </Button>
-            <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
+          {/* Hiring Contact */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Hiring Contact</h3>
+            <input value={form.hiring_contact_name} onChange={e => set('hiring_contact_name', e.target.value)} placeholder="Contact Name" className={cls} />
+            <div className="grid grid-cols-2 gap-3">
+              <input value={form.hiring_contact_email} onChange={e => set('hiring_contact_email', e.target.value)} type="email" placeholder="Email" className={cls} />
+              <input value={form.hiring_contact_phone} onChange={e => set('hiring_contact_phone', e.target.value)} placeholder="Phone" className={cls} />
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-    </>
+
+          {/* Second Chance */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Second Chance</h3>
+            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+              <input type="checkbox" checked={form.is_second_chance_employer} onChange={e => set('is_second_chance_employer', e.target.checked)} className="accent-amber-500" />
+              This employer hires people with criminal records
+            </label>
+            {form.is_second_chance_employer && (
+              <textarea value={form.second_chance_policy_description} onChange={e => set('second_chance_policy_description', e.target.value)} placeholder="Describe their background check policy..." rows={2} className={cls + ' resize-none'} />
+            )}
+          </div>
+
+          {/* Accessibility */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Accessibility</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                <input type="checkbox" checked={form.transportation_accessible} onChange={e => set('transportation_accessible', e.target.checked)} className="accent-amber-500" />
+                Bus Route Accessible
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                <input type="checkbox" checked={form.onsite_parking} onChange={e => set('onsite_parking', e.target.checked)} className="accent-amber-500" />
+                Onsite Parking
+              </label>
+            </div>
+            {form.transportation_accessible && (
+              <input value={form.bus_route_nearby} onChange={e => set('bus_route_nearby', e.target.value)} placeholder="Bus route number or line name" className={cls} />
+            )}
+          </div>
+
+          {/* Benefits */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Benefits Offered</h3>
+            <div className="flex flex-wrap gap-2">
+              {BENEFITS_OPTIONS.map(b => (
+                <button
+                  key={b} type="button"
+                  onClick={() => toggleBenefit(b)}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-all ${form.benefits_offered.includes(b) ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'border-[#30363D] text-slate-400 hover:border-blue-500/30'}`}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Policies */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Policies</h3>
+            <input value={form.background_check_policy} onChange={e => set('background_check_policy', e.target.value)} placeholder="Background check policy" className={cls} />
+            <input value={form.drug_test_policy} onChange={e => set('drug_test_policy', e.target.value)} placeholder="Drug test policy" className={cls} />
+          </div>
+
+          {/* Ratings & Status */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Reliability Rating (0–5)</label>
+              <input type="number" min={0} max={5} step={0.1} value={form.reliability_rating} onChange={e => set('reliability_rating', parseFloat(e.target.value))} className={cls} />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Status</label>
+              <select value={form.status} onChange={e => set('status', e.target.value)} className={cls}>
+                <option value="active">Active</option>
+                <option value="pending_review">Pending Review</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <textarea value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Internal notes..." rows={2} className={cls + ' resize-none'} />
+
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 border-[#30363D] text-slate-300">Cancel</Button>
+            <Button type="submit" disabled={loading} className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold">
+              {loading ? 'Saving...' : e ? 'Update Employer' : 'Add Employer'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
