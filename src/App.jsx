@@ -49,6 +49,7 @@ import HousingReferrals from '@/pages/HousingReferrals';
 import MyAccessVerification from '@/pages/admin/MyAccessVerification';
 import HousingOperations from '@/pages/HousingOperations';
 import GrantTracker from '@/pages/GrantTracker';
+import DonorDatabase from '@/pages/DonorDatabase';
 import TransportationHub from '@/pages/TransportationHub';
 import ManagerPortal from '@/pages/ManagerPortal';
 import SystemHealth from '@/pages/admin/SystemHealth';
@@ -133,6 +134,7 @@ const AuthenticatedApp = () => {
         <Route path="/housing-referrals" element={<HousingReferrals />} />
         <Route path="/housing" element={<HousingOperations />} />
         <Route path="/grants" element={<GrantTracker />} />
+        <Route path="/donors" element={<DonorDatabase />} />
         <Route path="/transportation" element={<TransportationHub />} />
         <Route path="/manager-portal" element={<ManagerPortal />} />
         <Route path="/admin/my-access" element={<MyAccessVerification />} />

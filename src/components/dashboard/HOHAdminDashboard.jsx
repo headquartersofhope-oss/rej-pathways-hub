@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import PremiumCard from '@/components/premium/PremiumCard';
 import PremiumPageHeader from '@/components/premium/PremiumPageHeader';
+import FundingCalendarWidget from '@/components/dashboard/FundingCalendarWidget';
 
 function StatCard({ title, value, sub, icon: Icon, color, bg, to, alert }) {
   const content = (
@@ -258,6 +259,9 @@ export default function HOHAdminDashboard({ user }) {
           ))}
         </div>
       </div>
+
+      {/* Funding Calendar */}
+      <FundingCalendarWidget />
 
       {/* Recent incidents + system health */}
       <div className="grid lg:grid-cols-2 gap-5">

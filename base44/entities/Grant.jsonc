@@ -1,7 +1,7 @@
 {
   "name": "Grant",
   "type": "object",
-  "description": "Grant tracking for HOH. Covers application pipeline, compliance, deadlines, budget, attachments, and outcome reporting.",
+  "description": "Grant funding opportunity tracked from research to close",
   "properties": {
     "grant_name": {
       "type": "string"
@@ -14,52 +14,19 @@
       "enum": [
         "federal",
         "state",
-        "county",
-        "city",
-        "foundation",
+        "local",
+        "private_foundation",
         "corporate",
-        "individual",
-        "other"
-      ],
-      "default": "foundation"
+        "individual"
+      ]
     },
-    "grant_type": {
-      "type": "string",
-      "enum": [
-        "housing",
-        "workforce",
-        "transportation",
-        "services",
-        "operations",
-        "capital",
-        "other"
-      ],
-      "default": "services"
+    "grant_amount": {
+      "type": "integer",
+      "description": "Total grant amount requested/awarded"
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "prospect",
-        "in_progress",
-        "submitted",
-        "awarded",
-        "active",
-        "reporting_due",
-        "closed",
-        "denied"
-      ],
-      "default": "prospect"
-    },
-    "amount_requested": {
-      "type": "number"
-    },
-    "amount_awarded": {
-      "type": "number"
-    },
-    "amount_spent": {
-      "type": "number",
-      "default": 0,
-      "description": "Cumulative amount spent against award"
+    "amount_received": {
+      "type": "integer",
+      "description": "Amount actually received to date"
     },
     "application_deadline": {
       "type": "string",
@@ -69,84 +36,65 @@
       "type": "string",
       "format": "date"
     },
-    "start_date": {
+    "grant_start": {
       "type": "string",
       "format": "date"
     },
-    "end_date": {
+    "grant_end": {
       "type": "string",
       "format": "date"
     },
-    "report_due_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "next_report_due_date": {
-      "type": "string",
-      "format": "date",
-      "description": "Next upcoming reporting deadline"
-    },
-    "reporting_frequency": {
+    "status": {
       "type": "string",
       "enum": [
-        "monthly",
-        "quarterly",
-        "semi_annual",
-        "annual",
-        "final_only",
-        "none"
+        "researching",
+        "drafting",
+        "submitted",
+        "under_review",
+        "awarded",
+        "denied",
+        "reporting",
+        "closed"
       ],
-      "description": "How often reports are required"
+      "default": "researching"
     },
-    "grant_manager_id": {
+    "reporting_requirements": {
       "type": "string"
     },
-    "grant_manager_name": {
+    "reporting_deadlines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "program_area": {
       "type": "string"
     },
-    "program_link": {
-      "type": "string",
-      "description": "Which program/house this grant funds"
-    },
-    "participant_target": {
-      "type": "number",
-      "description": "Target number of participants this grant serves"
-    },
-    "participants_served": {
-      "type": "number",
-      "default": 0
-    },
-    "outcomes_required": {
-      "type": "string",
-      "description": "Summary of required grant outcomes"
-    },
-    "compliance_status": {
-      "type": "string",
-      "enum": [
-        "on_track",
-        "at_risk",
-        "non_compliant",
-        "pending_review",
-        "completed"
-      ],
-      "default": "on_track"
-    },
-    "compliance_notes": {
+    "restrictions": {
       "type": "string"
     },
-    "contract_number": {
-      "type": "string",
-      "description": "Official grant/contract number from funder"
+    "contact_name": {
+      "type": "string"
     },
-    "board_resolution_number": {
-      "type": "string",
-      "description": "Board resolution that authorized acceptance"
+    "contact_email": {
+      "type": "string"
     },
-    "board_resolution_date": {
-      "type": "string",
-      "format": "date"
+    "notes": {
+      "type": "string"
     },
-    "attachments": {
+    "documents": {
       "type": "array",
       "items": {
         "type": "object",
@@ -157,34 +105,11 @@
           "url": {
             "type": "string"
           },
-          "document_type": {
-            "type": "string",
-            "enum": [
-              "application",
-              "award_letter",
-              "contract",
-              "report",
-              "budget",
-              "board_resolution",
-              "other"
-            ]
-          },
           "uploaded_date": {
             "type": "string"
           }
         }
-      },
-      "description": "Grant documents \u2014 applications, award letters, contracts, reports"
-    },
-    "missing_attachments": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Flags for documents that are required but not yet uploaded"
-    },
-    "notes": {
-      "type": "string"
+      }
     },
     "organization_id": {
       "type": "string"
@@ -196,9 +121,18 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -209,15 +143,29 @@
         },
         {
           "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
             "role": "staff"
           }
         }
       ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "delete": {
       "user_condition": {

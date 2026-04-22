@@ -6,7 +6,7 @@ import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch, Video, BarChart3
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch, Video, BarChart3, Heart
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,6 @@ const navSections = (role) => {
       items: [
         { label: 'Housing Operations', path: '/housing', icon: BedDouble },
         { label: 'Transportation Hub', path: '/transportation', icon: Car },
-        { label: 'Grant Tracker', path: '/grants', icon: DollarSign },
         { label: 'Resource Inventory', path: '/resources', icon: Package },
         { label: 'Partner Agencies', path: '/partners', icon: Handshake },
         { label: 'Employers', path: '/employers', icon: Briefcase },
@@ -81,6 +80,17 @@ const navSections = (role) => {
         { label: 'Participant Outcomes', path: '/resident-outcomes', icon: Users },
         { label: 'Employer Outcomes', path: '/employer-outcomes', icon: Briefcase },
         ...(isAdmin(role) ? [{ label: '📊 Outcomes Engine', path: '/outcomes-engine', icon: BarChart3 }] : []),
+      ],
+    });
+  }
+
+  // Funding section (admin only)
+  if (isAdmin(role)) {
+    sections.push({
+      label: 'Funding',
+      items: [
+        { label: 'Grant Tracker', path: '/grants', icon: DollarSign },
+        { label: 'Donor Database', path: '/donors', icon: Heart },
       ],
     });
   }
