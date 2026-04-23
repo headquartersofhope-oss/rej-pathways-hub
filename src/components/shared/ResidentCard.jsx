@@ -52,7 +52,8 @@ export default function ResidentCard({
   return (
     <Card 
       onClick={onClick}
-      className={`p-4 hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`p-4 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 cursor-pointer ${className}`}
+      style={{ pointerEvents: 'auto', position: 'relative', zIndex: 1 }}
     >
       {/* Header: Avatar + Name + Status */}
       <div className="flex items-start gap-3 mb-3">
@@ -99,8 +100,6 @@ export default function ResidentCard({
           )}
         </div>
       )}
-
-
 
       {/* Job Readiness Score */}
       {showJobReadiness && resident.job_readiness_score !== undefined && (
