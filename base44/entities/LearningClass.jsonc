@@ -1,7 +1,7 @@
 {
   "name": "LearningClass",
   "type": "object",
-  "description": "Educational class/course in the Learning Center. Designed for beginner-friendly education with multiple literacy levels. Audience can be participant (default) or staff (for in-app staff training tutorials).",
+  "description": "Educational class/course in the Learning Center. Designed for beginner-friendly education with multiple literacy levels.",
   "properties": {
     "track_id": {
       "type": "string",
@@ -10,6 +10,15 @@
     "order": {
       "type": "integer",
       "description": "Sort order within the track"
+    },
+    "audience": {
+      "type": "string",
+      "enum": [
+        "participant",
+        "staff"
+      ],
+      "default": "participant",
+      "description": "Who this class is for"
     },
     "category": {
       "type": "string",
@@ -26,15 +35,6 @@
         "staff_training"
       ],
       "description": "Major category of learning"
-    },
-    "audience": {
-      "type": "string",
-      "enum": [
-        "participant",
-        "staff"
-      ],
-      "default": "participant",
-      "description": "Who this class is for. 'staff' classes appear in the Staff Training Center, not the participant Learning Center."
     },
     "title": {
       "type": "string",
