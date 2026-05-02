@@ -1,6 +1,16 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { ROLES, isAdmin, isCaseManager, isProbationOfficer, isResident, isEmployer } from '@/lib/roles';
+import {
+  ROLES,
+  isAdmin,
+  isCaseManager,
+  isProbationOfficer,
+  isResident,
+  isEmployer,
+  isSponsor,
+  isDonor,
+  getEffectiveRole,
+} from '@/lib/roles';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import HOHAdminDashboard from '@/components/dashboard/HOHAdminDashboard';
 import CaseManagerDashboard from '@/components/dashboard/CaseManagerDashboard';
@@ -8,10 +18,13 @@ import StaffDashboard from '@/components/dashboard/StaffDashboard';
 import ProbationDashboard from '@/components/dashboard/ProbationDashboard';
 import ResidentDashboard from '@/components/dashboard/ResidentDashboard';
 import EmployerDashboard from '@/components/dashboard/EmployerDashboard';
+import SponsorDashboard from '@/components/dashboard/SponsorDashboard';
+import DonorDashboard from '@/components/dashboard/DonorDashboard';
 
 export default function Home() {
   const { user } = useOutletContext();
-  const role = user?.role;
+  // Use getEffectiveRole so admins can preview other roles via ViewAsToggle
+  const role = getEffectiveRole(user);
 
   const renderDashboard = () => {
     // Admin roles (full access) — HOH Command Center
@@ -26,8 +39,14 @@ export default function Home() {
     // Residents (personal dashboard)
     if (isResident(role)) return <ResidentDashboard user={user} />;
 
-    // Employers - show employer dashboard
+    // Employers — employer dashboard
     if (isEmployer(role)) return <EmployerDashboard user={user} />;
+
+    // Recovery sponsors
+    if (isSponsor(role)) return <SponsorDashboard user={user} />;
+
+    // Donors
+    if (isDonor(role)) return <DonorDashboard user={user} />;
 
     // Auditors (read-only admin view)
     if (role === 'auditor' || role === ROLES.AUDITOR) return <AdminDashboard user={user} />;

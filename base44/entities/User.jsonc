@@ -23,7 +23,9 @@
         "staff",
         "employer",
         "instructor",
-        "auditor"
+        "auditor",
+        "sponsor",
+        "donor"
       ],
       "default": "staff",
       "description": "Application-specific role for dashboard routing and permissions"
@@ -47,6 +49,14 @@
     "global_resident_id": {
       "type": "string",
       "description": "If role=resident, the linked Resident.global_resident_id (optional)"
+    },
+    "sponsoree_resident_id": {
+      "type": "string",
+      "description": "If role=sponsor, the linked Resident record ID this sponsor supports (optional)"
+    },
+    "donor_id": {
+      "type": "string",
+      "description": "If role=donor, the linked Donor record ID (optional)"
     },
     "status": {
       "type": "string",
