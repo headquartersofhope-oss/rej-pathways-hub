@@ -5,14 +5,6 @@ import { GraduationCap, X, CheckCircle2, Clock, ChevronDown, ChevronUp, BookOpen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-/**
- * StaffTrainingDrawer
- * Slides in from the right when the graduation cap icon is clicked in AppLayout.
- * Shows the list of LearningClass records where audience='staff' and category='staff_training'.
- * Each tutorial is collapsible. Open one to see content + quiz inline.
- * Completion is tracked in localStorage for v1 (no backend change required).
- */
-
 const COMPLETION_KEY = 'pathways_staff_training_completed';
 
 function getCompletedClasses() {
@@ -42,13 +34,51 @@ export default function StaffTrainingDrawer({ open, onClose }) {
   const [quizResult, setQuizResult] = useState({});
 
   const { data: classes = [], isLoading } = useQuery({
-    queryKey: ['staff-training-classes'],
+    queryKey: ['staff-training-classes-v2'],
     queryFn: async () => {
-      const result = await base44.entities.LearningClass.filter({
-        audience: 'staff',
-        category: 'staff_training',
-        is_active: true,
-      });
+      // Strategy: try multiple filters since the 'audience' field may or may not
+      // have persisted on seeded records depending on entity schema sync timing.
+      let result = [];
+
+      // Try 1: strict filter (audience + category + active)
+      try {
+        result = await base44.entities.LearningClass.filter({
+          audience: 'staff',
+          category: 'staff_training',
+          is_active: true,
+        });
+      } catch (_) {}
+
+      // Try 2: by track_id (guaranteed set by seedStaffTraining)
+      if (!result || result.length === 0) {
+        try {
+          result = await base44.entities.LearningClass.filter({
+            track_id: 'staff_training_v1',
+          });
+        } catch (_) {}
+      }
+
+      // Try 3: by category alone
+      if (!result || result.length === 0) {
+        try {
+          result = await base44.entities.LearningClass.filter({
+            category: 'staff_training',
+          });
+        } catch (_) {}
+      }
+
+      // Try 4: list everything and filter client-side as last resort
+      if (!result || result.length === 0) {
+        try {
+          const all = await base44.entities.LearningClass.list();
+          result = (all || []).filter(c =>
+            c.category === 'staff_training' ||
+            c.audience === 'staff' ||
+            c.track_id === 'staff_training_v1'
+          );
+        } catch (_) {}
+      }
+
       return (result || []).sort((a, b) => (a.order || 0) - (b.order || 0));
     },
     enabled: open,
@@ -84,14 +114,12 @@ export default function StaffTrainingDrawer({ open, onClose }) {
 
   return (
     <>
-      {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer */}
       <aside className="fixed right-0 top-0 h-full w-full sm:w-[480px] lg:w-[560px] bg-background z-50 shadow-2xl flex flex-col border-l">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900">
@@ -179,13 +207,11 @@ export default function StaffTrainingDrawer({ open, onClose }) {
 
                 {isExpanded && (
                   <div className="px-4 pb-4 pt-0 space-y-4 bg-muted/20">
-                    {/* Content */}
                     <div
                       className="prose prose-sm max-w-none text-sm dark:prose-invert"
                       dangerouslySetInnerHTML={{ __html: cls.content_html || '' }}
                     />
 
-                    {/* Learning objectives */}
                     {cls.learning_objectives && cls.learning_objectives.length > 0 && (
                       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg p-3">
                         <p className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1.5">After this you will be able to:</p>
@@ -197,7 +223,6 @@ export default function StaffTrainingDrawer({ open, onClose }) {
                       </div>
                     )}
 
-                    {/* Quiz */}
                     {cls.quiz_questions && cls.quiz_questions.length > 0 && (
                       <div className="border rounded-lg p-3 bg-background">
                         <p className="font-semibold text-sm mb-3">Knowledge Check</p>
@@ -246,7 +271,6 @@ export default function StaffTrainingDrawer({ open, onClose }) {
                       </div>
                     )}
 
-                    {/* Reflection */}
                     {cls.reflection_prompt && (
                       <div className="bg-muted/40 rounded-lg p-3">
                         <p className="text-xs font-semibold mb-1.5">Reflection</p>
@@ -260,7 +284,6 @@ export default function StaffTrainingDrawer({ open, onClose }) {
           })}
         </div>
 
-        {/* Footer */}
         <div className="px-4 py-3 border-t text-[10px] text-muted-foreground text-center bg-muted/40">
           Pathway Forward™ · Staff Training Center
         </div>
