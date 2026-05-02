@@ -1,84 +1,247 @@
 {
   "name": "EmergencyShelter",
   "type": "object",
-  "description": "Emergency shelter, hotel partnership, or warming center. Used when a resident needs immediate housing and no program bed is available.",
+  "description": "Emergency shelter, hotel partnership, or warming center for emergency resident placements.",
   "properties": {
-    "name": { "type": "string" },
+    "name": {
+      "type": "string"
+    },
     "shelter_type": {
       "type": "string",
-      "enum": ["hotel", "emergency_shelter", "warming_center", "cooling_center", "domestic_violence_shelter", "youth_shelter", "family_shelter", "veteran_shelter", "other"],
+      "enum": [
+        "hotel",
+        "emergency_shelter",
+        "warming_center",
+        "cooling_center",
+        "domestic_violence_shelter",
+        "youth_shelter",
+        "family_shelter",
+        "veteran_shelter",
+        "other"
+      ],
       "default": "emergency_shelter"
     },
-    "address": { "type": "string" },
-    "city": { "type": "string" },
-    "state": { "type": "string" },
-    "zip_code": { "type": "string" },
-    "phone": { "type": "string" },
-    "contact_name": { "type": "string" },
-    "contact_email": { "type": "string" },
-    "total_capacity": { "type": "number", "description": "Total beds available at this location" },
-    "available_beds": { "type": "number", "description": "Currently available" },
-    "rate_per_night": { "type": "number", "description": "Cost per bed-night (for paid hotel partnerships)" },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip_code": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "total_capacity": {
+      "type": "number"
+    },
+    "available_beds": {
+      "type": "number"
+    },
+    "rate_per_night": {
+      "type": "number"
+    },
     "billing_type": {
       "type": "string",
-      "enum": ["paid_partnership", "voucher_program", "free_referral", "donation_based", "government_funded"],
+      "enum": [
+        "paid_partnership",
+        "voucher_program",
+        "free_referral",
+        "donation_based",
+        "government_funded"
+      ],
       "default": "voucher_program"
     },
     "populations_served": {
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["adults", "families", "women_only", "men_only", "youth", "veterans", "lgbtq", "reentry", "recovery", "all"]
+        "enum": [
+          "adults",
+          "families",
+          "women_only",
+          "men_only",
+          "youth",
+          "veterans",
+          "lgbtq",
+          "reentry",
+          "recovery",
+          "all"
+        ]
       }
     },
-    "intake_hours": { "type": "string", "description": "e.g. '24/7' or 'Daily 4pm-9am'" },
-    "intake_requirements": { "type": "string", "description": "What docs/screening needed" },
-    "max_stay_nights": { "type": "number" },
-    "accepts_pets": { "type": "boolean", "default": false },
-    "accepts_couples": { "type": "boolean", "default": false },
-    "is_active": { "type": "boolean", "default": true },
-    "notes": { "type": "string" },
-    "organization_id": { "type": "string" }
+    "intake_hours": {
+      "type": "string"
+    },
+    "intake_requirements": {
+      "type": "string"
+    },
+    "max_stay_nights": {
+      "type": "number"
+    },
+    "accepts_pets": {
+      "type": "boolean",
+      "default": false
+    },
+    "accepts_couples": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    }
   },
-  "required": ["name", "shelter_type"],
+  "required": [
+    "name",
+    "shelter_type"
+  ],
   "rls": {
     "create": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "user" } },
-        { "user_condition": { "role": "super_admin" } },
-        { "user_condition": { "role": "org_admin" } },
-        { "user_condition": { "role": "staff" } },
-        { "user_condition": { "role": "house_manager" } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "org_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "house_manager"
+          }
+        }
       ]
     },
     "read": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "user" } },
-        { "user_condition": { "role": "super_admin" } },
-        { "user_condition": { "role": "org_admin" } },
-        { "user_condition": { "role": "staff" } },
-        { "user_condition": { "role": "case_manager" } },
-        { "user_condition": { "role": "program_manager" } },
-        { "user_condition": { "role": "house_manager" } },
-        { "user_condition": { "role": "auditor" } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "org_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "case_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "program_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "house_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "auditor"
+          }
+        }
       ]
     },
     "update": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "user" } },
-        { "user_condition": { "role": "super_admin" } },
-        { "user_condition": { "role": "org_admin" } },
-        { "user_condition": { "role": "staff" } },
-        { "user_condition": { "role": "house_manager" } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "org_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "house_manager"
+          }
+        }
       ]
     },
     "delete": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "super_admin" } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
       ]
     }
   }

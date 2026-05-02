@@ -1,75 +1,212 @@
 {
   "name": "Donation",
   "type": "object",
-  "description": "Per-transaction donation record. Created by processDonation when Stripe webhook fires, or manually by admin for cash/check gifts. Tied to Donor + Stripe payment IDs for reconciliation.",
+  "description": "Per-transaction donation record. Created by processDonation when Stripe webhook fires, or manually by admin for cash/check gifts.",
   "properties": {
-    "donor_id": { "type": "string", "description": "FK to Donor.id" },
-    "donor_name": { "type": "string", "description": "Snapshot at time of gift" },
-    "donor_email": { "type": "string", "description": "Snapshot at time of gift" },
-    "amount": { "type": "number", "description": "Gift amount in dollars" },
-    "currency": { "type": "string", "default": "USD" },
-    "donation_date": { "type": "string", "format": "date-time" },
+    "donor_id": {
+      "type": "string",
+      "description": "FK to Donor.id"
+    },
+    "donor_name": {
+      "type": "string",
+      "description": "Snapshot at time of gift"
+    },
+    "donor_email": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Gift amount in dollars"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "donation_date": {
+      "type": "string",
+      "format": "date-time"
+    },
     "payment_method": {
       "type": "string",
-      "enum": ["stripe", "check", "cash", "wire", "crypto", "in_kind", "stock", "other"],
+      "enum": [
+        "stripe",
+        "check",
+        "cash",
+        "wire",
+        "crypto",
+        "in_kind",
+        "stock",
+        "other"
+      ],
       "default": "stripe"
     },
     "type": {
       "type": "string",
-      "enum": ["one_time", "recurring", "in_kind", "grant", "matching"],
+      "enum": [
+        "one_time",
+        "recurring",
+        "in_kind",
+        "grant",
+        "matching"
+      ],
       "default": "one_time"
     },
     "status": {
       "type": "string",
-      "enum": ["pending", "completed", "refunded", "failed"],
+      "enum": [
+        "pending",
+        "completed",
+        "refunded",
+        "failed"
+      ],
       "default": "completed"
     },
-    "stripe_session_id": { "type": "string" },
-    "stripe_payment_intent_id": { "type": "string" },
-    "stripe_charge_id": { "type": "string" },
-    "check_number": { "type": "string" },
-    "designated_purpose": { "type": "string", "description": "e.g. General Operating, Housing, Scholarships" },
-    "campaign": { "type": "string", "description": "e.g. Gala 2026, Year-End Appeal" },
-    "tax_receipt_sent": { "type": "boolean", "default": false },
-    "tax_receipt_sent_at": { "type": "string", "format": "date-time" },
-    "is_anonymous": { "type": "boolean", "default": false },
-    "in_honor_of": { "type": "string" },
-    "in_memory_of": { "type": "string" },
-    "notes": { "type": "string" },
-    "organization_id": { "type": "string" }
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "stripe_payment_intent_id": {
+      "type": "string"
+    },
+    "stripe_charge_id": {
+      "type": "string"
+    },
+    "check_number": {
+      "type": "string"
+    },
+    "designated_purpose": {
+      "type": "string"
+    },
+    "campaign": {
+      "type": "string"
+    },
+    "tax_receipt_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "tax_receipt_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "in_honor_of": {
+      "type": "string"
+    },
+    "in_memory_of": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "organization_id": {
+      "type": "string"
+    }
   },
-  "required": ["amount", "donation_date"],
+  "required": [
+    "amount",
+    "donation_date"
+  ],
   "rls": {
     "create": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "user" } },
-        { "user_condition": { "role": "super_admin" } },
-        { "user_condition": { "role": "org_admin" } },
-        { "user_condition": { "role": "staff" } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "org_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
       ]
     },
     "read": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "user" } },
-        { "user_condition": { "role": "super_admin" } },
-        { "user_condition": { "role": "org_admin" } },
-        { "user_condition": { "role": "staff" } },
-        { "user_condition": { "role": "auditor" } },
-        { "data.donor_email": "{{user.email}}" }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "org_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "auditor"
+          }
+        },
+        {
+          "data.donor_email": "{{user.email}}"
+        }
       ]
     },
     "update": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "role": "user" } },
-        { "user_condition": { "role": "super_admin" } },
-        { "user_condition": { "role": "org_admin" } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "org_admin"
+          }
+        }
       ]
     },
     "delete": {
-      "user_condition": { "role": "super_admin" }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     }
   }
 }
