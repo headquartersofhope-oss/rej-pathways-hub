@@ -1,7 +1,7 @@
 {
   "name": "Resident",
   "type": "object",
-  "description": "Master identity record for every resident across all modules and connected systems. The global_resident_id is the single source of truth for person identity.",
+  "description": "Master identity record for every resident across all modules and connected systems. The global_resident_id is the single source of truth for person identity. RLS enforces caseload isolation for case_manager and probation_officer roles.",
   "properties": {
     "global_resident_id": {
       "type": "string",
@@ -17,7 +17,7 @@
     },
     "user_id": {
       "type": "string",
-      "description": "Linked user account ID (portal login) \u2014 used for resident self-access"
+      "description": "Linked user account ID (portal login) — used for resident self-access"
     },
     "first_name": {
       "type": "string"
@@ -134,7 +134,7 @@
     },
     "assigned_case_manager_id": {
       "type": "string",
-      "description": "User.id of the assigned case manager \u2014 used for permission checks"
+      "description": "User.id of the assigned case manager — used for permission checks"
     },
     "assignment_method": {
       "type": "string",
@@ -159,7 +159,7 @@
     },
     "assigned_probation_officer_id": {
       "type": "string",
-      "description": "User.id of the assigned probation officer \u2014 grants that PO read-only access to this resident"
+      "description": "User.id of the assigned probation officer — grants that PO read-only access to this resident"
     },
     "assigned_probation_officer": {
       "type": "string",
@@ -201,44 +201,49 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "case_manager" } }
+      ]
     },
     "read": {
       "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.assigned_case_manager_id": "{{user.id}}"
-        },
-        {
-          "data.assigned_probation_officer_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "data.user_id": "{{user.id}}" },
+        { "data.assigned_case_manager_id": "{{user.id}}" },
+        { "data.assigned_probation_officer_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "manager" } },
+        { "user_condition": { "role": "instructor" } },
+        { "user_condition": { "role": "auditor" } }
       ]
     },
     "update": {
       "$or": [
-        {
-          "data.assigned_case_manager_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "data.assigned_case_manager_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "program_manager" } }
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
     }
   }
 }
