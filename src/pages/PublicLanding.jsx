@@ -1,72 +1,97 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LogIn, FileText, ArrowRight } from 'lucide-react';
+import { LogIn, FileText, Heart, Users, ArrowRight } from 'lucide-react';
 
 export default function PublicLanding() {
   const navigate = useNavigate();
 
+  const cards = [
+    {
+      title: 'Log In',
+      description: 'Existing users sign in here',
+      icon: LogIn,
+      path: '/auth/login',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+      ctaColor: 'text-primary',
+      cta: 'Sign In',
+    },
+    {
+      title: 'Request Access',
+      description: 'New residents, staff, or partners can apply for access',
+      icon: FileText,
+      path: '/auth/request-access',
+      iconBg: 'bg-accent/10',
+      iconColor: 'text-accent',
+      ctaColor: 'text-accent',
+      cta: 'Apply',
+    },
+    {
+      title: 'Donate',
+      description: 'Join our donor community and fund second chances',
+      icon: Heart,
+      path: '/donate/signup',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+      ctaColor: 'text-amber-600',
+      cta: 'Give',
+    },
+    {
+      title: 'Become a Sponsor',
+      description: 'Walk alongside someone rebuilding their life',
+      icon: Users,
+      path: '/sponsor/signup',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      ctaColor: 'text-purple-600',
+      cta: 'Sponsor',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
+      <div className="max-w-4xl w-full">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary mb-4">
-            <span className="text-primary-foreground font-heading font-bold">REJ</span>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 mb-4">
+            <span className="text-slate-900 font-heading font-bold text-sm">HOH</span>
           </div>
           <h1 className="text-4xl font-heading font-bold text-foreground mb-2">
-            Reentry & Jobs
+            Headquarters of Hope
           </h1>
           <p className="text-lg text-muted-foreground">
-            Secure access platform for residents, staff, employers, and partners
+            The reentry operating system. Powered by Pathways.
           </p>
         </div>
 
-        {/* Main Options */}
-        <div className="grid sm:grid-cols-2 gap-6 mb-8">
-          {/* Login */}
-          <Card className="p-8 hover:shadow-lg transition-all cursor-pointer group" 
-                onClick={() => navigate('/auth/login')}>
-            <div className="flex flex-col items-center text-center h-full">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <LogIn className="w-6 h-6 text-primary" />
-              </div>
-              <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
-                Log In
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6 flex-1">
-                Existing approved users can log in with their email and password
-              </p>
-              <div className="flex items-center justify-center gap-2 text-primary font-medium">
-                Sign In <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-          </Card>
-
-          {/* Request Access */}
-          <Card className="p-8 hover:shadow-lg transition-all cursor-pointer group"
-                onClick={() => navigate('/auth/request-access')}>
-            <div className="flex flex-col items-center text-center h-full">
-              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                <FileText className="w-6 h-6 text-accent" />
-              </div>
-              <h2 className="text-xl font-heading font-semibold text-foreground mb-2">
-                Request Access
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6 flex-1">
-                New residents and users can complete intake and request system access
-              </p>
-              <div className="flex items-center justify-center gap-2 text-accent font-medium">
-                Get Started <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-          </Card>
+        {/* 4-up grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {cards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Card
+                key={card.title}
+                onClick={() => navigate(card.path)}
+                className="p-6 hover:shadow-lg transition-all cursor-pointer group flex flex-col"
+              >
+                <div className={`w-12 h-12 rounded-lg ${card.iconBg} flex items-center justify-center mb-4`}>
+                  <Icon className={`w-6 h-6 ${card.iconColor}`} />
+                </div>
+                <h2 className="text-lg font-heading font-semibold text-foreground mb-2">{card.title}</h2>
+                <p className="text-sm text-muted-foreground mb-4 flex-1">{card.description}</p>
+                <div className={`flex items-center gap-1 text-sm font-medium ${card.ctaColor}`}>
+                  {card.cta} <ArrowRight className="w-4 h-4" />
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
-        {/* Footer Info */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>All users must be approved by an administrator before accessing the system.</p>
+        {/* Footer */}
+        <div className="text-center text-xs text-muted-foreground">
+          <p>Headquarters of Hope Foundation Inc. is a 501(c)(3) nonprofit organization.</p>
+          <p className="mt-1">All resident accounts must be approved before accessing the system.</p>
         </div>
       </div>
     </div>
