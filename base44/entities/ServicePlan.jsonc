@@ -1,44 +1,61 @@
 {
   "name": "ServicePlan",
   "type": "object",
-  "description": "Module record for the Case Management module. Each plan has its own internal record ID. global_resident_id is the master identity link to the resident.",
+  "description": "Module record for the Case Management module. Each plan has its own internal record ID. global_resident_id is the master identity link to the resident. RLS: staff full; resident sees own.",
   "properties": {
-    "global_resident_id": {
-      "type": "string",
-      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id. This is the master person identifier for cross-module and cross-system lookups."
-    },
-    "resident_id": {
-      "type": "string",
-      "description": "Database object ID of the Resident record (internal FK)."
-    },
-    "assessment_id": {
-      "type": "string",
-      "description": "intake_record_id \u2014 the IntakeAssessment record this plan was generated from."
-    },
-    "organization_id": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
+    "global_resident_id": { "type": "string" },
+    "resident_id": { "type": "string" },
+    "assessment_id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "title": { "type": "string" },
     "status": {
       "type": "string",
-      "enum": [
-        "active",
-        "completed",
-        "on_hold"
-      ],
+      "enum": ["active", "completed", "on_hold"],
       "default": "active"
     },
-    "created_by": {
-      "type": "string"
-    },
-    "notes": {
-      "type": "string"
-    }
+    "created_by": { "type": "string" },
+    "notes": { "type": "string" }
   },
-  "required": [
-    "resident_id",
-    "global_resident_id"
-  ]
+  "required": ["resident_id", "global_resident_id"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.resident_id": "{{user.data.resident_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }

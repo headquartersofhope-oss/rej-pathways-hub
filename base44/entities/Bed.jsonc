@@ -3,125 +3,69 @@
   "type": "object",
   "description": "Individual bed unit within a House. Tracks occupancy, resident assignment, room details, and short-lived reservation locks.",
   "properties": {
-    "house_id": {
-      "type": "string",
-      "description": "House.id"
-    },
-    "house_name": {
-      "type": "string"
-    },
-    "room_number": {
-      "type": "string"
-    },
-    "bed_label": {
-      "type": "string",
-      "description": "e.g. Room 2A, Bed 1"
-    },
+    "house_id": { "type": "string", "description": "House.id" },
+    "house_name": { "type": "string" },
+    "room_number": { "type": "string" },
+    "bed_label": { "type": "string", "description": "e.g. Room 2A, Bed 1" },
     "status": {
       "type": "string",
-      "enum": [
-        "available",
-        "occupied",
-        "reserved",
-        "maintenance",
-        "offline",
-        "needs_cleaning"
-      ],
+      "enum": ["available", "occupied", "reserved", "maintenance", "offline", "needs_cleaning"],
       "default": "available"
     },
-    "resident_id": {
-      "type": "string",
-      "description": "Current resident Resident.id if occupied"
-    },
-    "resident_name": {
-      "type": "string"
-    },
-    "move_in_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "expected_move_out_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "actual_move_out_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "weekly_fee": {
-      "type": "number"
-    },
-    "notes": {
-      "type": "string"
-    },
-    "organization_id": {
-      "type": "string"
-    },
-    "reserved_by": {
-      "type": "string",
-      "description": "User.id of the case manager who holds the active reservation lock"
-    },
-    "reserved_for": {
-      "type": "string",
-      "description": "Resident.id this bed is being reserved for"
-    },
-    "reserved_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO timestamp when the reservation was created"
-    },
-    "reservation_expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO timestamp when the reservation lock expires (reserved_at + 60s). After this, releaseExpiredReservations will return the bed to available."
-    }
+    "resident_id": { "type": "string", "description": "Current resident Resident.id if occupied" },
+    "resident_name": { "type": "string" },
+    "move_in_date": { "type": "string", "format": "date" },
+    "expected_move_out_date": { "type": "string", "format": "date" },
+    "actual_move_out_date": { "type": "string", "format": "date" },
+    "weekly_fee": { "type": "number" },
+    "notes": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "reserved_by": { "type": "string" },
+    "reserved_for": { "type": "string" },
+    "reserved_at": { "type": "string", "format": "date-time" },
+    "reservation_expires_at": { "type": "string", "format": "date-time" }
   },
-  "required": [
-    "house_id"
-  ],
+  "required": ["house_id"],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "house_manager" } }
+      ]
     },
     "read": {
       "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "staff"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "case_manager"
-          }
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "house_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.resident_id": "{{user.data.resident_id}}" }
       ]
     },
     "update": {
       "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "staff"
-          }
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "house_manager" } }
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
     }
   }
 }
