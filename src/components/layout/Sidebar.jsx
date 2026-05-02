@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ROLES, isStaff, isAdmin, isManager, isSuperAdmin, ROLE_LABELS } from '@/lib/roles';
+import { ROLES, isStaff, isAdmin, isManager, isSuperAdmin, ROLE_LABELS, getEffectiveRole } from '@/lib/roles';
 import { MODULES } from '@/lib/modules';
 import {
 LayoutDashboard, Users, Building2, MapPin, FileText,
 MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch, Video, BarChart3, Heart
+ChevronRight, Shield, UserCircle, Briefcase, Handshake, ClipboardList, FolderOpen, GraduationCap, Star, BarChart2, Award, Package, Zap, TrendingUp, Calendar, CheckSquare, ShieldCheck, Home, Terminal, Car, DollarSign, BedDouble, Activity, GitBranch, Video, BarChart3, Heart, Gift
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,34 @@ const navSections = (role) => {
         items: [
           { label: 'Dashboard', path: '/', icon: LayoutDashboard },
           { label: 'My Jobs & Candidates', path: '/employer-portal', icon: Briefcase },
+          { label: 'Messages', path: '/messages', icon: MessageSquare },
+        ],
+      },
+    ];
+  }
+
+  // Recovery Sponsor gets a minimal, focused nav
+  if (role === 'sponsor') {
+    return [
+      {
+        label: 'Sponsor',
+        items: [
+          { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+          { label: 'My Sponsoree', path: '/my-supports', icon: Heart },
+          { label: 'Messages', path: '/messages', icon: MessageSquare },
+        ],
+      },
+    ];
+  }
+
+  // Donor gets a minimal, focused nav
+  if (role === 'donor') {
+    return [
+      {
+        label: 'Donor',
+        items: [
+          { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+          { label: 'Tax Documents', path: '/documents', icon: FileText },
           { label: 'Messages', path: '/messages', icon: MessageSquare },
         ],
       },
@@ -138,17 +166,15 @@ const navSections = (role) => {
     });
   }
 
-  // Learning (staff and residents, not employers)
-  if (role !== 'employer') {
-    sections.push({
-      label: 'Learning',
-      items: [
-        { label: 'Learning Center', path: '/learning', icon: GraduationCap },
-      ],
-    });
-  }
+  // Learning (staff and residents)
+  sections.push({
+    label: 'Learning',
+    items: [
+      { label: 'Learning Center', path: '/learning', icon: GraduationCap },
+    ],
+  });
 
-  // Shared communication (non-employer)
+  // Shared communication
   sections.push({
     label: 'Communication',
     items: [
@@ -165,7 +191,8 @@ export default function Sidebar({ user }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState(false);
   const location = useLocation();
-  const role = user?.role || 'resident';
+  // Use getEffectiveRole so admins can preview other roles via ViewAsToggle
+  const role = getEffectiveRole(user) || 'resident';
   const sections = navSections(role);
 
   const handleLogout = () => {

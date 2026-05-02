@@ -45,6 +45,7 @@ import AdminControlCenter from '@/pages/admin/AdminControlCenter';
 import AuditCenter from '@/pages/admin/AuditCenter';
 import Training from '@/pages/Training';
 import ActivateAccount from '@/pages/auth/ActivateAccount';
+import Login from '@/pages/auth/Login';
 import HousingReferrals from '@/pages/HousingReferrals';
 import MyAccessVerification from '@/pages/admin/MyAccessVerification';
 import HousingOperations from '@/pages/HousingOperations';
@@ -83,9 +84,11 @@ const AuthenticatedApp = () => {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
       // Private app - show public landing page for unauthenticated users
+      // /auth/login is reachable so PublicLanding's Sign In button works
       return (
         <Routes>
           <Route path="/" element={<PublicLanding />} />
+          <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/request-access" element={<RequestAccess />} />
           <Route path="*" element={<PublicLanding />} />
         </Routes>
@@ -98,6 +101,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/employer-signup" element={<EmployerSignup />} />
+      <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/request-access" element={<RequestAccess />} />
       <Route path="/auth/activate" element={<ActivateAccount />} />
       <Route path="/admin/onboarding" element={<OnboardingQueue />} />
