@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { GraduationCap } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ViewAsToggle from './ViewAsToggle';
+import StaffTrainingDrawer from '@/components/training/StaffTrainingDrawer';
 import { useAuth } from '@/lib/AuthContext';
+import { isStaff, getEffectiveRole } from '@/lib/roles';
 import GlobalSearchBar from '@/components/shared/GlobalSearchBar';
 import TrainingButton from '@/components/training/TrainingButton';
 import TrainingCoach from '@/components/training/TrainingCoach';
@@ -12,10 +15,12 @@ import TrainingModeBanner from '@/components/training/TrainingModeBanner';
 import AppAssistant from '@/components/ai/AppAssistant';
 import { useTrainingMode } from '@/lib/useTrainingMode';
 import LiveMeetingIndicator from '@/components/videohub/LiveMeetingIndicator';
+import { Button } from '@/components/ui/button';
 
 export default function AppLayout() {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
   const { trainingMode, currentModule } = useTrainingMode();
+  const [staffTrainingOpen, setStaffTrainingOpen] = useState(false);
 
   // UserProfile is queried by email — the most reliable identifier on that entity.
   // (Previously this had hardcoded "Rodney" / phone fallbacks; removed as tech debt.)
@@ -31,6 +36,11 @@ export default function AppLayout() {
   });
 
   const userProfile = userProfiles.length > 0 ? userProfiles[0] : null;
+
+  // Staff training icon is visible to staff/admin/anyone with a staff role.
+  // Use the actual user.role here — not getEffectiveRole — because the
+  // training center is for the real user, not for the previewed role.
+  const showStaffTraining = user && isStaff(user.role);
 
   if (isLoadingAuth || isLoadingPublicSettings) {
     return (
@@ -54,14 +64,26 @@ export default function AppLayout() {
       <TrainingModeBanner trainingMode={trainingMode} currentModule={currentModule} />
       <TrainingCoach />
       <main className={`flex-1 overflow-y-auto flex flex-col bg-background ${trainingMode ? 'ml-80' : ''}`}>
-        {/* Top bar with global search + ViewAsToggle (admin-only) */}
+        {/* Top bar with global search + ViewAsToggle (admin) + Staff Training (grad cap) */}
         <div
           className="hidden lg:flex items-center gap-3 px-6 py-4 border-b sticky top-0 z-20 shadow-sm"
           style={{ backgroundColor: '#161B22', borderColor: '#30363D' }}
         >
           <GlobalSearchBar />
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2">
             <ViewAsToggle user={user} />
+            {showStaffTraining && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setStaffTrainingOpen(true)}
+                className="h-7 px-2 text-xs gap-1.5 text-slate-400 hover:text-white"
+                title="Staff Training Center"
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span className="hidden xl:inline">Training</span>
+              </Button>
+            )}
             <LiveMeetingIndicator userId={user?.id} />
           </div>
         </div>
@@ -76,6 +98,10 @@ export default function AppLayout() {
         userProfile={userProfile}
         appName="Pathways Hub"
         organizationId={userProfile?.organization_id}
+      />
+      <StaffTrainingDrawer
+        open={staffTrainingOpen}
+        onClose={() => setStaffTrainingOpen(false)}
       />
     </div>
   );
