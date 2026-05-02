@@ -1,686 +1,290 @@
 {
   "name": "IntakeAssessment",
   "type": "object",
-  "description": "Module record for the Intake & Barrier Assessment module. Each record has its own intake_record_id and links back to the resident via global_resident_id.",
+  "description": "Module record for the Intake & Barrier Assessment module. Each record has its own intake_record_id and links back to the resident via global_resident_id. Contains highly sensitive data (SSN-last-4, justice history, mental health, disability) — RLS enforced.",
   "properties": {
-    "global_resident_id": {
-      "type": "string",
-      "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id."
-    },
-    "resident_id": {
-      "type": "string",
-      "description": "Database object ID of the Resident record (internal FK)."
-    },
-    "organization_id": {
-      "type": "string"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "draft",
-        "in_progress",
-        "completed"
-      ],
-      "default": "draft"
-    },
-    "completed_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "completed_by": {
-      "type": "string"
-    },
+    "global_resident_id": { "type": "string", "description": "REQUIRED IDENTITY LINK. References the Resident.global_resident_id." },
+    "resident_id": { "type": "string", "description": "Database object ID of the Resident record (internal FK)." },
+    "organization_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["draft", "in_progress", "completed"], "default": "draft" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "completed_by": { "type": "string" },
     "personal": {
       "type": "object",
       "properties": {
-        "first_name": {
-          "type": "string"
-        },
-        "last_name": {
-          "type": "string"
-        },
-        "preferred_name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "phone": {
-          "type": "string"
-        },
-        "date_of_birth": {
-          "type": "string",
-          "format": "date"
-        },
-        "pronouns": {
-          "type": "string",
-          "enum": [
-            "he_him",
-            "she_her",
-            "they_them",
-            "other",
-            "prefer_not_to_say"
-          ]
-        },
-        "pronouns_other": {
-          "type": "string"
-        },
-        "gender_identity": {
-          "type": "string",
-          "enum": [
-            "male",
-            "female",
-            "non_binary",
-            "transgender_male",
-            "transgender_female",
-            "other",
-            "prefer_not_to_say"
-          ]
-        },
-        "ssn_last4": {
-          "type": "string",
-          "description": "Last 4 digits of SSN for identity verification only."
-        },
-        "race_ethnicity": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Multi-select race/ethnicity categories"
-        },
-        "primary_language": {
-          "type": "string",
-          "enum": [
-            "english",
-            "spanish",
-            "french",
-            "mandarin",
-            "cantonese",
-            "vietnamese",
-            "tagalog",
-            "arabic",
-            "other"
-          ]
-        },
-        "primary_language_other": {
-          "type": "string"
-        },
-        "interpreter_needed": {
-          "type": "boolean"
-        }
+        "first_name": { "type": "string" },
+        "last_name": { "type": "string" },
+        "preferred_name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "date_of_birth": { "type": "string", "format": "date" },
+        "pronouns": { "type": "string", "enum": ["he_him", "she_her", "they_them", "other", "prefer_not_to_say"] },
+        "pronouns_other": { "type": "string" },
+        "gender_identity": { "type": "string", "enum": ["male", "female", "non_binary", "transgender_male", "transgender_female", "other", "prefer_not_to_say"] },
+        "ssn_last4": { "type": "string", "description": "Last 4 digits of SSN for identity verification only." },
+        "race_ethnicity": { "type": "array", "items": { "type": "string" }, "description": "Multi-select race/ethnicity categories" },
+        "primary_language": { "type": "string", "enum": ["english", "spanish", "french", "mandarin", "cantonese", "vietnamese", "tagalog", "arabic", "other"] },
+        "primary_language_other": { "type": "string" },
+        "interpreter_needed": { "type": "boolean" }
       }
     },
     "housing": {
       "type": "object",
       "properties": {
-        "current_status": {
-          "type": "string",
-          "enum": [
-            "stable",
-            "transitional",
-            "shelter",
-            "unstable",
-            "none"
-          ]
-        },
-        "length_of_homelessness_months": {
-          "type": "number"
-        },
-        "eviction_history": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "current_status": { "type": "string", "enum": ["stable", "transitional", "shelter", "unstable", "none"] },
+        "length_of_homelessness_months": { "type": "number" },
+        "eviction_history": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "justice": {
       "type": "object",
       "properties": {
-        "justice_involved": {
-          "type": "boolean"
-        },
-        "charge_type": {
-          "type": "string",
-          "enum": [
-            "violent",
-            "non_violent",
-            "drug_related",
-            "property",
-            "dui",
-            "other",
-            "na"
-          ]
-        },
-        "release_date": {
-          "type": "string",
-          "format": "date"
-        },
-        "on_probation": {
-          "type": "boolean"
-        },
-        "on_parole": {
-          "type": "boolean"
-        },
-        "officer_name": {
-          "type": "string"
-        },
-        "officer_phone": {
-          "type": "string"
-        },
-        "check_in_frequency": {
-          "type": "string",
-          "enum": [
-            "daily",
-            "twice_weekly",
-            "weekly",
-            "biweekly",
-            "monthly",
-            "as_needed"
-          ]
-        },
-        "geographic_restrictions": {
-          "type": "boolean"
-        },
-        "curfew": {
-          "type": "string"
-        },
-        "sex_offender_registry": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "justice_involved": { "type": "boolean" },
+        "charge_type": { "type": "string", "enum": ["violent", "non_violent", "drug_related", "property", "dui", "other", "na"] },
+        "release_date": { "type": "string", "format": "date" },
+        "on_probation": { "type": "boolean" },
+        "on_parole": { "type": "boolean" },
+        "officer_name": { "type": "string" },
+        "officer_phone": { "type": "string" },
+        "check_in_frequency": { "type": "string", "enum": ["daily", "twice_weekly", "weekly", "biweekly", "monthly", "as_needed"] },
+        "geographic_restrictions": { "type": "boolean" },
+        "curfew": { "type": "string" },
+        "sex_offender_registry": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "treatment": {
       "type": "object",
       "properties": {
-        "in_treatment": {
-          "type": "boolean"
-        },
-        "treatment_type": {
-          "type": "string"
-        },
-        "sobriety_date": {
-          "type": "string",
-          "format": "date"
-        },
-        "12_step_program": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "in_treatment": { "type": "boolean" },
+        "treatment_type": { "type": "string" },
+        "sobriety_date": { "type": "string", "format": "date" },
+        "12_step_program": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "veteran": {
       "type": "object",
       "properties": {
-        "is_veteran": {
-          "type": "boolean"
-        },
-        "branch": {
-          "type": "string",
-          "enum": [
-            "army",
-            "navy",
-            "marines",
-            "air_force",
-            "space_force",
-            "coast_guard",
-            "national_guard",
-            "other"
-          ]
-        },
-        "discharge_status": {
-          "type": "string",
-          "enum": [
-            "honorable",
-            "other_than_honorable",
-            "dishonorable",
-            "na"
-          ]
-        },
-        "va_enrolled": {
-          "type": "boolean"
-        },
-        "service_connected_disability": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "is_veteran": { "type": "boolean" },
+        "branch": { "type": "string", "enum": ["army", "navy", "marines", "air_force", "space_force", "coast_guard", "national_guard", "other"] },
+        "discharge_status": { "type": "string", "enum": ["honorable", "other_than_honorable", "dishonorable", "na"] },
+        "va_enrolled": { "type": "boolean" },
+        "service_connected_disability": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "foster_care": {
       "type": "object",
       "properties": {
-        "is_foster_care": {
-          "type": "boolean"
-        },
-        "aged_out": {
-          "type": "boolean"
-        },
-        "current_support_services": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "is_foster_care": { "type": "boolean" },
+        "aged_out": { "type": "boolean" },
+        "current_support_services": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "education": {
       "type": "object",
       "properties": {
-        "highest_level": {
-          "type": "string",
-          "enum": [
-            "no_diploma",
-            "ged",
-            "high_school",
-            "some_college",
-            "associates",
-            "bachelors",
-            "graduate",
-            "vocational"
-          ]
-        },
-        "currently_enrolled": {
-          "type": "boolean"
-        },
-        "certifications": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "learning_disability": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "highest_level": { "type": "string", "enum": ["no_diploma", "ged", "high_school", "some_college", "associates", "bachelors", "graduate", "vocational"] },
+        "currently_enrolled": { "type": "boolean" },
+        "certifications": { "type": "array", "items": { "type": "string" } },
+        "learning_disability": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "work_history": {
       "type": "object",
       "properties": {
-        "employment_status": {
-          "type": "string",
-          "enum": [
-            "unemployed",
-            "part_time",
-            "full_time",
-            "employed_with_barriers",
-            "gig_informal",
-            "unable_to_work"
-          ]
-        },
-        "experience_level": {
-          "type": "string",
-          "enum": [
-            "none",
-            "limited",
-            "moderate",
-            "extensive"
-          ]
-        },
-        "years_of_experience": {
-          "type": "number"
-        },
-        "last_employed": {
-          "type": "string",
-          "format": "date"
-        },
-        "longest_held_job_months": {
-          "type": "number"
-        },
-        "industries": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "job_interests": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Multi-select job interest categories"
-        },
-        "fired_or_left": {
-          "type": "string",
-          "enum": [
-            "quit",
-            "fired",
-            "laid_off",
-            "seasonal",
-            "never_worked"
-          ]
-        },
-        "notes": {
-          "type": "string"
-        }
+        "employment_status": { "type": "string", "enum": ["unemployed", "part_time", "full_time", "employed_with_barriers", "gig_informal", "unable_to_work"] },
+        "experience_level": { "type": "string", "enum": ["none", "limited", "moderate", "extensive"] },
+        "years_of_experience": { "type": "number" },
+        "last_employed": { "type": "string", "format": "date" },
+        "longest_held_job_months": { "type": "number" },
+        "industries": { "type": "array", "items": { "type": "string" } },
+        "job_interests": { "type": "array", "items": { "type": "string" }, "description": "Multi-select job interest categories" },
+        "fired_or_left": { "type": "string", "enum": ["quit", "fired", "laid_off", "seasonal", "never_worked"] },
+        "notes": { "type": "string" }
       }
     },
     "transportation": {
       "type": "object",
       "properties": {
-        "transport_access": {
-          "type": "string",
-          "enum": [
-            "none",
-            "public_transit",
-            "rideshare",
-            "own_vehicle",
-            "carpool",
-            "bicycle"
-          ]
-        },
-        "has_vehicle": {
-          "type": "boolean"
-        },
-        "valid_license": {
-          "type": "boolean"
-        },
-        "license_suspended": {
-          "type": "boolean"
-        },
-        "uses_public_transit": {
-          "type": "boolean"
-        },
-        "transit_accessible": {
-          "type": "boolean"
-        },
-        "max_commute_minutes": {
-          "type": "number"
-        },
-        "shift_availability": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Multi-select shift availability"
-        },
-        "schedule_preference": {
-          "type": "string",
-          "enum": [
-            "full_time",
-            "part_time",
-            "flexible"
-          ]
-        },
-        "notes": {
-          "type": "string"
-        }
+        "transport_access": { "type": "string", "enum": ["none", "public_transit", "rideshare", "own_vehicle", "carpool", "bicycle"] },
+        "has_vehicle": { "type": "boolean" },
+        "valid_license": { "type": "boolean" },
+        "license_suspended": { "type": "boolean" },
+        "uses_public_transit": { "type": "boolean" },
+        "transit_accessible": { "type": "boolean" },
+        "max_commute_minutes": { "type": "number" },
+        "shift_availability": { "type": "array", "items": { "type": "string" }, "description": "Multi-select shift availability" },
+        "schedule_preference": { "type": "string", "enum": ["full_time", "part_time", "flexible"] },
+        "notes": { "type": "string" }
       }
     },
     "communication": {
       "type": "object",
       "properties": {
-        "has_phone": {
-          "type": "boolean"
-        },
-        "phone_type": {
-          "type": "string",
-          "enum": [
-            "smartphone",
-            "basic",
-            "none"
-          ]
-        },
-        "has_email": {
-          "type": "boolean"
-        },
-        "has_computer_access": {
-          "type": "boolean"
-        },
-        "has_internet_access": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_phone": { "type": "boolean" },
+        "phone_type": { "type": "string", "enum": ["smartphone", "basic", "none"] },
+        "has_email": { "type": "boolean" },
+        "has_computer_access": { "type": "boolean" },
+        "has_internet_access": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "digital_literacy": {
       "type": "object",
       "properties": {
-        "can_use_email": {
-          "type": "boolean"
-        },
-        "can_apply_online": {
-          "type": "boolean"
-        },
-        "can_use_zoom": {
-          "type": "boolean"
-        },
-        "comfort_level": {
-          "type": "string",
-          "enum": [
-            "none",
-            "basic",
-            "moderate",
-            "proficient"
-          ]
-        },
-        "notes": {
-          "type": "string"
-        }
+        "can_use_email": { "type": "boolean" },
+        "can_apply_online": { "type": "boolean" },
+        "can_use_zoom": { "type": "boolean" },
+        "comfort_level": { "type": "string", "enum": ["none", "basic", "moderate", "proficient"] },
+        "notes": { "type": "string" }
       }
     },
     "dependent_care": {
       "type": "object",
       "properties": {
-        "has_dependents": {
-          "type": "boolean"
-        },
-        "num_dependents": {
-          "type": "number"
-        },
-        "childcare_arranged": {
-          "type": "boolean"
-        },
-        "childcare_subsidy": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_dependents": { "type": "boolean" },
+        "num_dependents": { "type": "number" },
+        "childcare_arranged": { "type": "boolean" },
+        "childcare_subsidy": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "legal_financial": {
       "type": "object",
       "properties": {
-        "has_fines_fees": {
-          "type": "boolean"
-        },
-        "total_owed": {
-          "type": "number"
-        },
-        "wage_garnishment": {
-          "type": "boolean"
-        },
-        "child_support": {
-          "type": "boolean"
-        },
-        "bankruptcy": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_fines_fees": { "type": "boolean" },
+        "total_owed": { "type": "number" },
+        "wage_garnishment": { "type": "boolean" },
+        "child_support": { "type": "boolean" },
+        "bankruptcy": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "documents": {
       "type": "object",
       "properties": {
-        "has_state_id": {
-          "type": "boolean"
-        },
-        "has_birth_certificate": {
-          "type": "boolean"
-        },
-        "has_ssn_card": {
-          "type": "boolean"
-        },
-        "has_work_authorization": {
-          "type": "boolean"
-        },
-        "has_resume": {
-          "type": "boolean"
-        },
-        "has_references": {
-          "type": "boolean"
-        },
-        "has_dd214": {
-          "type": "boolean"
-        },
-        "missing_documents": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Multi-select list of missing/needed documents"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_state_id": { "type": "boolean" },
+        "has_birth_certificate": { "type": "boolean" },
+        "has_ssn_card": { "type": "boolean" },
+        "has_work_authorization": { "type": "boolean" },
+        "has_resume": { "type": "boolean" },
+        "has_references": { "type": "boolean" },
+        "has_dd214": { "type": "boolean" },
+        "missing_documents": { "type": "array", "items": { "type": "string" }, "description": "Multi-select list of missing/needed documents" },
+        "notes": { "type": "string" }
       }
     },
     "mental_health": {
       "type": "object",
       "properties": {
-        "has_diagnosis": {
-          "type": "boolean"
-        },
-        "diagnosis_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "in_counseling": {
-          "type": "boolean"
-        },
-        "on_medication": {
-          "type": "boolean"
-        },
-        "trauma_history": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_diagnosis": { "type": "boolean" },
+        "diagnosis_list": { "type": "array", "items": { "type": "string" } },
+        "in_counseling": { "type": "boolean" },
+        "on_medication": { "type": "boolean" },
+        "trauma_history": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "disability": {
       "type": "object",
       "properties": {
-        "has_disability": {
-          "type": "boolean"
-        },
-        "disability_types": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "accommodation_needed": {
-          "type": "boolean"
-        },
-        "accommodation_notes": {
-          "type": "string"
-        },
-        "ssi_ssdi": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_disability": { "type": "boolean" },
+        "disability_types": { "type": "array", "items": { "type": "string" } },
+        "accommodation_needed": { "type": "boolean" },
+        "accommodation_notes": { "type": "string" },
+        "ssi_ssdi": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "clothing_tools": {
       "type": "object",
       "properties": {
-        "has_interview_clothes": {
-          "type": "boolean"
-        },
-        "needs_work_uniform": {
-          "type": "boolean"
-        },
-        "needs_tools_equipment": {
-          "type": "boolean"
-        },
-        "needs_safety_gear": {
-          "type": "boolean"
-        },
-        "notes": {
-          "type": "string"
-        }
+        "has_interview_clothes": { "type": "boolean" },
+        "needs_work_uniform": { "type": "boolean" },
+        "needs_tools_equipment": { "type": "boolean" },
+        "needs_safety_gear": { "type": "boolean" },
+        "notes": { "type": "string" }
       }
     },
     "benefits": {
       "type": "object",
       "properties": {
-        "receiving_snap": {
-          "type": "boolean"
-        },
-        "receiving_medi_cal": {
-          "type": "boolean"
-        },
-        "receiving_calworks": {
-          "type": "boolean"
-        },
-        "receiving_ga": {
-          "type": "boolean"
-        },
-        "eligible_not_enrolled": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "notes": {
-          "type": "string"
-        }
+        "receiving_snap": { "type": "boolean" },
+        "receiving_medi_cal": { "type": "boolean" },
+        "receiving_calworks": { "type": "boolean" },
+        "receiving_ga": { "type": "boolean" },
+        "eligible_not_enrolled": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
       }
     },
     "emergency_contact": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "relationship": {
-          "type": "string"
-        },
-        "phone": {
-          "type": "string"
-        },
-        "can_contact_for_employment": {
-          "type": "boolean"
-        }
+        "name": { "type": "string" },
+        "relationship": { "type": "string" },
+        "phone": { "type": "string" },
+        "can_contact_for_employment": { "type": "boolean" }
       }
     },
     "scores": {
       "type": "object",
       "properties": {
-        "barrier_severity_score": {
-          "type": "number"
-        },
-        "stability_score": {
-          "type": "number"
-        },
-        "work_readiness_score": {
-          "type": "number"
-        }
+        "barrier_severity_score": { "type": "number" },
+        "stability_score": { "type": "number" },
+        "work_readiness_score": { "type": "number" }
       }
     }
   },
   "required": [
     "resident_id",
     "global_resident_id"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.resident_id": "{{user.data.resident_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }

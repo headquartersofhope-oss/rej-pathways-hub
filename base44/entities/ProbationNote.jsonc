@@ -1,7 +1,7 @@
 {
   "name": "ProbationNote",
   "type": "object",
-  "description": "Compliance-focused notes written by probation officers. Linked via global_resident_id. Visible to admin and case managers.",
+  "description": "Compliance-focused notes written by probation officers. Linked via global_resident_id. Visible to admin, case managers, and the assigned probation officer ONLY — NOT to residents.",
   "properties": {
     "global_resident_id": {
       "type": "string",
@@ -32,7 +32,7 @@
     },
     "content": {
       "type": "string",
-      "description": "Note content \u2014 compliance observations, contact summaries, concerns, etc."
+      "description": "Note content — compliance observations, contact summaries, concerns, etc."
     },
     "contact_type": {
       "type": "string",
@@ -64,5 +64,44 @@
     "resident_id",
     "content",
     "note_date"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "probation_officer" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "user_condition": { "role": "probation_officer" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "probation_officer" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }

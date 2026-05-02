@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import RequireRole from '@/components/RequireRole';
 
 import AppLayout from '@/components/layout/AppLayout';
 import Home from '@/pages/Home';
@@ -63,8 +64,21 @@ import VideoHub from '@/pages/VideoHub';
 import VideoRoom from '@/pages/VideoRoom';
 import VideoHistory from '@/pages/VideoHistory';
 
+// =============================================================
+// ROLE GROUPS for route guarding.
+// 'user' is the Base44 platform default — currently treated as admin
+// (see rbac.js). When commercial multi-tenancy launches, switch new
+// accounts to 'pending' until an explicit role is assigned.
+// =============================================================
+const ADMIN_ROLES   = ['admin', 'user', 'super_admin', 'org_admin'];
+const MANAGER_ROLES = [...ADMIN_ROLES, 'manager', 'program_manager'];
+const STAFF_ROLES   = [...MANAGER_ROLES, 'staff', 'case_manager', 'instructor', 'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator', 'housing_staff', 'employment_staff'];
+const RESIDENT_ROLES = [...STAFF_ROLES, 'resident'];           // staff + the resident themselves
+const EMPLOYER_ROLES = [...STAFF_ROLES, 'employer'];           // staff + employer partners
+const AUDITOR_ROLES  = [...ADMIN_ROLES, 'auditor'];            // admin + auditor only
+
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -84,7 +98,6 @@ const AuthenticatedApp = () => {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
       // Private app - show public landing page for unauthenticated users
-      // /auth/login is reachable so PublicLanding's Sign In button works
       return (
         <Routes>
           <Route path="/" element={<PublicLanding />} />
@@ -95,68 +108,92 @@ const AuthenticatedApp = () => {
       );
     }
     // For unknown errors, fall through and render the app anyway
-    // (e.g. network blip — don't permanently block rendering)
   }
 
   return (
     <Routes>
+      {/* Public-ish: anyone authenticated, no role gate */}
       <Route path="/employer-signup" element={<EmployerSignup />} />
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/request-access" element={<RequestAccess />} />
       <Route path="/auth/activate" element={<ActivateAccount />} />
-      <Route path="/admin/onboarding" element={<OnboardingQueue />} />
-      <Route path="/admin/control-center" element={<AdminControlCenter />} />
-      <Route path="/admin/audit" element={<AuditCenter />} />
+
+      {/* Admin-only standalone routes (outside AppLayout) */}
+      <Route path="/admin/onboarding"     element={<RequireRole roles={ADMIN_ROLES}><OnboardingQueue /></RequireRole>} />
+      <Route path="/admin/control-center" element={<RequireRole roles={ADMIN_ROLES}><AdminControlCenter /></RequireRole>} />
+      <Route path="/admin/audit"          element={<RequireRole roles={AUDITOR_ROLES}><AuditCenter /></RequireRole>} />
+
+      {/* All other routes — wrapped in AppLayout for sidebar/header chrome */}
       <Route element={<AppLayout />}>
+        {/* Dashboard — any authenticated user (Home dispatches per-role view) */}
         <Route path="/" element={<Home />} />
-        <Route path="/residents" element={<Residents />} />
-        <Route path="/employers" element={<Employers />} />
-        <Route path="/partners" element={<Partners />} />
-        <Route path="/organizations" element={<Organizations />} />
-        <Route path="/sites" element={<Sites />} />
-        <Route path="/users" element={<UserManagement />} />
-        <Route path="/modules" element={<ModuleSettings />} />
-        <Route path="/audit-logs" element={<AuditLogs />} />
-        <Route path="/documents" element={<Documents />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/module/:slug" element={<ModulePlaceholder />} />
-        <Route path="/intake" element={<IntakeModule />} />
-        <Route path="/intake/:residentId" element={<IntakeModule />} />
-        <Route path="/intake/:residentId/form" element={<IntakeForm />} />
-        <Route path="/residents/:residentId" element={<ResidentProfile />} />
-        <Route path="/case-management" element={<CaseManagement />} />
-        <Route path="/learning" element={<Learning />} />
-        <Route path="/job-readiness" element={<JobReadiness />} />
-        <Route path="/outcomes" element={<OutcomesReport />} />
-        <Route path="/alumni" element={<Alumni />} />
-        <Route path="/resources" element={<ResourceInventory />} />
-        <Route path="/job-matching" element={<JobMatching />} />
-        <Route path="/reporting" element={<Reporting />} />
-        <Route path="/outcomes-engine" element={<OutcomesEngine />} />
-        <Route path="/resident-outcomes" element={<ResidentOutcomes />} />
-        <Route path="/employer-outcomes" element={<EmployerOutcomes />} />
-        <Route path="/employer-portal" element={<EmployerPortal />} />
-        <Route path="/my-jobs" element={<MyJobs />} />
-        <Route path="/my-appointments" element={<MyAppointments />} />
-        <Route path="/my-tasks" element={<MyTasks />} />
-        <Route path="/my-supports" element={<MySupports />} />
-        <Route path="/housing-referrals" element={<HousingReferrals />} />
-        <Route path="/housing" element={<HousingOperations />} />
-        <Route path="/grants" element={<GrantTracker />} />
-        <Route path="/donors" element={<DonorDatabase />} />
-        <Route path="/employer-directory" element={<EmployerDirectory />} />
-        <Route path="/job-board" element={<JobBoard />} />
-        <Route path="/placements" element={<PlacementTracker />} />
-        <Route path="/transportation" element={<TransportationHub />} />
-        <Route path="/manager-portal" element={<ManagerPortal />} />
-        <Route path="/admin/my-access" element={<MyAccessVerification />} />
-        <Route path="/admin/system-health" element={<SystemHealth />} />
-        <Route path="/dashboard/operations" element={<OperationalDashboard />} />
-        <Route path="/training" element={<Training />} />
-        <Route path="/video-hub" element={<VideoHub />} />
-        <Route path="/video-hub/room/:roomName" element={<VideoRoom />} />
-        <Route path="/video-hub/history" element={<VideoHistory />} />
+
+        {/* Staff-only participant management */}
+        <Route path="/residents"                  element={<RequireRole roles={STAFF_ROLES}><Residents /></RequireRole>} />
+        <Route path="/residents/:residentId"      element={<RequireRole roles={STAFF_ROLES}><ResidentProfile /></RequireRole>} />
+        <Route path="/case-management"            element={<RequireRole roles={STAFF_ROLES}><CaseManagement /></RequireRole>} />
+        <Route path="/intake"                     element={<RequireRole roles={STAFF_ROLES}><IntakeModule /></RequireRole>} />
+        <Route path="/intake/:residentId"         element={<RequireRole roles={STAFF_ROLES}><IntakeModule /></RequireRole>} />
+        <Route path="/intake/:residentId/form"    element={<RequireRole roles={STAFF_ROLES}><IntakeForm /></RequireRole>} />
+        <Route path="/job-readiness"              element={<RequireRole roles={STAFF_ROLES}><JobReadiness /></RequireRole>} />
+        <Route path="/job-matching"               element={<RequireRole roles={STAFF_ROLES}><JobMatching /></RequireRole>} />
+        <Route path="/placements"                 element={<RequireRole roles={STAFF_ROLES}><PlacementTracker /></RequireRole>} />
+        <Route path="/alumni"                     element={<RequireRole roles={STAFF_ROLES}><Alumni /></RequireRole>} />
+
+        {/* Operations */}
+        <Route path="/housing"             element={<RequireRole roles={STAFF_ROLES}><HousingOperations /></RequireRole>} />
+        <Route path="/housing-referrals"   element={<RequireRole roles={STAFF_ROLES}><HousingReferrals /></RequireRole>} />
+        <Route path="/transportation"      element={<RequireRole roles={STAFF_ROLES}><TransportationHub /></RequireRole>} />
+        <Route path="/resources"           element={<RequireRole roles={STAFF_ROLES}><ResourceInventory /></RequireRole>} />
+        <Route path="/partners"            element={<RequireRole roles={STAFF_ROLES}><Partners /></RequireRole>} />
+
+        {/* Employer-facing (employer + staff) */}
+        <Route path="/employer-portal"     element={<RequireRole roles={EMPLOYER_ROLES}><EmployerPortal /></RequireRole>} />
+        <Route path="/job-board"           element={<RequireRole roles={EMPLOYER_ROLES}><JobBoard /></RequireRole>} />
+
+        {/* Employer / employment management (staff only — contains hiring stages) */}
+        <Route path="/employers"           element={<RequireRole roles={STAFF_ROLES}><Employers /></RequireRole>} />
+        <Route path="/employer-directory"  element={<RequireRole roles={STAFF_ROLES}><EmployerDirectory /></RequireRole>} />
+        <Route path="/employer-outcomes"   element={<RequireRole roles={STAFF_ROLES}><EmployerOutcomes /></RequireRole>} />
+
+        {/* Reporting & outcomes — staff only */}
+        <Route path="/reporting"           element={<RequireRole roles={STAFF_ROLES}><Reporting /></RequireRole>} />
+        <Route path="/outcomes"            element={<RequireRole roles={STAFF_ROLES}><OutcomesReport /></RequireRole>} />
+        <Route path="/outcomes-engine"     element={<RequireRole roles={ADMIN_ROLES}><OutcomesEngine /></RequireRole>} />
+        <Route path="/resident-outcomes"   element={<RequireRole roles={STAFF_ROLES}><ResidentOutcomes /></RequireRole>} />
+        <Route path="/dashboard/operations" element={<RequireRole roles={MANAGER_ROLES}><OperationalDashboard /></RequireRole>} />
+
+        {/* Funding — admin/grant manager only */}
+        <Route path="/grants" element={<RequireRole roles={[...ADMIN_ROLES, 'grant_manager']}><GrantTracker /></RequireRole>} />
+        <Route path="/donors" element={<RequireRole roles={ADMIN_ROLES}><DonorDatabase /></RequireRole>} />
+
+        {/* Resident self-service — staff can view too for support */}
+        <Route path="/my-jobs"         element={<RequireRole roles={RESIDENT_ROLES}><MyJobs /></RequireRole>} />
+        <Route path="/my-appointments" element={<RequireRole roles={RESIDENT_ROLES}><MyAppointments /></RequireRole>} />
+        <Route path="/my-tasks"        element={<RequireRole roles={RESIDENT_ROLES}><MyTasks /></RequireRole>} />
+        <Route path="/my-supports"     element={<RequireRole roles={RESIDENT_ROLES}><MySupports /></RequireRole>} />
+
+        {/* Admin */}
+        <Route path="/users"          element={<RequireRole roles={ADMIN_ROLES}><UserManagement /></RequireRole>} />
+        <Route path="/modules"        element={<RequireRole roles={ADMIN_ROLES}><ModuleSettings /></RequireRole>} />
+        <Route path="/module/:slug"   element={<RequireRole roles={ADMIN_ROLES}><ModulePlaceholder /></RequireRole>} />
+        <Route path="/audit-logs"     element={<RequireRole roles={AUDITOR_ROLES}><AuditLogs /></RequireRole>} />
+        <Route path="/organizations"  element={<RequireRole roles={ADMIN_ROLES}><Organizations /></RequireRole>} />
+        <Route path="/sites"          element={<RequireRole roles={ADMIN_ROLES}><Sites /></RequireRole>} />
+        <Route path="/manager-portal" element={<RequireRole roles={MANAGER_ROLES}><ManagerPortal /></RequireRole>} />
+        <Route path="/admin/my-access"     element={<RequireRole roles={ADMIN_ROLES}><MyAccessVerification /></RequireRole>} />
+        <Route path="/admin/system-health" element={<RequireRole roles={ADMIN_ROLES}><SystemHealth /></RequireRole>} />
+
+        {/* Communication — any authenticated user (their own subset only) */}
+        <Route path="/messages"   element={<Messages />} />
+        <Route path="/documents"  element={<Documents />} />
+        <Route path="/learning"   element={<Learning />} />
+        <Route path="/training"   element={<Training />} />
+        <Route path="/video-hub"                    element={<VideoHub />} />
+        <Route path="/video-hub/room/:roomName"     element={<VideoRoom />} />
+        <Route path="/video-hub/history"            element={<VideoHistory />} />
       </Route>
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
