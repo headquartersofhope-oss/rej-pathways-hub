@@ -11,6 +11,10 @@ export {
   isResident,
   isProbationOfficer,
   isEmployer,
+  isSponsor,
+  isDonor,
+  getEffectiveRole,
+  clearViewAsOverride,
   canAccessResident,
   getResidentPermissions,
   filterResidentsByAccess,
@@ -33,6 +37,8 @@ export const ROLE_LABELS = {
   probation_officer: 'Probation/Parole Officer',
   referral_partner: 'Referral Partner',
   auditor: 'Board Reviewer',
+  sponsor: 'Recovery Sponsor',
+  donor: 'Donor',
   admin: 'Administrator',
   user: 'Administrator',
 };
@@ -40,7 +46,7 @@ export const ROLE_LABELS = {
 export const STAFF_ROLES = ['admin', 'super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'instructor', 'staff'];
 export const ADMIN_ROLES = ['admin', 'super_admin', 'org_admin'];
 export const MANAGER_ROLES = ['manager'];
-export const ALL_ROLES = ['super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator', 'instructor', 'staff', 'resident', 'employer', 'probation_officer', 'referral_partner', 'auditor', 'admin', 'user'];
+export const ALL_ROLES = ['super_admin', 'org_admin', 'manager', 'program_manager', 'case_manager', 'house_manager', 'employment_specialist', 'grant_manager', 'transportation_coordinator', 'instructor', 'staff', 'resident', 'employer', 'probation_officer', 'referral_partner', 'auditor', 'sponsor', 'donor', 'admin', 'user'];
 
 export function isSuperAdmin(role) {
   return role === 'super_admin';

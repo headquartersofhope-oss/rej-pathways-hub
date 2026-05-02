@@ -19,6 +19,8 @@ export const ROLES = {
   REFERRAL_PARTNER: 'referral_partner',
   AUDITOR: 'auditor',
   EMPLOYER: 'employer',
+  SPONSOR: 'sponsor',
+  DONOR: 'donor',
   // Base44 platform default roles treated as admin
   USER: 'user',
 };
@@ -86,6 +88,45 @@ export function isEmployer(role) {
   return role === 'employer';
 }
 
+export function isSponsor(role) {
+  return role === ROLES.SPONSOR;
+}
+
+export function isDonor(role) {
+  return role === ROLES.DONOR;
+}
+
+/**
+ * Returns the effective role to use for UI rendering.
+ * Admins can override their effective role via localStorage (View As feature).
+ * For non-admins (or when no override is set), returns the user's actual role.
+ */
+export function getEffectiveRole(user) {
+  if (!user) return null;
+  if (typeof window !== 'undefined' && isAdmin(user.role)) {
+    try {
+      const override = localStorage.getItem('pathways_view_as_role');
+      if (override && override !== 'admin') {
+        return override;
+      }
+    } catch (_) {
+      // localStorage access can throw in some environments — fall through to actual role
+    }
+  }
+  return user.role;
+}
+
+/**
+ * Clear any active "View As" role override.
+ */
+export function clearViewAsOverride() {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('pathways_view_as_role');
+    } catch (_) {}
+  }
+}
+
 /**
  * Determine if a user can access a specific resident record.
  *
@@ -131,6 +172,11 @@ export function canAccessResident(user, resident) {
     );
   }
 
+  // Sponsor — read-only access only if this resident is their sponsoree
+  if (isSponsor(role)) {
+    return resident.id === user.sponsoree_resident_id;
+  }
+
   // Base44 default 'user' role – treat as staff (no caseload filter yet)
   if (role === 'user') return true;
 
@@ -148,6 +194,7 @@ export function getResidentPermissions(user, resident) {
   const staffEdit = access && isStaff(role);
   const isPO = access && isProbationOfficer(role);
   const residentSelf = access && isResident(role);
+  const isSponsorView = access && isSponsor(role);
 
   return {
     canView: access,
@@ -163,7 +210,8 @@ export function getResidentPermissions(user, resident) {
     canAddProbationNote: isPO,                      // only probation officers can create probation notes
     canViewProbationNotes: fullEdit || staffEdit || isPO, // admins, staff, and POs can view probation notes
     isProbationOfficer: isPO,                       // convenience flag for UI read-only rendering
-    isReadOnly: isPO || (access && role === 'auditor'), // general read-only flag
+    isSponsor: isSponsorView,                       // convenience flag for sponsor read-only rendering
+    isReadOnly: isPO || isSponsorView || (access && role === 'auditor'), // general read-only flag
     canAddResident: isAdmin(role) || ['program_manager', 'case_manager'].includes(role),
     canViewSettings: isAdmin(role),
     canViewAllResidents: isAdmin(role) || ['manager', 'program_manager', 'instructor', 'auditor'].includes(role),
@@ -206,6 +254,11 @@ export function filterResidentsByAccess(residents, user) {
       r.assigned_probation_officer === user.email ||
       r.assigned_probation_officer === user.full_name
     );
+  }
+
+  // Sponsors see only their sponsoree
+  if (isSponsor(role)) {
+    return residents.filter(r => r.id === user.sponsoree_resident_id);
   }
 
   return [];
