@@ -1,50 +1,23 @@
 {
   "name": "VideoMeeting",
   "type": "object",
-  "description": "A video meeting session created via Daily.co",
+  "description": "A video meeting session created via Daily.co. RLS: staff full; residents see meetings tied to their resident_id; employers see meetings tied to their employer_id; hosts see their own.",
   "properties": {
-    "title": {
-      "type": "string"
-    },
-    "host_id": {
-      "type": "string"
-    },
-    "host_name": {
-      "type": "string"
-    },
+    "title": { "type": "string" },
+    "host_id": { "type": "string" },
+    "host_name": { "type": "string" },
     "meeting_type": {
       "type": "string",
-      "enum": [
-        "staff_meeting",
-        "resident_session",
-        "employer_interview",
-        "partner_meeting",
-        "group_class"
-      ],
+      "enum": ["staff_meeting", "resident_session", "employer_interview", "partner_meeting", "group_class"],
       "default": "staff_meeting"
     },
-    "room_name": {
-      "type": "string"
-    },
-    "room_url": {
-      "type": "string"
-    },
-    "scheduled_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "duration_minutes": {
-      "type": "integer",
-      "default": 60
-    },
+    "room_name": { "type": "string" },
+    "room_url": { "type": "string" },
+    "scheduled_at": { "type": "string", "format": "date-time" },
+    "duration_minutes": { "type": "integer", "default": 60 },
     "status": {
       "type": "string",
-      "enum": [
-        "scheduled",
-        "live",
-        "completed",
-        "cancelled"
-      ],
+      "enum": ["scheduled", "live", "completed", "cancelled"],
       "default": "scheduled"
     },
     "attendees": {
@@ -52,110 +25,67 @@
       "items": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "join_time": {
-            "type": "string"
-          }
+          "user_id": { "type": "string" },
+          "name": { "type": "string" },
+          "role": { "type": "string" },
+          "email": { "type": "string" },
+          "join_time": { "type": "string" }
         }
       }
     },
-    "recording_url": {
-      "type": "string"
-    },
-    "notes": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "resident_id": {
-      "type": "string"
-    },
-    "employer_id": {
-      "type": "string"
-    },
-    "organization_id": {
-      "type": "string"
-    },
-    "ended_at": {
-      "type": "string",
-      "format": "date-time"
-    }
+    "recording_url": { "type": "string" },
+    "notes": { "type": "string" },
+    "description": { "type": "string" },
+    "resident_id": { "type": "string" },
+    "employer_id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "ended_at": { "type": "string", "format": "date-time" }
   },
-  "required": [
-    "title",
-    "host_id",
-    "meeting_type"
-  ],
+  "required": ["title", "host_id", "meeting_type"],
   "rls": {
     "create": {
       "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "staff"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "case_manager"
-          }
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "employer" } }
       ]
     },
     "read": {
       "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "staff"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "case_manager"
-          }
-        },
-        {
-          "data.host_id": "{{user.id}}"
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.host_id": "{{user.id}}" },
+        { "data.resident_id": "{{user.data.resident_id}}" }
       ]
     },
     "update": {
       "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.host_id": "{{user.id}}"
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "data.host_id": "{{user.id}}" }
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
     }
   }
 }

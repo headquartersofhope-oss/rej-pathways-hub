@@ -1,83 +1,80 @@
 {
   "name": "User",
   "type": "object",
-  "description": "Staff and admin user accounts. Built-in fields: id, created_date, full_name, email. Staff users should not require resident linking at creation.",
+  "description": "Staff and admin user accounts. Built-in fields: id, created_date, full_name, email. Staff users should not require resident linking at creation. RLS: admins read all; users read only their own record.",
   "properties": {
     "role": {
       "type": "string",
-      "enum": [
-        "admin",
-        "user"
-      ],
+      "enum": ["admin", "user"],
       "default": "user",
       "description": "Platform role (admin or user). Maps from app_role."
     },
     "app_role": {
       "type": "string",
-      "enum": [
-        "admin",
-        "case_manager",
-        "probation_officer",
-        "resident",
-        "program_manager",
-        "staff",
-        "employer",
-        "instructor",
-        "auditor",
-        "sponsor",
-        "donor"
-      ],
+      "enum": ["admin", "case_manager", "probation_officer", "resident", "program_manager", "staff", "employer", "instructor", "auditor", "sponsor", "donor"],
       "default": "staff",
       "description": "Application-specific role for dashboard routing and permissions"
     },
-    "phone_number": {
-      "type": "string",
-      "description": "User phone number"
-    },
-    "organization_id": {
-      "type": "string",
-      "description": "Organization this user belongs to (optional)"
-    },
-    "site_id": {
-      "type": "string",
-      "description": "Specific site assignment (optional)"
-    },
-    "resident_id": {
-      "type": "string",
-      "description": "If role=resident, the linked Resident record ID (optional)"
-    },
-    "global_resident_id": {
-      "type": "string",
-      "description": "If role=resident, the linked Resident.global_resident_id (optional)"
-    },
-    "sponsoree_resident_id": {
-      "type": "string",
-      "description": "If role=sponsor, the linked Resident record ID this sponsor supports (optional)"
-    },
-    "donor_id": {
-      "type": "string",
-      "description": "If role=donor, the linked Donor record ID (optional)"
-    },
+    "phone_number": { "type": "string", "description": "User phone number" },
+    "organization_id": { "type": "string", "description": "Organization this user belongs to (optional)" },
+    "site_id": { "type": "string", "description": "Specific site assignment (optional)" },
+    "resident_id": { "type": "string", "description": "If role=resident, the linked Resident record ID (optional)" },
+    "global_resident_id": { "type": "string", "description": "If role=resident, the linked Resident.global_resident_id (optional)" },
+    "sponsoree_resident_id": { "type": "string", "description": "If role=sponsor, the linked Resident record ID this sponsor supports (optional)" },
+    "donor_id": { "type": "string", "description": "If role=donor, the linked Donor record ID (optional)" },
     "status": {
       "type": "string",
-      "enum": [
-        "active",
-        "inactive"
-      ],
+      "enum": ["active", "inactive"],
       "default": "active",
       "description": "User account status"
     },
     "onboarding_status": {
       "type": "string",
-      "enum": [
-        "not_started",
-        "invited",
-        "in_progress",
-        "completed"
-      ],
+      "enum": ["not_started", "invited", "in_progress", "completed"],
       "default": "not_started",
       "description": "Onboarding workflow status"
     }
   },
-  "required": []
+  "required": [],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.email": "{{user.email}}" },
+        { "data.id": "{{user.id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "data.email": "{{user.email}}" }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }
