@@ -1,110 +1,83 @@
 {
   "name": "EmployabilityProfile",
   "type": "object",
-  "description": "Master employability profile for a resident. Linked via global_resident_id.",
+  "description": "Master employability profile for a resident. Linked via global_resident_id. RLS: staff full; resident sees own only.",
   "properties": {
-    "global_resident_id": {
-      "type": "string",
-      "description": "Master identity link to Resident.global_resident_id"
-    },
-    "resident_id": {
-      "type": "string",
-      "description": "Internal DB FK to Resident.id"
-    },
-    "organization_id": {
-      "type": "string"
-    },
-    "job_readiness_score": {
-      "type": "number",
-      "description": "0-100 readiness score"
-    },
-    "interview_readiness_score": {
-      "type": "number",
-      "description": "0-100 interview readiness score"
-    },
-    "preferred_job_types": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "desired_industries": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
+    "global_resident_id": { "type": "string", "description": "Master identity link to Resident.global_resident_id" },
+    "resident_id": { "type": "string", "description": "Internal DB FK to Resident.id" },
+    "organization_id": { "type": "string" },
+    "job_readiness_score": { "type": "number", "description": "0-100 readiness score" },
+    "interview_readiness_score": { "type": "number", "description": "0-100 interview readiness score" },
+    "preferred_job_types": { "type": "array", "items": { "type": "string" } },
+    "desired_industries": { "type": "array", "items": { "type": "string" } },
     "available_shifts": {
       "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "morning",
-          "afternoon",
-          "evening",
-          "overnight",
-          "weekends",
-          "flexible"
-        ]
-      }
+      "items": { "type": "string", "enum": ["morning", "afternoon", "evening", "overnight", "weekends", "flexible"] }
     },
     "work_location_preference": {
       "type": "string",
-      "enum": [
-        "on_site",
-        "remote",
-        "hybrid",
-        "no_preference"
-      ]
+      "enum": ["on_site", "remote", "hybrid", "no_preference"]
     },
-    "transportation_radius_miles": {
-      "type": "number"
-    },
-    "target_hourly_wage": {
-      "type": "number"
-    },
-    "skills": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "certifications": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "work_history_summary": {
-      "type": "string"
-    },
+    "transportation_radius_miles": { "type": "number" },
+    "target_hourly_wage": { "type": "number" },
+    "skills": { "type": "array", "items": { "type": "string" } },
+    "certifications": { "type": "array", "items": { "type": "string" } },
+    "work_history_summary": { "type": "string" },
     "resume_status": {
       "type": "string",
-      "enum": [
-        "none",
-        "draft",
-        "staff_reviewed",
-        "complete"
-      ],
+      "enum": ["none", "draft", "staff_reviewed", "complete"],
       "default": "none"
     },
-    "accommodations_needed": {
-      "type": "string"
-    },
-    "barrier_work_notes": {
-      "type": "string",
-      "description": "Staff notes on barrier-aware work considerations"
-    },
-    "is_job_ready": {
-      "type": "boolean",
-      "default": false
-    },
-    "notes": {
-      "type": "string"
-    }
+    "accommodations_needed": { "type": "string" },
+    "barrier_work_notes": { "type": "string", "description": "Staff notes on barrier-aware work considerations" },
+    "is_job_ready": { "type": "boolean", "default": false },
+    "notes": { "type": "string" }
   },
-  "required": [
-    "global_resident_id",
-    "resident_id"
-  ]
+  "required": ["global_resident_id", "resident_id"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "employment_specialist" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "employment_specialist" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.resident_id": "{{user.data.resident_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "employment_specialist" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }

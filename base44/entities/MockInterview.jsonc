@@ -1,61 +1,64 @@
 {
   "name": "MockInterview",
   "type": "object",
-  "description": "Mock interview session record for a resident. Linked via global_resident_id.",
+  "description": "Mock interview session record for a resident. Linked via global_resident_id. RLS: staff full; resident sees own.",
   "properties": {
-    "global_resident_id": {
-      "type": "string"
-    },
-    "resident_id": {
-      "type": "string"
-    },
-    "organization_id": {
-      "type": "string"
-    },
-    "conducted_by": {
-      "type": "string",
-      "description": "Staff user ID"
-    },
-    "conducted_by_name": {
-      "type": "string"
-    },
-    "interviewer_name": {
-      "type": "string",
-      "description": "Name of interviewer if different from logged-in staff"
-    },
-    "date": {
-      "type": "string",
-      "format": "date"
-    },
-    "overall_score": {
-      "type": "number",
-      "description": "0-100 overall score"
-    },
-    "communication_score": {
-      "type": "number"
-    },
-    "confidence_score": {
-      "type": "number"
-    },
-    "preparation_score": {
-      "type": "number"
-    },
-    "strengths": {
-      "type": "string"
-    },
-    "areas_to_improve": {
-      "type": "string"
-    },
-    "recommended_next_steps": {
-      "type": "string"
-    },
-    "notes": {
-      "type": "string"
-    }
+    "global_resident_id": { "type": "string" },
+    "resident_id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "conducted_by": { "type": "string", "description": "Staff user ID" },
+    "conducted_by_name": { "type": "string" },
+    "interviewer_name": { "type": "string" },
+    "date": { "type": "string", "format": "date" },
+    "overall_score": { "type": "number" },
+    "communication_score": { "type": "number" },
+    "confidence_score": { "type": "number" },
+    "preparation_score": { "type": "number" },
+    "strengths": { "type": "string" },
+    "areas_to_improve": { "type": "string" },
+    "recommended_next_steps": { "type": "string" },
+    "notes": { "type": "string" }
   },
-  "required": [
-    "global_resident_id",
-    "resident_id",
-    "date"
-  ]
+  "required": ["global_resident_id", "resident_id", "date"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "employment_specialist" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "employment_specialist" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.resident_id": "{{user.data.resident_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }

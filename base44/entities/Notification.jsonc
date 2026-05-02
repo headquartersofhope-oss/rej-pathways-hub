@@ -1,51 +1,96 @@
 {
   "name": "Notification",
   "type": "object",
-  "description": "Log of email notifications sent to residents.",
+  "description": "Log of notifications sent (email, sms, in-app). RLS: recipient sees own; staff/admin can read all for support.",
   "properties": {
-    "resident_id": {
-      "type": "string"
-    },
-    "global_resident_id": {
-      "type": "string"
-    },
-    "recipient_email": {
-      "type": "string"
-    },
-    "recipient_name": {
-      "type": "string"
+    "resident_id": { "type": "string" },
+    "global_resident_id": { "type": "string" },
+    "recipient_user_id": { "type": "string", "description": "User.id of the recipient (for in-app notifications and access control)" },
+    "recipient_email": { "type": "string" },
+    "recipient_phone": { "type": "string", "description": "For SMS notifications via Twilio" },
+    "recipient_name": { "type": "string" },
+    "channel": {
+      "type": "string",
+      "enum": ["email", "sms", "in_app", "push"],
+      "default": "email",
+      "description": "Delivery channel"
     },
     "type": {
       "type": "string",
       "enum": [
         "new_task",
         "upcoming_class",
+        "upcoming_appointment",
+        "upcoming_video_meeting",
+        "intake_complete",
+        "case_manager_assigned",
+        "housing_assigned",
+        "housing_referral_pending",
+        "job_match",
+        "interview_scheduled",
+        "hired",
+        "crisis_alert",
+        "compliance_reminder",
         "onboarding_digest",
+        "donation_receipt",
         "custom"
       ],
       "description": "Category of notification"
     },
-    "subject": {
-      "type": "string"
-    },
-    "body": {
-      "type": "string"
-    },
-    "sent_by": {
-      "type": "string",
-      "description": "User.id of staff who triggered it"
-    },
+    "subject": { "type": "string" },
+    "body": { "type": "string" },
+    "link_url": { "type": "string", "description": "Optional deep link for in-app or email click-through" },
+    "sent_by": { "type": "string", "description": "User.id of staff who triggered it (or 'system' for automated)" },
     "status": {
       "type": "string",
-      "enum": [
-        "sent",
-        "failed"
-      ],
-      "default": "sent"
-    }
+      "enum": ["queued", "sent", "delivered", "failed", "read"],
+      "default": "queued"
+    },
+    "read_at": { "type": "string", "format": "date-time" },
+    "error_message": { "type": "string" }
   },
-  "required": [
-    "recipient_email",
-    "type"
-  ]
+  "required": ["channel", "type"],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "user_condition": { "role": "org_admin" } },
+        { "user_condition": { "role": "staff" } },
+        { "user_condition": { "role": "case_manager" } },
+        { "user_condition": { "role": "program_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "data.recipient_user_id": "{{user.id}}" },
+        { "data.recipient_email": "{{user.email}}" },
+        { "data.resident_id": "{{user.data.resident_id}}" }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } },
+        { "data.recipient_user_id": "{{user.id}}" }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "user" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
 }
