@@ -13,6 +13,7 @@ export default function RequestAccess() {
   const [step, setStep] = useState('role-select'); // role-select, resident, other, submitted
   const [selectedRole, setSelectedRole] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedAs, setSubmittedAs] = useState(null); // 'resident' or 'other' — controls success message copy
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
@@ -26,22 +27,45 @@ export default function RequestAccess() {
   const handleSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      const request = await base44.entities.OnboardingRequest.create({
-        ...data,
-        request_type: selectedRole === 'resident' ? 'resident_intake' : `${selectedRole}_request`,
-        requested_role: selectedRole === 'resident' ? 'resident' : selectedRole,
-        status: 'pending',
-        submitted_date: new Date().toISOString(),
-        ai_analysis_complete: false
-      });
+      if (selectedRole === 'resident') {
+        // RESIDENT PATH: skip the admin OnboardingRequest queue.
+        // Directly invoke processIntakeSubmission which:
+        //   - Creates Resident + global_resident_id
+        //   - Creates IntakeAssessment
+        //   - Creates ServicePlan placeholder
+        //   - Sends activation email (no admin review needed for participants)
+        const result = await base44.functions.invoke('processIntakeSubmission', {
+          source_type: 'website_application',
+          ...data,
+        });
 
-      // Trigger AI analysis
-      await base44.functions.invoke('analyzeOnboardingRequest', {
-        request_id: request.id
-      });
+        if (!result || result.error) {
+          throw new Error(result?.error || 'Submission failed');
+        }
 
-      setStep('submitted');
-      toast.success('Request submitted! You will hear back from admin soon.');
+        setSubmittedAs('resident');
+        setStep('submitted');
+        toast.success('Welcome aboard! Check your email for your activation link.');
+      } else {
+        // NON-RESIDENT PATH (employer, PO, partner, case manager, sponsor, donor):
+        // Goes to admin onboarding queue for review + manual approval.
+        const request = await base44.entities.OnboardingRequest.create({
+          ...data,
+          request_type: `${selectedRole}_request`,
+          requested_role: selectedRole,
+          status: 'pending',
+          submitted_date: new Date().toISOString(),
+          ai_analysis_complete: false,
+        });
+
+        await base44.functions.invoke('analyzeOnboardingRequest', {
+          request_id: request.id,
+        });
+
+        setSubmittedAs('other');
+        setStep('submitted');
+        toast.success('Request submitted! You will hear back from admin soon.');
+      }
     } catch (err) {
       toast.error(err.message || 'Failed to submit request');
     } finally {
@@ -163,10 +187,12 @@ export default function RequestAccess() {
               <Check className="w-8 h-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-heading font-bold text-foreground mb-2">
-              Request Submitted
+              {submittedAs === 'resident' ? 'Welcome aboard!' : 'Request Submitted'}
             </h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Thank you for your request. An administrator will review your application and contact you within 1-2 business days.
+              {submittedAs === 'resident'
+                ? 'Your account is being set up. Check your email in the next few minutes for an activation link — your case manager will be assigned automatically.'
+                : 'Thank you for your request. An administrator will review your application and contact you within 1-2 business days.'}
             </p>
             <Button onClick={() => navigate('/')} variant="outline">
               Return to Home

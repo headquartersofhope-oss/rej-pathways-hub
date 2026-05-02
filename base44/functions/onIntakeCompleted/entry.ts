@@ -1,16 +1,24 @@
 /**
- * onIntakeCompleted — Week 2 Automation 2
+ * onIntakeCompleted — Symphony Wiring (Phase 2).
  *
  * Fires when an IntakeAssessment status changes to "completed".
+ *
+ * Original responsibilities:
  * - Verifies authoritative intake record
+ * - Detects barriers from assessment data
+ * - Creates ServicePlan + auto-generated tasks
  * - Writes intake_date to Resident
  * - Idempotent: checks for existing barriers/plans before creating
  * - Updates resident status to "active" if still pre_intake
+ *
+ * NEW (Symphony wiring):
+ * - Auto-assigns case manager via load-balanced caseload matching
+ * - If housing.current_status='none' or 'unstable', auto-creates HousingReferral
+ * - Notifies assigned CM via in-app + email (with URGENT prefix if housing crisis)
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Barrier detection logic — mirrors intakeBarriers.js client-side logic
 function detectBarriersFromAssessment(a) {
   const barriers = [];
 
@@ -131,6 +139,45 @@ function generateTasksForBarrier(barrier, planId, residentId, globalResidentId, 
   }));
 }
 
+/**
+ * Auto-assign a case manager via load-balanced caseload matching.
+ * Returns { id, name } if a CM was found, null otherwise.
+ */
+async function autoAssignCaseManager(base44, orgId) {
+  try {
+    const caseManagerProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+      app_role: 'case_manager',
+      status: 'active',
+    });
+
+    const eligible = caseManagerProfiles.filter(cm =>
+      !orgId || !cm.organization_id || cm.organization_id === orgId
+    );
+
+    if (eligible.length === 0) return null;
+
+    const counts = await Promise.all(eligible.map(async (cm) => {
+      const cmId = cm.user_id || cm.id;
+      const caseload = await base44.asServiceRole.entities.Resident.filter({
+        assigned_case_manager_id: cmId,
+        status: 'active',
+      });
+      return { profile: cm, count: caseload.length };
+    }));
+
+    counts.sort((a, b) => a.count - b.count);
+    const chosen = counts[0].profile;
+    return {
+      id: chosen.user_id || chosen.id,
+      name: chosen.full_name || chosen.email,
+      email: chosen.email,
+    };
+  } catch (e) {
+    console.warn('[autoAssignCaseManager] Failed:', e.message);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -143,7 +190,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing entity_id in event payload' }, { status: 400 });
     }
 
-    // Fetch fresh assessment from DB
     let assessment;
     try {
       assessment = await base44.asServiceRole.entities.IntakeAssessment.get(assessmentId);
@@ -151,10 +197,7 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: `IntakeAssessment not found: ${assessmentId}` });
     }
 
-    if (!assessment) {
-      return Response.json({ skipped: true, reason: 'IntakeAssessment not found' });
-    }
-
+    if (!assessment) return Response.json({ skipped: true, reason: 'IntakeAssessment not found' });
     if (assessment.status !== 'completed') {
       return Response.json({ skipped: true, reason: `Assessment status is "${assessment.status}", not completed` });
     }
@@ -173,25 +216,20 @@ Deno.serve(async (req) => {
     } catch (e) {
       return Response.json({ skipped: true, reason: `Resident not found: ${residentId}` });
     }
-    if (!resident) {
-      return Response.json({ skipped: true, reason: 'Resident record not found' });
-    }
+    if (!resident) return Response.json({ skipped: true, reason: 'Resident record not found' });
 
-    // Idempotency: check if this assessment has already been processed
+    // Idempotency
     const existingPlans = await base44.asServiceRole.entities.ServicePlan.filter({ assessment_id: assessmentId });
     if (existingPlans.length > 0) {
-      return Response.json({ skipped: true, reason: 'ServicePlan already exists for this assessment — idempotent skip', assessment_id: assessmentId });
+      return Response.json({ skipped: true, reason: 'ServicePlan already exists — idempotent skip', assessment_id: assessmentId });
     }
-
     const existingBarriers = await base44.asServiceRole.entities.BarrierItem.filter({ assessment_id: assessmentId });
     if (existingBarriers.length > 0) {
-      return Response.json({ skipped: true, reason: 'BarrierItems already exist for this assessment — idempotent skip', assessment_id: assessmentId });
+      return Response.json({ skipped: true, reason: 'BarrierItems already exist — idempotent skip', assessment_id: assessmentId });
     }
 
-    // Detect barriers from assessment data
+    // Detect + create barriers
     const detectedBarriers = detectBarriersFromAssessment(assessment);
-
-    // Create barrier items
     const createdBarriers = await Promise.all(
       detectedBarriers.map(b =>
         base44.asServiceRole.entities.BarrierItem.create({
@@ -216,7 +254,7 @@ Deno.serve(async (req) => {
       created_by: 'system',
     });
 
-    // Generate tasks for all barriers
+    // Generate tasks
     const allTasks = createdBarriers.flatMap(barrier =>
       generateTasksForBarrier(barrier, plan.id, residentId, globalResidentId, orgId)
     );
@@ -224,20 +262,111 @@ Deno.serve(async (req) => {
       allTasks.map(task => base44.asServiceRole.entities.ServiceTask.create(task))
     );
 
-    // Write intake_date to Resident and advance status if still pre_intake
+    // === SYMPHONY: Detect housing crisis ===
+    const housingStatus = assessment.housing?.current_status;
+    const isHousingCrisis = housingStatus === 'none' || housingStatus === 'unstable';
+
+    // === SYMPHONY: Auto-assign case manager (if not already assigned) ===
+    let assignedCM = null;
+    let assignedJustNow = false;
+    if (resident.assigned_case_manager_id) {
+      assignedCM = {
+        id: resident.assigned_case_manager_id,
+        name: resident.assigned_case_manager,
+      };
+    } else {
+      assignedCM = await autoAssignCaseManager(base44, orgId);
+      if (assignedCM) assignedJustNow = true;
+    }
+
+    // === Build resident updates (combines original + new auto-assign) ===
     const intakeDateStr = assessment.completed_at
       ? assessment.completed_at.split('T')[0]
       : new Date().toISOString().split('T')[0];
 
-    const residentUpdates = {
-      intake_date: intakeDateStr,
-    };
+    const residentUpdates: any = { intake_date: intakeDateStr };
     if (resident.status === 'pre_intake') {
       residentUpdates.status = 'active';
     }
+    if (assignedJustNow && assignedCM) {
+      residentUpdates.assigned_case_manager_id = assignedCM.id;
+      residentUpdates.assigned_case_manager = assignedCM.name;
+      residentUpdates.assignment_method = 'auto';
+      residentUpdates.assignment_timestamp = new Date().toISOString();
+      residentUpdates.auto_assignment_reason = 'auto_intake_complete';
+    }
     await base44.asServiceRole.entities.Resident.update(residentId, residentUpdates);
 
-    // Write system CaseNote
+    // === SYMPHONY: Housing crisis dispatch ===
+    let housingReferralId = null;
+    if (isHousingCrisis) {
+      try {
+        const referral = await base44.asServiceRole.entities.HousingReferral.create({
+          resident_id: residentId,
+          global_resident_id: globalResidentId,
+          organization_id: orgId,
+          urgency: 'critical',
+          reason: 'auto_dispatched_from_intake',
+          requested_by: 'system',
+          status: 'pending_assignment',
+          notes: `Resident reported "no stable housing" at intake. Auto-dispatched for immediate placement. Assigned CM: ${assignedCM?.name || 'unassigned'}.`,
+        });
+        housingReferralId = referral.id;
+      } catch (e) {
+        console.warn('[onIntakeCompleted] HousingReferral create failed:', e.message);
+      }
+    }
+
+    // === SYMPHONY: Notify assigned case manager ===
+    if (assignedCM && assignedJustNow) {
+      try {
+        const subject = isHousingCrisis
+          ? `🚨 URGENT: New participant assigned (housing required) — ${resident.first_name} ${resident.last_name}`
+          : `New participant assigned: ${resident.first_name} ${resident.last_name}`;
+
+        const messageBody =
+          `${resident.first_name} ${resident.last_name} (${globalResidentId}) just completed intake and has been assigned to your caseload.\n\n` +
+          `• ${createdBarriers.length} barriers identified\n` +
+          `• ${createdTasks.length} tasks auto-generated\n` +
+          (isHousingCrisis
+            ? '\n⚠️ URGENT: Resident has NO STABLE HOUSING. Housing referral auto-created — please assign a bed today.\n'
+            : '') +
+          `\nOpen their profile to begin: /residents/${residentId}`;
+
+        // Create in-app notification record
+        await base44.asServiceRole.entities.Notification.create({
+          resident_id: residentId,
+          global_resident_id: globalResidentId,
+          recipient_user_id: assignedCM.id,
+          recipient_email: assignedCM.email,
+          recipient_name: assignedCM.name,
+          channel: 'in_app',
+          type: isHousingCrisis ? 'crisis_alert' : 'case_manager_assigned',
+          subject,
+          body: messageBody,
+          link_url: `/residents/${residentId}`,
+          sent_by: 'system',
+          status: 'queued',
+        });
+
+        // Also send email if we have CM's email
+        if (assignedCM.email) {
+          try {
+            await base44.asServiceRole.integrations.Core.SendEmail({
+              to: assignedCM.email,
+              subject,
+              body: messageBody,
+            });
+          } catch (e) {
+            console.warn('[onIntakeCompleted] Email send failed:', e.message);
+          }
+        }
+      } catch (e) {
+        console.warn('[onIntakeCompleted] Notification create failed:', e.message);
+      }
+    }
+
+    // === System CaseNote (audit trail) ===
     await base44.asServiceRole.entities.CaseNote.create({
       resident_id: residentId,
       global_resident_id: globalResidentId,
@@ -245,7 +374,12 @@ Deno.serve(async (req) => {
       staff_id: 'system',
       staff_name: 'Pathways Automation',
       note_type: 'general',
-      description: `[Auto] Intake assessment completed for ${globalResidentId}. ${createdBarriers.length} barrier(s) identified. Service plan created. ${createdTasks.length} task(s) generated. Resident status advanced to: ${residentUpdates.status || resident.status}.`,
+      description:
+        `[Auto] Intake completed for ${globalResidentId}. ${createdBarriers.length} barrier(s) identified. ` +
+        `Service plan created. ${createdTasks.length} task(s) generated. ` +
+        `Resident status: ${residentUpdates.status || resident.status}.` +
+        (assignedJustNow ? ` Auto-assigned to CM: ${assignedCM.name}.` : '') +
+        (isHousingCrisis ? ' Emergency housing referral dispatched.' : ''),
       is_confidential: false,
     });
 
@@ -259,6 +393,11 @@ Deno.serve(async (req) => {
       tasks_created: createdTasks.length,
       intake_date_written: intakeDateStr,
       resident_status: residentUpdates.status || resident.status,
+      case_manager_auto_assigned: assignedJustNow,
+      case_manager_id: assignedCM?.id || null,
+      case_manager_name: assignedCM?.name || null,
+      housing_crisis: isHousingCrisis,
+      housing_referral_id: housingReferralId,
     });
 
   } catch (error) {
