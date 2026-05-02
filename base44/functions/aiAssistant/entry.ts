@@ -2,6 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+// Using Claude Haiku 4.5 — fast, cheap, smart enough for in-app help.
+// For deeper reasoning tasks (intake analysis, resume polishing), use claude-sonnet-4-6.
+const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
 
 const ROLE_CAPABILITIES = {
   case_manager: {
@@ -30,13 +33,12 @@ const ROLE_CAPABILITIES = {
 
 const buildSystemPrompt = (userRole, context, mode = 'assistant') => {
   const roleCapabilities = ROLE_CAPABILITIES[userRole] || {};
-  
-  // Training mode system prompt
+
   if (mode === 'training') {
     return buildTrainingPrompt(userRole, context);
   }
-  
-  let basePrompt = `You are the HOH (Homes of Hope) Assistant, an embedded AI helper for the Pathways Hub platform. You provide role-appropriate guidance, answer questions about workflows, and surface relevant information.
+
+  let basePrompt = `You are the HOH (Headquarters of Hope) Assistant, an embedded AI helper for the Pathways Hub platform. You provide role-appropriate guidance, answer questions about workflows, and surface relevant information.
 
 YOUR ROLE: ${userRole}
 YOUR CAPABILITIES:
@@ -118,14 +120,14 @@ Overdue Tasks: ${health.overdueTasks}
 System Status: ${health.systemStatus}
 Last Sync: ${health.lastSync}`;
   }
-  
+
   if (userRole === 'admin') {
     return `Total Residents: ${health.totalResidents}
 Available Beds: ${health.availableBeds}
 Rides Today: ${health.ridesToday}
 Overdue Tasks: ${health.overdueTasks}`;
   }
-  
+
   return 'Limited system health data for your role';
 };
 
@@ -137,7 +139,7 @@ const formatRoleContext = (context, userRole) => {
 - Housing Pending: ${context.housingPendingCount || 0}
 - Upcoming Rides: ${context.upcomingRidesCount || 0}`;
   }
-  
+
   if (userRole === 'admin') {
     return `System Overview:
 - Total Residents: ${context.totalResidents || 0}
@@ -146,7 +148,7 @@ const formatRoleContext = (context, userRole) => {
 - Team Members: ${context.teamMembers || 0}
 - Tasks Overdue: ${context.overdueTasks || 0}`;
   }
-  
+
   if (userRole === 'super_admin') {
     return `Full System Context:
 - Total Residents: ${context.totalResidents || 0}
@@ -154,11 +156,15 @@ const formatRoleContext = (context, userRole) => {
 - All Modules Status: Available for diagnostics
 - All Data: Accessible for analysis`;
   }
-  
+
   return 'Limited context for your role';
 };
 
 const callClaude = async (userMessage, systemPrompt) => {
+  if (!ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY environment variable is not set. Add it in Base44 Secrets.');
+  }
+
   const response = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
@@ -167,7 +173,7 @@ const callClaude = async (userMessage, systemPrompt) => {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: CLAUDE_MODEL,
       max_tokens: 1000,
       system: systemPrompt,
       messages: [
@@ -180,11 +186,16 @@ const callClaude = async (userMessage, systemPrompt) => {
   });
 
   if (!response.ok) {
-    throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+    // Read the actual error body so logs show what Anthropic is complaining about
+    let errorBody = '';
+    try {
+      errorBody = await response.text();
+    } catch (_) {}
+    throw new Error(`Claude API error: ${response.status} ${response.statusText} — ${errorBody}`);
   }
 
   const data = await response.json();
-  return data.content[0].text;
+  return data?.content?.[0]?.text || 'No response generated.';
 };
 
 Deno.serve(async (req) => {
@@ -207,14 +218,9 @@ Deno.serve(async (req) => {
     }
 
     const role = userRole || user.role;
-
-    // Build system prompt with role and mode
     const systemPrompt = buildSystemPrompt(role, context, mode);
-
-    // Call Claude API
     const aiResponse = await callClaude(userMessage, systemPrompt);
 
-    // Return response with system prompt for dev mode
     return Response.json({
       success: true,
       message: aiResponse,
