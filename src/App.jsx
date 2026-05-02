@@ -63,6 +63,7 @@ import OperationalDashboard from '@/pages/OperationalDashboard';
 import VideoHub from '@/pages/VideoHub';
 import VideoRoom from '@/pages/VideoRoom';
 import VideoHistory from '@/pages/VideoHistory';
+import ResumePrint from '@/pages/ResumePrint';
 
 // =============================================================
 // ROLE GROUPS for route guarding.
@@ -97,7 +98,6 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Private app - show public landing page for unauthenticated users
       return (
         <Routes>
           <Route path="/" element={<PublicLanding />} />
@@ -107,25 +107,25 @@ const AuthenticatedApp = () => {
         </Routes>
       );
     }
-    // For unknown errors, fall through and render the app anyway
   }
 
   return (
     <Routes>
-      {/* Public-ish: anyone authenticated, no role gate */}
+      {/* Public-ish */}
       <Route path="/employer-signup" element={<EmployerSignup />} />
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/request-access" element={<RequestAccess />} />
       <Route path="/auth/activate" element={<ActivateAccount />} />
 
-      {/* Admin-only standalone routes (outside AppLayout) */}
+      {/* Admin-only standalone routes */}
       <Route path="/admin/onboarding"     element={<RequireRole roles={ADMIN_ROLES}><OnboardingQueue /></RequireRole>} />
       <Route path="/admin/control-center" element={<RequireRole roles={ADMIN_ROLES}><AdminControlCenter /></RequireRole>} />
       <Route path="/admin/audit"          element={<RequireRole roles={AUDITOR_ROLES}><AuditCenter /></RequireRole>} />
 
-      {/* All other routes — wrapped in AppLayout for sidebar/header chrome */}
+      {/* Resume print page — standalone (no AppLayout, full-bleed for printing) */}
+      <Route path="/resume/:residentId" element={<RequireRole roles={STAFF_ROLES}><ResumePrint /></RequireRole>} />
+
       <Route element={<AppLayout />}>
-        {/* Dashboard — any authenticated user (Home dispatches per-role view) */}
         <Route path="/" element={<Home />} />
 
         {/* Staff-only participant management */}
@@ -147,27 +147,27 @@ const AuthenticatedApp = () => {
         <Route path="/resources"           element={<RequireRole roles={STAFF_ROLES}><ResourceInventory /></RequireRole>} />
         <Route path="/partners"            element={<RequireRole roles={STAFF_ROLES}><Partners /></RequireRole>} />
 
-        {/* Employer-facing (employer + staff) */}
+        {/* Employer-facing */}
         <Route path="/employer-portal"     element={<RequireRole roles={EMPLOYER_ROLES}><EmployerPortal /></RequireRole>} />
         <Route path="/job-board"           element={<RequireRole roles={EMPLOYER_ROLES}><JobBoard /></RequireRole>} />
 
-        {/* Employer / employment management (staff only — contains hiring stages) */}
+        {/* Employer / employment management */}
         <Route path="/employers"           element={<RequireRole roles={STAFF_ROLES}><Employers /></RequireRole>} />
         <Route path="/employer-directory"  element={<RequireRole roles={STAFF_ROLES}><EmployerDirectory /></RequireRole>} />
         <Route path="/employer-outcomes"   element={<RequireRole roles={STAFF_ROLES}><EmployerOutcomes /></RequireRole>} />
 
-        {/* Reporting & outcomes — staff only */}
+        {/* Reporting & outcomes */}
         <Route path="/reporting"           element={<RequireRole roles={STAFF_ROLES}><Reporting /></RequireRole>} />
         <Route path="/outcomes"            element={<RequireRole roles={STAFF_ROLES}><OutcomesReport /></RequireRole>} />
         <Route path="/outcomes-engine"     element={<RequireRole roles={ADMIN_ROLES}><OutcomesEngine /></RequireRole>} />
         <Route path="/resident-outcomes"   element={<RequireRole roles={STAFF_ROLES}><ResidentOutcomes /></RequireRole>} />
         <Route path="/dashboard/operations" element={<RequireRole roles={MANAGER_ROLES}><OperationalDashboard /></RequireRole>} />
 
-        {/* Funding — admin/grant manager only */}
+        {/* Funding */}
         <Route path="/grants" element={<RequireRole roles={[...ADMIN_ROLES, 'grant_manager']}><GrantTracker /></RequireRole>} />
         <Route path="/donors" element={<RequireRole roles={ADMIN_ROLES}><DonorDatabase /></RequireRole>} />
 
-        {/* Resident self-service — staff can view too for support */}
+        {/* Resident self-service */}
         <Route path="/my-jobs"         element={<RequireRole roles={RESIDENT_ROLES}><MyJobs /></RequireRole>} />
         <Route path="/my-appointments" element={<RequireRole roles={RESIDENT_ROLES}><MyAppointments /></RequireRole>} />
         <Route path="/my-tasks"        element={<RequireRole roles={RESIDENT_ROLES}><MyTasks /></RequireRole>} />
